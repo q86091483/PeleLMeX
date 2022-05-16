@@ -173,7 +173,7 @@ print-%::
 #---------------
 # TPL
 #---------------
-// Export ALL environment variables to sub-makes
+# Export ALL environment variables to sub-makes
 export
 TPL:
 	@echo "==> Building SUNDIALS library"
