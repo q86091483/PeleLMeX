@@ -173,6 +173,8 @@ print-%::
 #---------------
 # TPL
 #---------------
+// Export ALL environment variables to sub-makes
+export
 TPL:
 	@echo "==> Building SUNDIALS library"
 	cd $(PELE_PHYSICS_HOME)/ThirdParty; $(MAKE) $(MAKEFLAGS) sundials
