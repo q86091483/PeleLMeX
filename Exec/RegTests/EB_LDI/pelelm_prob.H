@@ -143,9 +143,9 @@ bcnormal(
   const amrex::Real* prob_lo = geomdata.ProbLo();
   constexpr amrex::Real Pi = 3.14159265358979323846264338327950288;
   auto eos = pele::physics::PhysicsType::eos();
-  amrex::Real Vax_max = 1.0;
-  amrex::Real Vt_max = 1.0;
-  amrex::Real Vr_max = 1.0;
+  amrex::Real Vax_max = 15.0;
+  amrex::Real Vt_max = 10.0;
+  amrex::Real Vr_max = 10.0;
   amrex::Real Vt,Vr;
   amrex::Real rad=0;		//Normalised radius
   amrex::Real theta=0;
@@ -168,10 +168,12 @@ bcnormal(
     }
 
   //Velocity density
-  rad = sqrt(x[1]*x[1]+x[2]*x[2])/0.65;
+  rad = sqrt(x[1]*x[1]+x[2]*x[2])/0.65 * 100.0;
   Vt = -5.3309*rad*rad*rad+6.95*rad*rad-1.3443*rad+0.0893;
   Vr = 679*rad*rad*rad*rad*rad*rad-1857.8*rad*rad*rad*rad*rad+1871.1*rad*rad*rad*rad-857.87*rad*rad*rad+177.68*rad*rad-12.52*rad+0.1702;
   theta = atan2(x[1],x[2]);
+  Vt *= Vt_max;
+  Vr *= Vr_max;
 
   s_ext[VELX] = Vax_max*(-8.9714*rad*rad*rad*rad+8.222*rad*rad*rad+1.2663*rad*rad-0.17*rad-0.1792);
   s_ext[VELY] = cos(theta)*Vr-sin(theta)*Vt;

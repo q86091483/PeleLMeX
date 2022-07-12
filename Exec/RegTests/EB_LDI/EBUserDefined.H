@@ -42,7 +42,7 @@ EBUserDefined(const Geometry& geom,
     ny=ny/nmag;
 
     amrex::EB2::CylinderIF Dump(0.5*d_dump,l_dump, 0, {AMREX_D_DECL(l_venturi+l_swirlercup+l_dump*0.5, 0, 0)}, true);
-    amrex::EB2::CylinderIF VenturiThroat(0.5*d_venturi, l_venturi+l_swirlercup, 0, {AMREX_D_DECL(l_venturi*0.5+l_swirlercup*0.5,0, 0)}, true);
+    amrex::EB2::CylinderIF VenturiThroat(0.5*d_venturi, l_venturi+l_swirlercup, 0, {AMREX_D_DECL(l_venturi*0.499+l_swirlercup*0.499,0, 0)}, true);
     amrex::EB2::PlaneIF nozzle_plane({AMREX_D_DECL(0.5*d_venturi, 0.0, 0)},{AMREX_D_DECL(ny,-nx,0.0)},true);
     amrex::EB2::PlaneIF nozzle_truncplane({AMREX_D_DECL(l_venturi+l_swirlercup+0.00002, 0.0, 0)},{AMREX_D_DECL(1,0,0.0)},true);
     //auto nozzle = amrex::EB2::translate(amrex::EB2::rotate(amrex::EB2::lathe(nozzle_plane), 90 * M_PI / 180, 1),{AMREX_D_DECL(0,0, 0)});
