@@ -146,9 +146,10 @@ bcnormal(
   amrex::Real Vax_max = 15.0;
   amrex::Real Vt_max = 10.0;
   amrex::Real Vr_max = 10.0;
-  amrex::Real Vt,Vr;
-  amrex::Real rad=0;		//Normalised radius
+  amrex::Real Vt,Vr,Vax;
+  amrex::Real rad=0;            //Normalised radius
   amrex::Real theta=0;
+  amrex::Real rad2,rad3,rad4,rad5,rad6;
 
   // Chamber composition
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
@@ -169,15 +170,60 @@ bcnormal(
 
   //Velocity density
   rad = sqrt(x[1]*x[1]+x[2]*x[2])/0.0065;
-  Vt = -5.3309*rad*rad*rad+6.95*rad*rad-1.3443*rad+0.0893;
-  Vr = 679*rad*rad*rad*rad*rad*rad-1857.8*rad*rad*rad*rad*rad+1871.1*rad*rad*rad*rad-857.87*rad*rad*rad+177.68*rad*rad-12.52*rad+0.1702;
+  rad2=rad*rad;
+  rad3=rad2*rad;
+  
+  //Vax using piecewise polynomials
+  if(rad<0.70199)
+  {
+   Vax = -16.79*rad*rad*rad*rad+17.729*rad*rad*rad-1.8714*rad*rad+0.0495*rad-0.1756;
+  }
+  else if(rad>=0.70199 && rad<0.9347)
+  {
+   Vax = 320.52*rad*rad*rad*rad-970.67*rad*rad*rad+1090.2*rad*rad-538.79*rad+99.925;
+  }
+  else
+  {
+   Vax = -11567*rad*rad*rad+33096*rad*rad-31559*rad+10030;
+  }
+  //Vt using piecewise polynomial
+  if(rad<0.5123)
+  {
+    Vt = -35.791*rad*rad*rad*rad+33.658*rad*rad*rad-7.066*rad*rad+0.7142*rad+0.0053;
+  }
+  else if(rad>=0.5123 && rad<0.8835)
+  {
+   Vt = -124.3*rad*rad*rad*rad+348.86*rad*rad*rad-355.91*rad*rad+156.91*rad-24.749;
+  }
+  else if(rad>=0.8835 && rad<0.97048)
+  {
+    Vt = -21.035*rad*rad+39.806*rad-17.83;
+  }
+  else
+  {
+    Vt = -34.24*rad*rad+33.91*rad+0.3303;
+  }
+  //Vr using piecewise polynomial
+  if(rad<0.8047)
+  {
+   Vr = 186.51*rad3*rad3-451.45*rad3*rad2+382.16*rad2*rad2-138.94*rad3+22.391*rad2-0.4038*rad+0.018;
+  }
+  else if(rad>=0.8047 && rad<0.9705)
+  {
+   Vr = -5322.5*rad2*rad2+17973*rad3-22729*rad2+12746*rad-2671.9;
+  }
+  else
+  {
+   Vr = 938.8*rad2-1769.9*rad+831.07;
+  }
+
   theta = atan2(x[1],x[2]);
   Vt *= Vt_max;
   Vr *= Vr_max;
 
-  s_ext[VELX] = Vax_max*(-8.9714*rad*rad*rad*rad+8.222*rad*rad*rad+1.2663*rad*rad-0.17*rad);
-  s_ext[VELY] = cos(theta)*Vr-sin(theta)*Vt;
-  s_ext[VELZ] = sin(theta)*Vr+cos(theta)*Vt;;
+  s_ext[VELX] = Vax_max*Vax;
+  s_ext[VELZ] = cos(theta)*Vr-sin(theta)*Vt;
+  s_ext[VELY] = sin(theta)*Vr+cos(theta)*Vt;
 
 }
 
