@@ -143,11 +143,11 @@ bcnormal(
   const amrex::Real* prob_lo = geomdata.ProbLo();
   constexpr amrex::Real Pi = 3.14159265358979323846264338327950288;
   auto eos = pele::physics::PhysicsType::eos();
-  amrex::Real Vax_max = 15.0;
-  amrex::Real Vt_max = 10.0;
-  amrex::Real Vr_max = 10.0;
+  amrex::Real Vax_max = 100.38;
+  amrex::Real Vt_max = 69.1004;
+  amrex::Real Vr_max = 10.953;
   amrex::Real Vt,Vr,Vax;
-  amrex::Real rad=0;            //Normalised radius
+  amrex::Real rad=0;		//Normalised radius
   amrex::Real theta=0;
   amrex::Real rad2,rad3,rad4,rad5,rad6;
 
@@ -172,58 +172,56 @@ bcnormal(
   rad = sqrt(x[1]*x[1]+x[2]*x[2])/0.0065;
   rad2=rad*rad;
   rad3=rad2*rad;
-  
+  rad4=rad2*rad2;
   //Vax using piecewise polynomials
-  if(rad<0.70199)
-  {
-   Vax = -16.79*rad*rad*rad*rad+17.729*rad*rad*rad-1.8714*rad*rad+0.0495*rad-0.1756;
+  if(rad<0.305992308)
+  {   
+   Vax = 44.141*rad4 - 0.9797*rad3 - 1.7264*rad2 + 0.3147*rad - 0.2413;
   }
-  else if(rad>=0.70199 && rad<0.9347)
+  else if(rad>=0.305992308 && rad<0.880469231)
   {
-   Vax = 320.52*rad*rad*rad*rad-970.67*rad*rad*rad+1090.2*rad*rad-538.79*rad+99.925;
+   Vax = -5.8675*rad4 + 18.068*rad3 - 21.319*rad2 + 12.122*rad - 2.123;
   }
   else
   {
-   Vax = -11567*rad*rad*rad+33096*rad*rad-31559*rad+10030;
+   Vax = -66.92*rad3 + 199.57*rad2 - 196.03*rad + 64.397;
   }
+  
   //Vt using piecewise polynomial
-  if(rad<0.5123)
+  if(rad<0.328516923)
   {
-    Vt = -35.791*rad*rad*rad*rad+33.658*rad*rad*rad-7.066*rad*rad+0.7142*rad+0.0053;
+    Vt = 14.28*rad4 + 19.301*rad3 - 8.7313*rad2 + 1.4342*rad - 0.0517 ;
   }
-  else if(rad>=0.5123 && rad<0.8835)
+  else if(rad>=0.328516923 && rad<0.929504615)
   {
-   Vt = -124.3*rad*rad*rad*rad+348.86*rad*rad*rad-355.91*rad*rad+156.91*rad-24.749;
+   Vt = -0.1285*rad4 + 4.1168*rad3 - 9.8697*rad2 + 8.4315*rad - 1.5255;
   }
-  else if(rad>=0.8835 && rad<0.97048)
+  else 
   {
-    Vt = -21.035*rad*rad+39.806*rad-17.83;
+    Vt = -780.4*rad3 + 2190.7*rad2 - 2049.4*rad + 639.92;
   }
-  else
-  {
-    Vt = -34.24*rad*rad+33.91*rad+0.3303;
-  }
+  
   //Vr using piecewise polynomial
-  if(rad<0.8047)
+  if(rad<0.362524615)
   {
-   Vr = 186.51*rad3*rad3-451.45*rad3*rad2+382.16*rad2*rad2-138.94*rad3+22.391*rad2-0.4038*rad+0.018;
+    Vr = -193.86*rad4 + 193.68*rad3 - 55.821*rad2 + 7.0488*rad - 0.1963;
   }
-  else if(rad>=0.8047 && rad<0.9705)
+  else if(rad>=0.362524615 && rad<0.929504615)
   {
-   Vr = -5322.5*rad2*rad2+17973*rad3-22729*rad2+12746*rad-2671.9;
+    Vr = -248.86*rad4*rad + 745.35*rad4 - 865.67*rad3 + 476.15*rad2 - 123.03*rad + 12.842; 
   }
   else
   {
-   Vr = 938.8*rad2-1769.9*rad+831.07;
+    Vr = -72889*rad3 + 208825*rad2 - 199395*rad + 63452; 
   }
-
+  
   theta = atan2(x[1],x[2]);
   Vt *= Vt_max;
   Vr *= Vr_max;
-
+  
   s_ext[VELX] = Vax_max*Vax;
   s_ext[VELZ] = cos(theta)*Vr-sin(theta)*Vt;
-  s_ext[VELY] = sin(theta)*Vr+cos(theta)*Vt;
+  s_ext[VELY] = sin(theta)*Vr+cos(theta)*Vt;;
 
 }
 
