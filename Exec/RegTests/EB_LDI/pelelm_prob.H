@@ -219,9 +219,16 @@ bcnormal(
   Vt *= Vt_max;
   Vr *= Vr_max;
   
-  s_ext[VELX] = Vax_max*Vax;
-  s_ext[VELZ] = cos(theta)*Vr-sin(theta)*Vt;
-  s_ext[VELY] = sin(theta)*Vr+cos(theta)*Vt;;
+  // Add to the turb perturbation
+  if ( rad < 0.4 ) { // Keep turbulence in the swirling jet only
+      s_ext[VELX] = Vax_max*Vax;
+      s_ext[VELZ] = cos(theta)*Vr-sin(theta)*Vt;
+      s_ext[VELY] = sin(theta)*Vr+cos(theta)*Vt;;
+  } else {
+      s_ext[VELX] += Vax_max*Vax;
+      s_ext[VELZ] += cos(theta)*Vr-sin(theta)*Vt;
+      s_ext[VELY] += sin(theta)*Vr+cos(theta)*Vt;;
+  }
 
 }
 
