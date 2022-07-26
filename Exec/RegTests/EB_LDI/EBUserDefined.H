@@ -46,6 +46,8 @@ EBUserDefined(const Geometry& geom,
     amrex::EB2::PlaneIF nozzle_plane({AMREX_D_DECL(0.5*d_venturi, 0.0, 0)},{AMREX_D_DECL(ny,-nx,0.0)},true);
     amrex::EB2::PlaneIF nozzle_truncplane({AMREX_D_DECL(l_venturi+l_swirlercup+0.00002, 0.0, 0)},{AMREX_D_DECL(1,0,0.0)},true);
     auto nozzle = amrex::EB2::translate(amrex::EB2::rotate(amrex::EB2::lathe(nozzle_plane), 90 * M_PI / 180, 1),{AMREX_D_DECL(0,0, 0)});
+    amrex::EB2::PlaneIF exit_plane({AMREX_D_DECL(0.0, 0.0, 0.0)},{AMREX_D_DECL(1.0,1.0,0.0)},true);
+    auto exit_conv = amrex::EB2::translate(amrex::EB2::rotate(amrex::EB2::lathe(exit_plane), 90 * M_PI / 180, 1),{AMREX_D_DECL(1.12*phi[0],0, 0)});
     //auto nozzle = amrex::EB2::rotate(amrex::EB2::translate(amrex::EB2::lathe(nozzle_plane),{AMREX_D_DECL(0,0,(l_venturi+l_swirlercup))}),90*M_PI / 180, 1);
 
     auto nozzle_trunc = amrex::EB2::makeUnion(nozzle,nozzle_truncplane);
@@ -56,7 +58,8 @@ EBUserDefined(const Geometry& geom,
     //auto polys =amrex::EB2::makeIntersection(Dump,nozzle_trunc);
     //auto polys = VenturiThroat;
 
-    auto polys =amrex::EB2::makeIntersection(Dump,VenturiThroat,nozzle_trunc);
+    auto polys_1 = amrex::EB2::makeIntersection(Dump,VenturiThroat,nozzle_trunc);
+    auto polys = amrex::EB2::makeUnion(polys_1,exit_conv);
     auto gshop = amrex::EB2::makeShop(polys);
     amrex::EB2::Build(gshop, geom, required_coarsening_level, max_coarsening_level);
 }
