@@ -12,12 +12,12 @@ DEBUG           = FALSE
 PRECISION       = DOUBLE
 VERBOSE         = FALSE
 TINY_PROFILE    = FALSE
-USE_EB		= TRUE
-USE_HYPRE	= FALSE
+USE_EB		    = TRUE
+USE_HYPRE	    = FALSE
 
 # Compilation
 COMP            = gnu
-USE_MPI         = FALSE 
+USE_MPI         = TRUE
 USE_OMP         = FALSE
 USE_CUDA        = FALSE
 USE_HIP         = FALSE
@@ -27,8 +27,13 @@ CEXE_headers 	+= EBUserDefined.H
 
 PELE_USE_MAGMA  = FALSE
 
+# PeleMP
+USE_PARTICLES   = TRUE
+SPRAY_FUEL_NUM = 1
+CEXE_sources += SprayParticlesInitInsert.cpp
+
 # PelePhysics
-Chemistry_Model = air
+Chemistry_Model = heptane_3sp
 Eos_Model	 = Fuego
 Transport_Model = Simple
 
