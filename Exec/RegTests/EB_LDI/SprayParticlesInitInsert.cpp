@@ -106,6 +106,7 @@ SprayParticleContainer::injectParticles(Real time,
       dropDist = DistBase::create(dist_type);
       dropDist->init("RosinRammler");
       */
+      WeibullDist w_dist(prob_parm.rr_mean_diam, prob_parm.rr_k);
 
       // Host container
       amrex::ParticleLocData pld;  
@@ -116,15 +117,30 @@ SprayParticleContainer::injectParticles(Real time,
 
       // Inject mass until we have the desired amount
       amrex::Real total_mass = 0.;
+      amrex::Real remaining_mass = injection_mass;
       while (total_mass < injection_mass) {
+
+          // Get a particle size
+          Real cur_dia = 0.0;
+          if ( prob_parm.part_dia_saved > 0.0 ) { // We have a stored particles, use it (already checked that we can use it)
+             cur_dia = prob_parm.part_dia_saved;
+             prob_parm.part_dia_saved = -1.0;
+          } else {    // Draw a particle
+             cur_dia = w_dist.get_dia();
+             Real pmass = Pi_six * rho_part * std::pow(cur_dia, 3);
+             if ( remaining_mass < pmass ) {  // Don't have enough mass left, store it for later
+                 prob_parm.part_dia_saved = cur_dia;
+                 break;
+             }
+          }
 
           // Pick a random radial location and get corresponding half angle
           // See Sanjose et al. for geometrical relation between real injector plane and injection
-          // location plane -> here we assume they are the same, so inp_p_alpha is ~ 0.0
+          // location plane -> provided by l0
           Real inj_p_rad_random = amrex::Random();
-          Real inj_p_rad = ra + inj_p_rad_random * (r0 - ra);
           Real inj_p_theta = theta_min + inj_p_rad_random * (theta_max - theta_min);
-          Real inj_p_alpha = std::asin( inj_p_rad / inj_p_rad );  // Odd ...
+          Real inj_p_rad = prob_parm.ps_l0 * inj_p_theta + ra + inj_p_rad_random * (r0 - ra);
+          Real inj_p_alpha = std::asin( (ra + inj_p_rad_random * (r0 - ra)) / inj_p_rad );
 
           // Get the random position on the azimuth [0:2*pi]
           Real inj_p_angle_random = amrex::Random() * 2.0 * M_PI;
@@ -161,14 +177,6 @@ SprayParticleContainer::injectParticles(Real time,
                        p.rdata(pstateVel + 1) = part_vel[1];,
                        p.rdata(pstateVel + 2) = part_vel[2];);
 
-          // Get a particle size
-          Real cur_dia = 0.0;
-          if ( prob_parm.part_dia_saved > 0.0 ) { // We have a stored particles, use it
-             cur_dia = prob_parm.part_dia_saved;
-             prob_parm.part_dia_saved = -1.0;
-          } else {    // Draw a particle
-             cur_dia = 0.000035;
-          }
 
           // Add particles as if they have advanced some random portion of dt
           Real pmov = amrex::Random();
@@ -193,6 +201,7 @@ SprayParticleContainer::injectParticles(Real time,
 
           Real pmass = Pi_six * rho_part * std::pow(cur_dia, 3);
           total_mass += num_ppp * pmass;
+          remaining_mass = injection_mass - total_mass;
       }
       
       // Move particles to level holder

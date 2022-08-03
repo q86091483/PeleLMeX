@@ -121,6 +121,9 @@ void PeleLM::readProbParm()
    pp.query("spray_end_time",PeleLM::prob_parm->jet_end_time);
    pp.query("pressure_swirl_theta",PeleLM::prob_parm->ps_halfangle);
    pp.query("pressure_swirl_r0",PeleLM::prob_parm->ps_r0);
+   pp.query("pressure_swirl_l0",PeleLM::prob_parm->ps_l0);
    pp.query("pressure_swirl_rmsvel",PeleLM::prob_parm->ps_rmsvel);
+   pp.query("rosin_rammler_mean",PeleLM::prob_parm->rr_mean_diam);
+   pp.query("rosin_rammler_k",PeleLM::prob_parm->rr_k);
    
 }
