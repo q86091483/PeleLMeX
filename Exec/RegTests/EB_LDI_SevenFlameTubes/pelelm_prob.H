@@ -226,55 +226,54 @@ bcnormal(
   const amrex::Real* prob_lo = geomdata.ProbLo();
   constexpr amrex::Real Pi = 3.14159265358979323846264338327950288;
   auto eos = pele::physics::PhysicsType::eos();
+
+  //Vel profiles are calculated using piece-wise polynomials as a function of non-dim rad. They are then scaled by scaling factors provided below 
   amrex::Real Vax_max = 143.0;
   amrex::Real Vt_max = 102.0;
   amrex::Real Vr_max = 14.0;
-  amrex::Real Vt=0,Vr=0,Vax=0;
-  amrex::Real rad=0;		//Normalised radius
-  amrex::Real theta=0;
-  amrex::Real radius_cup=0.0065;
 
-  //Center locations of all cups
-  amrex::Real cen_y_swirler_0,cen_z_swirler_0;
-  amrex::Real cen_y_swirler_1,cen_z_swirler_1;
-  amrex::Real cen_y_swirler_2,cen_z_swirler_2;
-  amrex::Real cen_y_swirler_3,cen_z_swirler_3;
-  amrex::Real cen_y_swirler_4,cen_z_swirler_4;
-  amrex::Real cen_y_swirler_5,cen_z_swirler_5;
-  amrex::Real cen_y_swirler_6,cen_z_swirler_6;
-
-  cen_y_swirler_0 = 0.0; cen_z_swirler_0 = 0.0;
-  cen_y_swirler_1 = -0.011904858869; cen_z_swirler_1 = 0.020620105463;
-  cen_y_swirler_2 = -0.02380996; cen_z_swirler_2 = 0.0;
-  cen_y_swirler_3 = -0.011904858869; cen_z_swirler_3 = -0.020620105463;
-  cen_y_swirler_4 = 0.011904858869; cen_z_swirler_4 = -0.020620105463;
-  cen_y_swirler_5 = 0.02380996; cen_z_swirler_5 = 0.0;
-  cen_y_swirler_6 = 0.011904858869; cen_z_swirler_6 = 0.020620105463;
   
-  // Chamber composition
+  amrex::Real Vt=0,Vr=0,Vax=0;            //Velocity variables in local cylindrical coordinates
+  amrex::Real rad=0;		          //Normalised radius
+  amrex::Real theta=0;                    //Calculated in the y-z plane
+  constexpr amrex::Real radius_cup=0.0065;//Radius at the venturi plane 
+
+  //Center locations of all cups. I have taken it from the CAD file rather than calculating it in the code.
+  amrex::Real cen_y_swirler[7] = {0.0,-0.011904858869,-0.02380996,-0.011904858869,0.011904858869,0.02380996,0.011904858869};
+  amrex::Real cen_z_swirler[7] = {0.0,0.020620105463,0.0,-0.020620105463,-0.020620105463,0.0,0.020620105463};
+  
+  // Chamber gas composition
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[O2_ID] = 0.233;
   massfrac[N2_ID] = 0.767;
 
-  amrex::Real p_cgs = prob_parm.P_mean * 10.0;
+  //Thermo/fluid variables
+  amrex::Real p_cgs = prob_parm.P_mean * 10.0;		//From user input and converting it into cgs unit
   amrex::Real rho_cgs = 0.0;
   amrex::Real RhoH_temp = 0.0;
-  s_ext[TEMP] = prob_parm.T_mean;
+  s_ext[TEMP] = prob_parm.T_mean;			//From user input
   eos.PYT2R(p_cgs, massfrac, s_ext[TEMP], rho_cgs);
-  s_ext[DENSITY] = rho_cgs * 1.0e3;
+  s_ext[DENSITY] = rho_cgs * 1.0e3;			// CGS -> MKS conversion
   eos.TY2H(s_ext[TEMP], massfrac, RhoH_temp);
-  s_ext[RHOH] = RhoH_temp * 1.0e-4 * s_ext[DENSITY];   // CGS -> MKS conversion
+  s_ext[RHOH] = RhoH_temp * 1.0e-4 * s_ext[DENSITY];    // CGS -> MKS conversion
 
-  for (int n = 0; n < NUM_SPECIES; n++) 
+  for (int n = 0; n < NUM_SPECIES; n++) 		// Specifying inflow gas composition
   {
      s_ext[FIRSTSPEC+n] = massfrac[n] * s_ext[DENSITY];
   }
+  
+  s_ext[VELX] = 0.0;
+  s_ext[VELY] = 0.0;
+  s_ext[VELZ] = 0.0;
 
-  //Velocity density
-  if(sqrt((x[1]-cen_y_swirler_0)*(x[1]-cen_y_swirler_0)+(x[2]-cen_z_swirler_0)*(x[2]-cen_z_swirler_0))<=radius_cup)
+  //Specifying velocity profiles on all cups
+  for(int cup_number=0;cup_number<7;cup_number++)
   {
-	  theta = atan2(x[1]-cen_y_swirler_0,x[2]-cen_z_swirler_0);
-	  rad = sqrt((x[1]-cen_y_swirler_0)*(x[1]-cen_y_swirler_0)+(x[2]-cen_z_swirler_0)*(x[2]-cen_z_swirler_0))/0.0065;
+     
+    if(sqrt(std::pow((x[1]-cen_y_swirler[cup_number]),2.0)+pow((x[2]-cen_z_swirler[cup_number]),2.0))<=radius_cup)
+    	{
+	  theta = atan2(x[1]-cen_y_swirler[cup_number],x[2]-cen_z_swirler[cup_number]);
+	  rad = sqrt(std::pow((x[1]-cen_y_swirler[cup_number]),2.0)+pow((x[2]-cen_z_swirler[cup_number]),2.0))/radius_cup;
           Vax = Get_Axial_Velocity(rad);
           Vr = Get_Rad_Velocity(rad); 
           Vt = Get_Tang_Velocity(rad);
@@ -283,106 +282,9 @@ bcnormal(
           s_ext[VELX] = Vax*Vax_max;
           s_ext[VELZ] = -(cos(theta)*Vr-sin(theta)*Vt);
           s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);         
-          //std::cout<<"\n Sree "<<x[0]<<"\t"<<x[1]<<"\t"<<x[2]<<"\t"<<s_ext[VELX]<<"\t"<<s_ext[VELY]<<"\t"<< s_ext[VELZ]<<std::endl;
+          std::cout<<"\n Sree "<<x[0]<<"\t"<<x[1]<<"\t"<<x[2]<<"\t"<<s_ext[VELX]<<"\t"<<s_ext[VELY]<<"\t"<< s_ext[VELZ]<<std::endl;
+  	}
   }
-  else if(sqrt((x[1]-cen_y_swirler_1)*(x[1]-cen_y_swirler_1)+(x[2]-cen_z_swirler_1)*(x[2]-cen_z_swirler_1))<=radius_cup)
-  {
-	  theta = atan2(x[1]-cen_y_swirler_1,x[2]-cen_z_swirler_1);
-	  rad = sqrt((x[1]-cen_y_swirler_1)*(x[1]-cen_y_swirler_1)+(x[2]-cen_z_swirler_1)*(x[2]-cen_z_swirler_1))/0.0065;
-          Vax = Get_Axial_Velocity(rad);
-          Vr = Get_Rad_Velocity(rad);
-          Vt = Get_Tang_Velocity(rad);
-          Vt *= Vt_max;
-          Vr *= Vr_max;
-          
-          
-          s_ext[VELX] = Vax*Vax_max;
-          s_ext[VELZ] = -(cos(theta)*Vr-sin(theta)*Vt);
-          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);
-          //std::cout<<"\n Sree "<<x[0]<<"\t"<<x[1]<<"\t"<<x[2]<<"\t"<<s_ext[VELX]<<"\t"<<s_ext[VELY]<<"\t"<< s_ext[VELZ]<<std::endl;
-  }
-  else if(sqrt((x[1]-cen_y_swirler_2)*(x[1]-cen_y_swirler_2)+(x[2]-cen_z_swirler_2)*(x[2]-cen_z_swirler_2))<=radius_cup)
- {
-	 theta = atan2(x[1]-cen_y_swirler_2,x[2]-cen_z_swirler_2);
-         rad = sqrt((x[1]-cen_y_swirler_2)*(x[1]-cen_y_swirler_2)+(x[2]-cen_z_swirler_2)*(x[2]-cen_z_swirler_2))/0.0065;
-         Vax = Get_Axial_Velocity(rad);
-          Vr = Get_Rad_Velocity(rad);
-           Vt = Get_Tang_Velocity(rad);
-         Vt *= Vt_max;
-          Vr *= Vr_max;
-
-          s_ext[VELX] = Vax*Vax_max;
-          s_ext[VELZ] = -(cos(theta)*Vr-sin(theta)*Vt);
-          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);
-
-          //std::cout<<"\n Sree "<<x[0]<<"\t"<<x[1]<<"\t"<<x[2]<<"\t"<<s_ext[VELX]<<"\t"<<s_ext[VELY]<<"\t"<< s_ext[VELZ]<<std::endl;
- }
-  else if(sqrt((x[1]-cen_y_swirler_3)*(x[1]-cen_y_swirler_3)+(x[2]-cen_z_swirler_3)*(x[2]-cen_z_swirler_3))<=radius_cup)
- {
-	  theta = atan2(x[1]-cen_y_swirler_3,x[2]-cen_z_swirler_3);
-         rad = sqrt((x[1]-cen_y_swirler_3)*(x[1]-cen_y_swirler_3)+(x[2]-cen_z_swirler_3)*(x[2]-cen_z_swirler_3))/0.0065;
-         Vax = Get_Axial_Velocity(rad);
-          Vr = Get_Rad_Velocity(rad);
-          Vt = Get_Tang_Velocity(rad);
-         Vt *= Vt_max;
-          Vr *= Vr_max;
-
-          s_ext[VELX] = Vax*Vax_max;
-          s_ext[VELZ] = -(cos(theta)*Vr-sin(theta)*Vt);
-          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);
-          //std::cout<<"\n Sree "<<x[0]<<"\t"<<x[1]<<"\t"<<x[2]<<"\t"<<s_ext[VELX]<<"\t"<<s_ext[VELY]<<"\t"<< s_ext[VELZ]<<std::endl;
- }
-  else if(sqrt((x[1]-cen_y_swirler_4)*(x[1]-cen_y_swirler_4)+(x[2]-cen_z_swirler_4)*(x[2]-cen_z_swirler_4))<=radius_cup)
- {
-	  theta = atan2(x[1]-cen_y_swirler_4,x[2]-cen_z_swirler_4);
-         rad = sqrt((x[1]-cen_y_swirler_4)*(x[1]-cen_y_swirler_4)+(x[2]-cen_z_swirler_4)*(x[2]-cen_z_swirler_4))/0.0065;
-         Vax = Get_Axial_Velocity(rad);
-          Vr = Get_Rad_Velocity(rad);
-          Vt = Get_Tang_Velocity(rad);
-         Vt *= Vt_max;
-          Vr *= Vr_max;
-
-          s_ext[VELX] = Vax*Vax_max;
-          s_ext[VELZ] = -(cos(theta)*Vr-sin(theta)*Vt);
-          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);
-          //std::cout<<"\n Sree "<<x[0]<<"\t"<<x[1]<<"\t"<<x[2]<<"\t"<<s_ext[VELX]<<"\t"<<s_ext[VELY]<<"\t"<< s_ext[VELZ]<<std::endl;
- }
-  else if(sqrt((x[1]-cen_y_swirler_5)*(x[1]-cen_y_swirler_5)+(x[2]-cen_z_swirler_5)*(x[2]-cen_z_swirler_5))<=radius_cup)
- {
-	  theta = atan2(x[1]-cen_y_swirler_5,x[2]-cen_z_swirler_5);
-         rad = sqrt((x[1]-cen_y_swirler_5)*(x[1]-cen_y_swirler_5)+(x[2]-cen_z_swirler_5)*(x[2]-cen_z_swirler_5))/0.0065;
-         Vax = Get_Axial_Velocity(rad);
-          Vr = Get_Rad_Velocity(rad);
-          Vt = Get_Tang_Velocity(rad);
-         Vt *= Vt_max;
-          Vr *= Vr_max;
-
-          s_ext[VELX] = Vax*Vax_max;
-          s_ext[VELZ] = -(cos(theta)*Vr-sin(theta)*Vt);
-          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);
-          //std::cout<<"\n Sree "<<x[0]<<"\t"<<x[1]<<"\t"<<x[2]<<"\t"<<s_ext[VELX]<<"\t"<<s_ext[VELY]<<"\t"<< s_ext[VELZ]<<std::endl;
- }
-  else if(sqrt((x[1]-cen_y_swirler_6)*(x[1]-cen_y_swirler_6)+(x[2]-cen_z_swirler_6)*(x[2]-cen_z_swirler_6))<=radius_cup)
- {
-	  theta = atan2(x[1]-cen_y_swirler_6,x[2]-cen_z_swirler_6);
-         rad = sqrt((x[1]-cen_y_swirler_6)*(x[1]-cen_y_swirler_6)+(x[2]-cen_z_swirler_6)*(x[2]-cen_z_swirler_6))/0.0065;
-         Vax = Get_Axial_Velocity(rad);
-          Vr = Get_Rad_Velocity(rad);
-          Vt = Get_Tang_Velocity(rad);
-         Vt *= Vt_max;
-          Vr *= Vr_max;
-
-          s_ext[VELX] = Vax*Vax_max;
-          s_ext[VELZ] = -(cos(theta)*Vr-sin(theta)*Vt);
-          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);
-          //std::cout<<"\n Sree "<<x[0]<<"\t"<<x[1]<<"\t"<<x[2]<<"\t"<<s_ext[VELX]<<"\t"<<s_ext[VELY]<<"\t"<< s_ext[VELZ]<<std::endl;
- }
- else
-{
-  s_ext[VELX] = 0.0;
-  s_ext[VELZ] = 0.0;
-  s_ext[VELY] = 0.0;
-}
 }
 
 AMREX_GPU_DEVICE
