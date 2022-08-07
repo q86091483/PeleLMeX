@@ -281,8 +281,7 @@ bcnormal(
           Vr *= Vr_max;
           s_ext[VELX] = Vax*Vax_max;
           s_ext[VELZ] = -(cos(theta)*Vr-sin(theta)*Vt);
-          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);         
-          std::cout<<"\n Sree "<<x[0]<<"\t"<<x[1]<<"\t"<<x[2]<<"\t"<<s_ext[VELX]<<"\t"<<s_ext[VELY]<<"\t"<< s_ext[VELZ]<<std::endl;
+          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);                   
   	}
   }
 }
