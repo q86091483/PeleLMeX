@@ -113,6 +113,11 @@ void PeleLM::readProbParm()
    // Chamber conditions
    pp.query("P_mean", PeleLM::prob_parm->P_mean);
    pp.query("T_mean", PeleLM::prob_parm->T_mean);
+   pp.query("activate_fuel_injection", PeleLM::prob_parm->activate_fuel_injection);
+   pp.query("fuel_injection_max_radius", PeleLM::prob_parm->fuel_injection_max_radius);
+   pp.query("Y_O2_FUEL", PeleLM::prob_parm->Y_O2_FUEL);
+   pp.query("Y_N2_FUEL", PeleLM::prob_parm->Y_N2_FUEL);
+   pp.query("Y_C12H26_FUEL", PeleLM::prob_parm->Y_C12H26_FUEL);
 
    
 }

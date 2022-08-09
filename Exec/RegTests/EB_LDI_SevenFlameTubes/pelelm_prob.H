@@ -272,8 +272,20 @@ bcnormal(
      
     if(sqrt(std::pow((x[1]-cen_y_swirler[cup_number]),2.0)+pow((x[2]-cen_z_swirler[cup_number]),2.0))<=radius_cup)
     	{
+         
 	  theta = atan2(x[1]-cen_y_swirler[cup_number],x[2]-cen_z_swirler[cup_number]);
 	  rad = sqrt(std::pow((x[1]-cen_y_swirler[cup_number]),2.0)+pow((x[2]-cen_z_swirler[cup_number]),2.0))/radius_cup;
+          //radius is less than 0.5 pump in fuel Yf = 0.5 else put air
+          if(rad<=prob_parm.fuel_injection_max_radius && prob_parm.activate_fuel_injection)
+          {
+	     massfrac[O2_ID] = prob_parm.Y_O2_FUEL;
+             massfrac[N2_ID] = prob_parm.Y_N2_FUEL;
+             massfrac[NC12H26_ID] = prob_parm.Y_C12H26_FUEL;
+             for (int n = 0; n < NUM_SPECIES; n++)                 // Specifying inflow gas composition
+             {
+                  s_ext[FIRSTSPEC+n] = massfrac[n] * s_ext[DENSITY];
+             }              
+          }
           Vax = Get_Axial_Velocity(rad);
           Vr = Get_Rad_Velocity(rad); 
           Vt = Get_Tang_Velocity(rad);
@@ -281,7 +293,7 @@ bcnormal(
           Vr *= Vr_max;
           s_ext[VELX] = Vax*Vax_max;
           s_ext[VELZ] = -(cos(theta)*Vr-sin(theta)*Vt);
-          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);                   
+          s_ext[VELY] = -(sin(theta)*Vr+cos(theta)*Vt);         
   	}
   }
 }

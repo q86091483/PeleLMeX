@@ -17,7 +17,11 @@ struct ProbParm
    amrex::Real l_swirlercup = 0.0043688;
    amrex::Real l_dump = 0.20;
 
-
+   bool activate_fuel_injection = false;
+   amrex::Real fuel_injection_max_radius=0.5;
+   amrex::Real Y_O2_FUEL=0.065963;
+   amrex::Real Y_N2_FUEL=0.434037;
+   amrex::Real Y_C12H26_FUEL=0.5;
 
    // Chamber conditions
    amrex::Real P_mean        = 101325.0;

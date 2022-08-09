@@ -15,7 +15,7 @@ peleLM.hi_bc = Outflow NoSlipWallAdiab NoSlipWallAdiab
 amr.n_cell          = 256 128 128      # Level 0 number of cells in each direction   
 #amr.n_cell          = 256 128 128      # Level 0 number of cells in each direction   
 amr.v               = 1                # AMR verbose
-amr.max_level       = 1                # maximum level number allowed
+amr.max_level       = 0                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 2        # refinement ratio
 amr.regrid_int      = 5                # how often to regrid
 amr.n_error_buf     = 2 2 2 2          # number of buffer cells in error est
@@ -25,7 +25,12 @@ amr.max_grid_size   = 64               # max box size
 
 #--------------------------- Problem -------------------------------
 prob.P_mean = 101325.0
-prob.T_mean = 300.0
+prob.T_mean = 500.0
+prob.activate_fuel_injection = false
+prob.fuel_injection_max_radius = 0.5
+prob.Y_O2_FUEL=0.065963
+prob.Y_N2_FUEL=0.434037
+prob.Y_C12H26_FUEL=0.5
 
 prob.d_venturi           = 0.013
 prob.d_swirlerexit       = 0.02032
@@ -84,10 +89,10 @@ peleLM.refine_EB_buffer = 2.0
 #amr.temp.value_greater = 305
 #amr.temp.field_name    = temp
 
-#amr.refinement_indicators = magVort
-#amr.magVort.max_level     = 3
-#amr.magVort.value_greater = 5.0
-#amr.magVort.field_name    = mag_vort
+amr.refinement_indicators = magVort
+amr.magVort.max_level     = 1
+amr.magVort.value_greater = 80000.0 
+amr.magVort.field_name    = mag_vort
 
 #amr.refinement_indicators = boxHX
 #amr.boxHX.max_level     = 1
