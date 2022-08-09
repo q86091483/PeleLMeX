@@ -97,11 +97,17 @@ void pelelm_initdata(int i, int j, int k,
         amrex::Real mixingWidth = 0.01*prob_parm.ign_radius;
         amrex::Real mixingFunction = 0.5 * ( 1.0 + std::tanh((prob_parm.ign_radius - rad)/mixingWidth));
         amrex::Real massfrac_hot[NUM_SPECIES] = {0.0};
-        massfrac_hot[O2_ID] = 0.233;
-        massfrac_hot[N2_ID] = 0.767;
+        massfrac_hot[O2_ID] = 0.055;
+        massfrac_hot[H2O_ID] = 0.065;
+        massfrac_hot[CO2_ID] = 0.148;
+        massfrac_hot[CO_ID] = 0.0005;
+        massfrac_hot[N2_ID] = 1.0 - massfrac_hot[O2_ID] - massfrac_hot[H2O_ID] - massfrac_hot[CO2_ID] - massfrac_hot[CO_ID];
         state(i,j,k,TEMP) = mixingFunction * prob_parm.ign_temp + (1.0-mixingFunction) * prob_parm.T_mean;
         massfrac[NC12H26_ID] = (1.0-mixingFunction) * massfrac[NC12H26_ID] + mixingFunction * massfrac_hot[NC12H26_ID];
         massfrac[O2_ID] = (1.0-mixingFunction) * massfrac[O2_ID] + mixingFunction * massfrac_hot[O2_ID];
+        massfrac[H2O_ID] = (1.0-mixingFunction) * massfrac[H2O_ID] + mixingFunction * massfrac_hot[H2O_ID];
+        massfrac[CO2_ID] = (1.0-mixingFunction) * massfrac[CO2_ID] + mixingFunction * massfrac_hot[CO2_ID];
+        massfrac[CO_ID] = (1.0-mixingFunction) * massfrac[CO_ID] + mixingFunction * massfrac_hot[CO_ID];
         massfrac[N2_ID] = (1.0-mixingFunction) * massfrac[N2_ID] + mixingFunction * massfrac_hot[N2_ID];
     }
 
@@ -236,11 +242,11 @@ bcnormal(
   
   // Add to the turb perturbation
   if ( rad < 0.4 ) { // Keep turbulence in the swirling jet only
-      s_ext[VELX] = Vax_max*Vax;
+      s_ext[VELX] = amrex::max(-5.0,Vax_max*Vax);
       s_ext[VELZ] = cos(theta)*Vr-sin(theta)*Vt;
       s_ext[VELY] = sin(theta)*Vr+cos(theta)*Vt;;
   } else {
-      s_ext[VELX] += Vax_max*Vax;
+      s_ext[VELX] += amrex::max(-5.0,Vax_max*Vax);
       s_ext[VELZ] += cos(theta)*Vr-sin(theta)*Vt;
       s_ext[VELY] += sin(theta)*Vr+cos(theta)*Vt;;
   }
