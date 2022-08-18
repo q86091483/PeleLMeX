@@ -222,13 +222,16 @@ PeleLM::removeGhostParticles(const int level)
 void
 PeleLM::createSprayData()
 {
+  // TODO: hack away the lo-x BC to avoid losing particle on the inflow with backflow
+  amrex::BCRec  m_spray_phys_bc = m_phys_bc;
+  m_spray_phys_bc.setLo(0,4);       // Force x-low to be a slip Wall adiab
   SprayPC = new SprayParticleContainer(
-    this, &m_phys_bc, sprayData, scomps, wall_temp, max_spray_cfl);
+    this, &m_spray_phys_bc, sprayData, scomps, wall_temp, max_spray_cfl);
   theSprayPC()->SetVerbose(spray_verbose);
   VirtPC = new SprayParticleContainer(
-    this, &m_phys_bc, sprayData, scomps, wall_temp, max_spray_cfl);
+    this, &m_spray_phys_bc, sprayData, scomps, wall_temp, max_spray_cfl);
   GhostPC = new SprayParticleContainer(
-    this, &m_phys_bc, sprayData, scomps, wall_temp, max_spray_cfl);
+    this, &m_spray_phys_bc, sprayData, scomps, wall_temp, max_spray_cfl);
 }
 
 void
