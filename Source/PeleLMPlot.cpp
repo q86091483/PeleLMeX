@@ -96,6 +96,7 @@ void PeleLM::WritePlotFile() {
 #ifdef PELELM_USE_SPRAY
    if (do_spray_particles) {
      ncomp += spray_derive_vars.size();
+     ncomp += 2;     // mass and heat sources
    }
 #endif
 
@@ -184,6 +185,8 @@ void PeleLM::WritePlotFile() {
      for (int ivar = 0; ivar < spray_derive_vars.size(); ivar++) {
        plt_VarsName.push_back(spray_derive_vars[ivar]);
      }
+     plt_VarsName.push_back("spray_mass_trans");
+     plt_VarsName.push_back("spray_heat_trans");
    }
 #endif
 
@@ -264,6 +267,10 @@ void PeleLM::WritePlotFile() {
           MultiFab::Add(mf_plt[lev], tmp_plt, 0, cnt, num_spray_derive, 0);
         }
         cnt += num_spray_derive;
+        MultiFab::Copy(mf_plt[lev], *m_extSource[lev], DENSITY, cnt, 1, 0);
+        cnt += 1;
+        MultiFab::Copy(mf_plt[lev], *m_extSource[lev], RHOH, cnt, 1, 0);
+        cnt += 1;
       }
 #endif
 #ifdef AMREX_USE_EB
