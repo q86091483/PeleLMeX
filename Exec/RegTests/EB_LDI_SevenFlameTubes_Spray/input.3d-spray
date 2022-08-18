@@ -1,0 +1,190 @@
+#----------------------DOMAIN DEFINITION------------------------
+geometry.is_periodic = 0 0 0               # For each dir, 0: non-perio, 1: periodic
+geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
+geometry.prob_lo     = 0.0 -0.04 -0.04        # x_lo y_lo (z_lo)
+geometry.prob_hi     = 0.16  0.04  0.04        # x_hi y_hi (z_hi)
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# Interior, Inflow, Outflow, Symmetry,
+# SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
+peleLM.lo_bc = Inflow NoSlipWallAdiab NoSlipWallAdiab
+peleLM.hi_bc = Outflow NoSlipWallAdiab NoSlipWallAdiab
+
+
+#-------------------------AMR CONTROL----------------------------
+amr.n_cell          = 128 64 64      # Level 0 number of cells in each direction   
+amr.n_cell          = 256 128 128      # Level 0 number of cells in each direction   
+amr.v               = 1                # AMR verbose
+amr.max_level       = 3                # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 2        # refinement ratio
+amr.regrid_int      = 10                # how often to regrid
+amr.n_error_buf     = 2 2 2 2          # number of buffer cells in error est
+amr.grid_eff        = 0.7             # what constitutes an efficient grid
+amr.blocking_factor = 16               # block factor in grid generation (min box size)~ 16 is better
+amr.max_grid_size   = 32               # max box size
+
+#--------------------------- Problem -------------------------------
+prob.P_mean = 101325.0
+prob.T_mean = 500.0
+prob.activate_fuel_injection = false
+prob.fuel_injection_max_radius = 0.5
+prob.Y_O2_FUEL=0.065963
+prob.Y_N2_FUEL=0.434037
+prob.Y_C12H26_FUEL=0.5
+
+prob.d_venturi           = 0.013
+prob.d_swirlerexit       = 0.02032
+prob.d_dump              = 0.076
+
+prob.l_venturi           = 0.0008382
+prob.l_swirlercup        = 0.0043688
+prob.l_dump              = 0.20
+
+#turbinflows= inj1
+turbinflow.inj1.turb_file      = Turb.test2
+turbinflow.inj1.dir            = 0
+turbinflow.inj1.side           = low
+turbinflow.inj1.turb_scale_loc = 1.0
+turbinflow.inj1.turb_scale_vel = 5.0
+turbinflow.inj1.turb_center    = 0.0 0.0
+turbinflow.inj1.turb_conv_vel  = 50.0
+turbinflow.inj1.turb_nplane    = 32
+turbinflow.inj1.time_offset    = 0.0
+#-------------------------PeleLM CONTROL----------------------------
+peleLM.v = 3
+peleLM.incompressible = 0
+peleLM.rho = 1.17
+peleLM.mu = 0.0
+peleLM.use_wbar = 1
+peleLM.sdc_iterMax = 2
+peleLM.floor_species = 1
+peleLM.num_divu_iter = 1
+peleLM.num_init_iter = 2
+peleLM.deltaT_iterMax = 25
+peleLM.deltaT_verbose = 0
+peleLM.deltaT_debug = 0
+peleLM.deltaT_crashIfFailing = 0
+
+peleLM.do_temporals = 1
+peleLM.do_mass_balance = 1
+
+#amr.restart = chk00250
+amr.check_int = 50
+amr.plot_int = 50
+amr.max_step = 400
+amr.dt_shrink = 0.1
+amr.stop_time = 1.0
+#amr.stop_time = 1.00
+amr.init_dt = 0.00001
+amr.cfl = 0.7
+amr.derive_plot_vars = avg_pressure mag_vort mass_fractions mixture_fraction
+
+# --------------- INPUTS TO CHEMISTRY REACTOR ---------------
+peleLM.chem_integrator = "ReactorNull"
+peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
+ode.rtol = 1.0e-8                     # Relative tolerance of the chemical solve
+ode.atol = 1.0e-6                     # Absolute tolerance factor applied on typical values
+ode.clean_init_massfrac = 0
+cvode.solve_type = magma_direct       # CVODE Linear solve type (for Newton direction) 
+#cvode.solve_type = GMRES       # CVODE Linear solve type (for Newton direction) 
+cvode.max_order  = 4                  # CVODE max BDF order. 
+
+#------------------------- EB SETUP -----------------------------
+eb2.geom_type = UserDefined
+eb2.small_volfrac = 5.e-5
+eb2.maxiter = 1000
+eb2.num_coarsen_opt = 2
+peleLM.refine_EB_type = Static
+peleLM.refine_EB_max_level = 1
+peleLM.refine_EB_buffer = 2.0
+
+prob.mass_flow_rate = 0.005
+prob.spray_temp = 300.0
+#prob.spray_start_time = 1.0e-05
+prob.pressure_swirl_theta = 31.0
+prob.pressure_swirl_r0 = 0.00035
+prob.pressure_swirl_l0 = 0.0009
+prob.pressure_swirl_rmsvel = 0.05
+prob.rosin_rammler_mean = 0.000035
+prob.rosin_rammler_k = 2.25
+
+#--------------------SPRAY PARTICLE DATA-----------------------
+peleLM.do_spray_particles = 1
+particles.v = 3
+particles.plot_src = 1
+particles.mom_transfer = 1
+particles.mass_transfer = 1
+particles.init_function = 1 # Sprays are initialized using SprayParticleInitInsert.cpp
+#particles.init_file = spray00500.p3d
+#particles.write_spray_ascii_files = 1
+particles.parcel_size = 2. # Number of particles per parcel
+particles.fuel_species = NC12H26
+# Properties for liquid decane
+particles.fuel_crit_temp = 658.2 # K (at Pc = 1.8170 MPa)
+particles.fuel_boil_temp = 489. # K (at atmospheric conditions)
+particles.fuel_ref_temp = 298.15
+particles.fuel_latent = 3.0299E5 # Latent heat at reference temperature
+particles.fuel_cp = 2.207E3 # Cp at 298
+particles.fuel_rho = 669.43
+# Coefficients for saturation pressure using Antoine equation
+# These are from the NIST website
+# Last coefficient converts units, in this case bar, to Pa
+particles.NC12H26_psat = 4.10549 1625.928 -92.839 1.E5
+
+particles.use_splash_model = false
+
+#--------------------REFINEMENT CONTROL------------------------
+#amr.refinement_indicators = temp
+#amr.temp.max_level     = 1
+#amr.temp.value_greater = 305
+#amr.temp.field_name    = temp
+
+amr.refinement_indicators = magVort magVort_high Yfuel
+amr.magVort.max_level     = 1
+amr.magVort.value_greater = 80000.0
+amr.magVort.field_name    = mag_vort
+
+amr.magVort_high.max_level     = 1
+amr.magVort_high.value_greater = 500000.0
+amr.magVort_high.field_name    = mag_vort
+
+amr.Yfuel.max_level     = 1
+amr.Yfuel.value_greater = 0.01
+amr.Yfuel.field_name    = Y(NC12H26)
+
+#amr.refinement_indicators = boxHX
+#amr.boxHX.max_level     = 1
+#amr.boxHX.in_box_lo =  0.000 -4.00 -4.00
+#amr.boxHX.in_box_hi =  0.2  4.00 4.00
+
+mac_proj.verbose = 0                        # [OPT, DEF=0] Verbose of the MAC projector
+mac_proj.rtol = 2.0e-10                     # [OPT, DEF=1e-11] Relative tolerance of the MAC projection
+mac_proj.atol = 1.0e-12                     # [OPT, DEF=1e-14] Absolute tolerance of the MAC projection
+
+peleLM.diagnostics = ynormal
+peleLM.ynormal.type = DiagFramePlane
+peleLM.ynormal.file = yNormCent
+peleLM.ynormal.normal = 1
+peleLM.ynormal.center = 0.00
+peleLM.ynormal.int    = 20
+peleLM.ynormal.interpolation = Linear
+
+# ------------------- INPUTS DERIVED DIAGS ------------------
+peleLM.fuel_name = NC12H26
+peleLM.mixtureFraction.format = Cantera
+peleLM.mixtureFraction.type   = mass
+peleLM.mixtureFraction.oxidTank = O2:0.233 N2:0.767
+peleLM.mixtureFraction.fuelTank = NC12H26:1.0
+
+#--------------------LINEAR SOLVER CONTROL------------------------
+nodal_proj.verbose = 0
+nodal_proj.rtol = 1.0e-11
+nodal_proj.atol = 1.0e-11
+
+fabarray.mfiter_tile_size = 1024 1024 1024
+
+amrex.abort_on_out_of_gpu_memory = 1
+
+#amrex.fpe_trap_invalid = 1
+#amrex.fpe_trap_zero = 1
+#amrex.fpe_trap_overflow = 1
