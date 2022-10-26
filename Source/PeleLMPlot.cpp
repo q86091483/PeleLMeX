@@ -157,9 +157,11 @@ void PeleLM::WritePlotFile() {
       plt_VarsName.push_back("phiV");
 #endif
 #ifdef PELELM_USE_SOOT
-      for (int mom = 0; mom < NUMSOOTVAR; mom++) {
-        std::string sootname = soot_model->sootVariableName(mom);
-        plt_VarsName.push_back(sootname);
+      if (do_soot_solve) {
+        for (int mom = 0; mom < NUMSOOTVAR; mom++) {
+          std::string sootname = soot_model->sootVariableName(mom);
+          plt_VarsName.push_back(sootname);
+        }
       }
 #endif
       if (m_has_divu) {
@@ -246,8 +248,10 @@ void PeleLM::WritePlotFile() {
          cnt += 2;
 #endif
 #ifdef PELELM_USE_SOOT
-         MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, FIRSTSOOT, cnt, NUMSOOTVAR, 0);
-         cnt += NUMSOOTVAR;
+         if (do_soot_solve) {
+           MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, FIRSTSOOT, cnt, NUMSOOTVAR, 0);
+           cnt += NUMSOOTVAR;
+         }
 #endif
          if (m_has_divu) {
             MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->divu, 0, cnt, 1, 0);

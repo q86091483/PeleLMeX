@@ -324,8 +324,10 @@ void PeleLM::oneSDC(int sdcIter,
       ScalAdvStart = ParallelDescriptor::second();
    }
 #ifdef PELELM_USE_SOOT
-   // Compute and update passive advective terms
-   computePassiveAdvTerms(advData, FIRSTSOOT, NUMSOOTVAR);
+   if (do_soot_solve) {
+     // Compute and update passive advective terms
+     computePassiveAdvTerms(advData, FIRSTSOOT, NUMSOOTVAR);
+   }
 #endif
    // Get scalar advection SDC forcing
    getScalarAdvForce(advData,diffData);
