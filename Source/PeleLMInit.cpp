@@ -298,6 +298,19 @@ void PeleLM::initData() {
 #ifdef PELELM_USE_SPRAY
       SprayInit();
 #endif
+#ifdef PELELM_USE_SOOT
+      if (m_restart_reset_soot) {
+        SootData* const sd = soot_model->getSootData();
+        amrex::Real moments[NUM_SOOT_MOMENTS + 1];
+        sd->initialSmallMomVals(moments);
+        for (int lev = 0; lev <= finest_level; ++lev) {
+          auto ldata_p = getLevelDataPtr(lev,AmrNewTime);
+          for (int mom = 0; mom < NUM_SOOT_MOMENTS + 1; ++mom) {
+            ldata_p->state.setVal(moments[mom], FIRSTSOOT + mom, 1);
+          }
+        }
+      }
+#endif
 #ifdef PELE_USE_EFIELD
       // If restarting from a non efield simulation
       if (m_restart_nonEF) {

@@ -501,6 +501,7 @@ void PeleLM::readParameters() {
    do_soot_solve = true;
    pp.query("do_soot_solve", do_soot_solve);
    if (do_soot_solve) {
+     pp.query("restart_reset_soot", m_restart_reset_soot);
      if (m_verbose) {
        Print() << "Simulation performed with soot modeling \n";
      }
@@ -595,12 +596,12 @@ void PeleLM::variablesSetup() {
       stateComponents.emplace_back(PHIV,"PhiV");
 #endif
 #ifdef PELELM_USE_SOOT
+      for (int mom = 0; mom < NUMSOOTVAR; mom++) {
+        std::string sootname = soot_model->sootVariableName(mom);
+        Print() << " " << sootname << ": " << FIRSTSOOT + mom << "\n";
+        stateComponents.emplace_back(FIRSTSOOT+mom,sootname);
+      }
       if (do_soot_solve) {
-        for (int mom = 0; mom < NUMSOOTVAR; mom++) {
-          std::string sootname = soot_model->sootVariableName(mom);
-          Print() << " " << sootname << ": " << FIRSTSOOT + mom << "\n";
-          stateComponents.emplace_back(FIRSTSOOT+mom,sootname);
-        }
         setSootIndx();
       }
 #endif

@@ -1044,6 +1044,7 @@ class PeleLM : public amrex::AmrCore {
    // Soot parameters
    SootModel* soot_model;
    bool do_soot_solve;
+   bool m_restart_reset_soot = false;
 #endif
 
    // PMF parameters

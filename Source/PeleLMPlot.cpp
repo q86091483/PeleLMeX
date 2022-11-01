@@ -157,11 +157,9 @@ void PeleLM::WritePlotFile() {
       plt_VarsName.push_back("phiV");
 #endif
 #ifdef PELELM_USE_SOOT
-      if (do_soot_solve) {
-        for (int mom = 0; mom < NUMSOOTVAR; mom++) {
-          std::string sootname = soot_model->sootVariableName(mom);
-          plt_VarsName.push_back(sootname);
-        }
+      for (int mom = 0; mom < NUMSOOTVAR; mom++) {
+        std::string sootname = soot_model->sootVariableName(mom);
+        plt_VarsName.push_back(sootname);
       }
 #endif
       if (m_has_divu) {
@@ -248,10 +246,8 @@ void PeleLM::WritePlotFile() {
          cnt += 2;
 #endif
 #ifdef PELELM_USE_SOOT
-         if (do_soot_solve) {
-           MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, FIRSTSOOT, cnt, NUMSOOTVAR, 0);
-           cnt += NUMSOOTVAR;
-         }
+         MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, FIRSTSOOT, cnt, NUMSOOTVAR, 0);
+         cnt += NUMSOOTVAR;
 #endif
          if (m_has_divu) {
             MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->divu, 0, cnt, 1, 0);
@@ -763,7 +759,7 @@ void PeleLM::initLevelDataFromPlt(int a_lev,
 #endif
 #ifdef PELELM_USE_SOOT
    if (do_soot_solve) {
-     if (inSoot >= 0) {
+     if (inSoot >= 0 && !m_restart_reset_soot) {
        pltData.fillPatchFromPlt(a_lev, geom[a_lev], inSoot,
                                 FIRSTSOOT, NUMSOOTVAR, ldata_p->state);
        if (pltfileSource == "C") {
