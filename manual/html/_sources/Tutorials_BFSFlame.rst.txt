@@ -34,20 +34,25 @@ Follow the steps listed below to get to this point:
     cd PeleLMeX/Exec/RegTests/EB_BackwardStepFlame
 
 Note that the makefile system is set up such that default paths are automatically set to the
-submodules obtained with the recursive *git clone*, however the user can set its own dependencies
+submodules obtained with the recursive *git clone*, however the user can set their own dependencies
 in the `GNUmakefile` by updating the top-most lines as follows: ::
 
        PELELMEX_HOME     = <path_to_PeleLMeX>
        AMREX_HOME        = <path_to_MyAMReX>
        AMREX_HYDRO_HOME  = <path_to_MyAMReXHydro>
        PELE_PHYSICS_HOME = <path_to_MyPelePhysics>
+       SUNDIALS_HOME     = <path_to_MySUNDIALS>
 
-or directly through shell environement variables (using *bash* for instance): ::
+or directly through shell environment variables (using *bash* for instance): ::
 
        export PELELMEX_HOME=<path_to_PeleLMeX>
        export AMREX_HOME=<path_to_MyAMReX>
        export AMREX_HYDRO_HOME=<path_to_MyAMReXHydro>
        export PELE_PHYSICS_HOME=<path_to_MyPelePhysics>
+       export SUNDIALS_HOME=<path_to_MySUNDIALS>
+
+Note that using the first option will overwrite any
+environment variables you might have previously defined when using this `GNUmakefile`.
 
 You're good to go !
 
@@ -149,7 +154,7 @@ Problem specifications
 ..  _sec:TUTO_BFS::Problem:
 
 The problem setup is mostly contained in the three C++ source/header files described in :doc:`Tutorials_FlameSheet`.
-The user parameters are gathered in the struct defined in  ``pelelm_prob_parm.H``: ::
+The user parameters are gathered in the struct defined in  ``pelelmex_prob_parm.H``: ::
 
     struct ProbParm
     {
@@ -178,8 +183,8 @@ The user parameters are gathered in the struct defined in  ``pelelm_prob_parm.H`
 
 The initial solution consists of a premixed methane/air mixture in the upper part of the domain
 and pure hot air in the wake of the step. The default parameters provided above are overwritten
-using AMReX ParmParse in ``pelelm_prob.cpp`` and the initial/boundary conditions implemented in
-``pelelm_prob.H``.
+using AMReX ParmParse in ``pelelmex_prob.cpp`` and the initial/boundary conditions implemented in
+``pelelmex_prob.H``.
 
 In addition to these three C++ files, an extra header is needed in the present case compared to
 :doc:`Tutorials_FlameSheet` : ``EBUserDefined.H``. This file is necessary to specify more complex EB
@@ -237,6 +242,7 @@ The next few lines specify AMReX compilation options and compiler selection: ::
    USE_OMP         = FALSE
    USE_CUDA        = FALSE
    USE_HIP         = FALSE
+   USE_SYCL        = FALSE
 
 It allows users to specify the number of spatial dimensions (2D), activate the compilation of the EB aware AMReX source code,
 trigger debug compilation and other AMReX options. The compiler (``gnu``) and the parallelism paradigm
@@ -261,11 +267,13 @@ list of available mechanisms and more information regarding the EOS, chemistry a
     Eos_Model       := Fuego
     Transport_Model := Simple
 
-Finally, `PeleLMeX` utilizes the chemical kinetic ODE integrator `CVODE <https://computing.llnl.gov/projects/sundials/cvode>`_. This Third Party Librabry (TPL) is not shipped with the `PeleLMeX` distribution but can be readily installed through the makefile system of `PeleLMeX`. Note that compiling Sundials is necessary even if the simualtion does not involve reactions. To do so, type in the following command: ::
+Finally, `PeleLMeX` utilizes the chemical kinetic ODE integrator `CVODE <https://computing.llnl.gov/projects/sundials/cvode>`_. This
+Third Party Librabry (TPL) is shipped as a submodule of the `PeleLMeX` distribution and can be readily installed through the makefile system
+of `PeleLMeX`. To do so, type in the following command: ::
 
     make -j4 TPL
 
-Note that the installation of `CVODE` requires CMake 3.17.1 or higher.
+Note that the installation of `CVODE` requires CMake 3.23.1 or higher.
 
 You are now ready to build your first `PeleLMeX` executable!! Type in: ::
 

@@ -35,26 +35,26 @@ Follow the steps listed below to get to this point:
 
     cd PeleLMeX/Exec/RegTests/EB_FlowPastCylinder
 
-#. Finally, setup the environment variables providing paths to `PeleLMeX` and its dependencies. This can done in
-   one of two ways:
-
-   #. Directly into the `GNUmakefile` by updating the top-most lines as follows: ::
+Note that the makefile system is set up such that default paths are automatically set to the
+submodules obtained with the recursive *git clone*, however the user can set their own dependencies
+in the `GNUmakefile` by updating the top-most lines as follows: ::
 
        PELELMEX_HOME     = <path_to_PeleLMeX>
-       AMREX_HOME        =${PELELMEX_HOME}/Submodules/amrex
-       AMREX_HYDRO_HOME  =${PELELMEX_HOME}/Submodules/AMReX-Hydro
-       PELE_PHYSICS_HOME =${PELELMEX_HOME}/Submodules/PelePhysics
+       AMREX_HOME        = <path_to_MyAMReX>
+       AMREX_HYDRO_HOME  = <path_to_MyAMReXHydro>
+       PELE_PHYSICS_HOME = <path_to_MyPelePhysics>
+       SUNDIALS_HOME     = <path_to_MySUNDIALS>
 
-
-   #. Exporting shell environement variables (using *bash* for instance): ::
+or directly through shell environment variables (using *bash* for instance): ::
 
        export PELELMEX_HOME=<path_to_PeleLMeX>
-       export AMREX_HOME=${PELELMEX_HOME}/Submodules/amrex
-       export AMREX_HYDRO_HOME=${PELELMEX_HOME}/Submodules/AMReX-Hydro
-       export PELE_PHYSICS_HOME=${PELELMEX_HOME}/Submodules/PelePhysics
+       export AMREX_HOME=<path_to_MyAMReX>
+       export AMREX_HYDRO_HOME=<path_to_MyAMReXHydro>
+       export PELE_PHYSICS_HOME=<path_to_MyPelePhysics>
+       export SUNDIALS_HOME=<path_to_MySUNDIALS>
 
-   Both options require to provide the path to where you cloned `PeleLMeX`. Note that using the first option will overwrite any
-   environement variables you might have previously defined when using this `GNUmakefile`.
+Note that using the first option will overwrite any
+environment variables you might have previously defined when using this `GNUmakefile`.
 
 You're good to go !
 
@@ -129,8 +129,8 @@ Problem specifications
 This very simple problem only has three user-defined problem parameters: the inflow velocity magnitude, the pressure and the temperature.
 Specifying dirichlet ``Inflow`` conditions in `PeleLMeX` can seem daunting at first. But it is actually a very flexible process. We walk the user through the details which involve the following files:
 
-- ``pelelm_prob_parm.H``, assemble in a C++ struct ``ProbParm`` the input variables as well as other variables used in the initialization process.
-- ``pelelm_prob.cpp``, initialize and provide default values to the entries of ``ProbParm`` and allow the user to pass run-time value using the `AMReX` parser (``ParmParse``). In the present case, the parser will read the parameters in the ``Problem`` block: ::
+- ``pelelmex_prob_parm.H``, assemble in a C++ struct ``ProbParm`` the input variables as well as other variables used in the initialization process.
+- ``pelelmex_prob.cpp``, initialize and provide default values to the entries of ``ProbParm`` and allow the user to pass run-time value using the `AMReX` parser (``ParmParse``). In the present case, the parser will read the parameters in the ``Problem`` block: ::
 
     #--------------------------- Problem -------------------------------
     prob.T_mean = 300.0
@@ -138,7 +138,7 @@ Specifying dirichlet ``Inflow`` conditions in `PeleLMeX` can seem daunting at fi
     prob.meanFlowMag = 4.255
     prob.meanFlowDir = 1
 
-- finally, ``pelelm_prob.H`` contains the ``pelelm_initdata`` and ``bcnormal`` functions responsible for generating the initial and boundary conditions, respectively.
+- finally, ``pelelmex_prob.H`` contains the ``pelelmex_initdata`` and ``bcnormal`` functions responsible for generating the initial and boundary conditions, respectively.
 
 Finally, this test uses a constant set of transport parameters rather relying on the Simple library. These transport parameters are specified in the ``CONSTANT TRANSPORT`` block: ::
 
@@ -162,7 +162,7 @@ Initial solution
 
 An initial field of the main variables is always required to start a simulation. In the present case, the computational domain is filled with air in the condition of pressure and temperature provided by the user (or the default ones). An initial constant velocity of ``meanFlowMag`` is used, but note that `PeleLMeX` performs an initial velocity projection to enforce the low Mach number constraint which overwrite this initial velocity.
 
-This initial solution is constructed via the routine ``pelelm_initdata()``, in the file ``pelelm_prob.H``. Additional information is provided as comments in this file for the eager reader, but nothing is required from the user at this point.
+This initial solution is constructed via the routine ``pelelmex_initdata()``, in the file ``pelelmex_prob.H``. Additional information is provided as comments in this file for the eager reader, but nothing is required from the user at this point.
 
 
 Numerical scheme
@@ -193,6 +193,7 @@ Next comes the build configuration block: ::
    USE_OMP         = FALSE
    USE_CUDA        = FALSE
    USE_HIP         = FALSE
+   USE_SYCL        = FALSE
 
    # MISC options
    DEBUG           = FALSE
@@ -211,11 +212,13 @@ Here, the model ``air``, only contains 2 species (O2 and N2). The user is referr
     Eos_Model       := Fuego
     Transport_Model := Constant
 
-Finally, `PeleLMeX` utilizes the chemical kinetic ODE integrator `CVODE <https://computing.llnl.gov/projects/sundials/cvode>`_. This Third Party Librabry (TPL) is not shipped with the `PeleLMeX` distribution but can be readily installed through the makefile system of `PeleLMeX`. Note that compiling Sundials is necessary even if the simualtion do not involve reactions. To do so, type in the following command: ::
+Finally, `PeleLMeX` utilizes the chemical kinetic ODE integrator `CVODE <https://computing.llnl.gov/projects/sundials/cvode>`_. This
+Third Party Librabry (TPL) is shipped as a submodule of the `PeleLMeX` distribution and can be readily installed through the makefile system
+of `PeleLMeX`. To do so, type in the following command: ::
 
     make -j4 TPL
 
-Note that the installation of `CVODE` requires CMake 3.12.1 or higher.
+Note that the installation of `CVODE` requires CMake 3.23.1 or higher.
 
 You are now ready to build your first `PeleLMeX` executable !! Type in: ::
 
