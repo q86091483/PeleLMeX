@@ -1,0 +1,41 @@
+TOP = /home/zisen347/codes/exascale
+AMREX_HOME         ?= ${TOP}/amrex
+PELELMEX_HOME      ?= ${TOP}/PeleLMeX
+PELE_PHYSICS_HOME  ?= ${TOP}/PelePhysics
+AMREX_HYDRO_HOME   ?= ${TOP}/AMReX-Hydro
+PELEMP_HOME        ?= ${TOP}/PeleMP
+SUNDIALS_HOME      ?= /home/zisen347/opt/archive/sundials
+
+# AMReX
+DIM = 3
+COMP = intel
+PRECISION = DOUBLE
+USE_EB = FALSE
+USE_HYPRE = FALSE
+
+# Profiling
+PROFILE = FALSE
+TINY_PROFILE = FALSE
+COMM_PROFILE = FALSE
+TRACE_PROFILE = FALSE
+MEM_PROFILE = FALSE
+USE_GPROF = FALSE
+
+# Performance
+USE_MPI = TRUE
+USE_OMP = FALSE
+USE_CUDA = FALSE
+USE_HIP = FALSE
+USE_SYCL = FALSE
+
+# Debugging
+DEBUG = FALSE
+FSANITIZER = FALSE
+THREAD_SANITIZER = FALSE
+
+# PelePhysics
+Chemistry_Model = LiDryer
+Eos_Model = Fuego
+Transport_Model = Simple
+
+include $(PELELMEX_HOME)/Exec/Make.PeleLMeX
