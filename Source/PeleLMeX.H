@@ -1604,6 +1604,9 @@ public:
   DiffusionOp* getDiffusionOp();
   DiffusionOp* getMCDiffusionOp(int ncomp = 1);
   DiffusionTensorOp* getDiffusionTensorOp();
+  // ZS
+  void computeSource(amrex::Vector<std::unique_ptr<amrex::MultiFab>>& source_lev);
+  void imposeHighT();
   //-----------------------------------------------------------------------------
 
   // protected:

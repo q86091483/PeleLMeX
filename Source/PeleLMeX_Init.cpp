@@ -120,6 +120,8 @@ PeleLM::MakeNewLevelFromScratch(
     grids[lev], dmap[lev], NVAR, amrex::max(m_nGrowAdv, m_nGrowMAC), MFInfo(),
     *m_factory[lev]);
   m_extSource[lev]->setVal(0.);
+  // ZS
+  // computeSource(m_extSource);
 
 #ifdef AMREX_USE_EB
   if (lev == 0 && (m_signDistNeeded != 0)) {

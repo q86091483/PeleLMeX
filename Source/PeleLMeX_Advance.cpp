@@ -242,6 +242,13 @@ PeleLM::Advance(int is_initIter)
     m_pOld = m_pNew;
   }
 
+  // ZS
+  bool is_imposed = false;
+  if (!is_imposed) {
+    // imposeHighT();
+    is_imposed = true;
+  }
+
   //----------------------------------------------------------------
   // Wrapup advance
   // Timing current time step

@@ -132,7 +132,9 @@ PeleLM::estConvectiveDt(const TimeStamp& a_time)
     Vector<Real> u_max(AMREX_SPACEDIM);
     u_max =
       ldata_p->state.norm0({AMREX_D_DECL(VELX, VELY, VELZ)}, 0, true, true);
-
+    // ZS
+    Print() << "u_max: " << u_max[0] << "," << u_max[1] << "," << u_max[2] << std::endl;
+    Print() << "f_max: " << f_max[0] << "," << f_max[1] << "," << f_max[2] << std::endl;
     //----------------------------------------------------------------
     // Est. min time step on lev
     for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {

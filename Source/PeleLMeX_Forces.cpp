@@ -1,3 +1,6 @@
+#include "AMReX_MFIter.H"
+#include "PeleLMeX_Index.H"
+#include "mechanism.H"
 #include <PeleLMeX.H>
 #include <PeleLMeX_K.H>
 
@@ -171,3 +174,97 @@ PeleLM::getVelForces(
         gp0, dV_control, dx, vel, rho, rhoY, rhoh, temp, extMom, extRho, force);
     });
 }
+
+// ZS
+void PeleLM::computeSource(amrex::Vector<std::unique_ptr<amrex::MultiFab>>& source) {
+
+  for (int lev = 0; lev <= finest_level; lev++) {
+
+    const auto geomdata = geom[lev].data();
+    const amrex::Real* prob_lo = geomdata.ProbLo();
+    const amrex::Real* prob_hi = geomdata.ProbHi();
+    const amrex::Real* dx = geomdata.CellSize();
+
+    for (MFIter mfi(*(source[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
+      auto const& extRhoH = m_extSource[lev]->const_array(mfi, RHOH); 
+      amrex::ParallelFor(
+        bx, 
+        [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+          amrex::Real x = prob_lo[0] + (i + 0.5) * dx[0];
+          amrex::Real y = prob_lo[1] + (j + 0.5) * dx[1];
+          amrex::Real z = prob_lo[2] + (k + 0.5) * dx[2];
+          amrex::Real Lx = prob_hi[0] - prob_lo[0];
+          amrex::Real Ly = prob_hi[1] - prob_lo[1];
+          amrex::Real Lz = prob_hi[2] - prob_lo[2];
+        }
+      ); // ParallelFor
+    } // mfi
+    
+  } // lev
+
+} // computeSource;
+
+void PeleLM::imposeHighT() {
+  for (int lev = 0; lev <= finest_level; lev++) {
+    auto* ldata_p = getLevelDataPtr(lev, AmrNewTime);
+    const auto geomdata = geom[lev].data();
+    const amrex::Real* prob_lo = geomdata.ProbLo();
+    const amrex::Real* prob_hi = geomdata.ProbHi();
+    const amrex::Real* dx = geomdata.CellSize();
+
+    for (MFIter mfi(ldata_p->state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
+      auto const& state = ldata_p->state.array(mfi);
+      amrex::ParallelFor(
+        bx, 
+        [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+          amrex::Real x = prob_lo[0] + (i + 0.5) * dx[0];
+          amrex::Real y = prob_lo[1] + (j + 0.5) * dx[1];
+          amrex::Real z = prob_lo[2] + (k + 0.5) * dx[2];
+          amrex::Real Lx = prob_hi[0] - prob_lo[0];
+          amrex::Real Ly = prob_hi[1] - prob_lo[1];
+          amrex::Real Lz = prob_hi[2] - prob_lo[2];
+
+          amrex::Real rad = std::sqrt(std::pow(x,2.0) + std::pow(z,2.0));
+          amrex::Real rad_T = 2.0E-4;
+
+          if (rad <= rad_T) {
+            amrex::Real eta = 0.0;
+            eta = 0.5 * (1.0 - tanh((rad - rad_T) / (1E-4 / 4.0)));
+            
+            amrex::Real massfrac[NUM_SPECIES] = {0.0};
+            for (int n = 0; n < NUM_SPECIES; n++) {
+              massfrac[n] = state(i,j,k,FIRSTSPEC+n) / state(i,j,k,DENSITY);
+            }
+            massfrac[H2_ID] = 6.86665300e-05;
+            massfrac[O2_ID] = 6.65301167e-02;
+            massfrac[H2O_ID] = 1.78018215e-01; 
+            massfrac[H_ID] = 4.23935063e-06;
+            massfrac[O_ID] = 2.75149017e-04;
+            massfrac[OH_ID] = 3.49664589e-03;
+            massfrac[HO2_ID] = 1.17798132e-05;
+            massfrac[H2O2_ID] = 1.18889448e-06;
+            massfrac[N2_ID] = 7.51593999e-01;
+
+            state(i,j,k,TEMP) = eta*2334 + (1-eta)*state(i,j,k,TEMP);
+            amrex::Real rho_cgs;
+            auto eos = pele::physics::PhysicsType::eos();
+            eos.PYT2R(101325*10.0*10.0, massfrac, state(i,j,k,TEMP), rho_cgs);
+            state(i,j,k,DENSITY) = rho_cgs * 1.0e3;
+
+            amrex::Real RhoH_temp;
+            eos.TY2H(state(i,j,k,TEMP), massfrac, RhoH_temp);
+            state(i,j,k,RHOH) = RhoH_temp * 1.0e-4 * state(i,j,k,DENSITY);
+
+            for (int n = 0; n < NUM_SPECIES; n++) {
+              state(i,j,k,FIRSTSPEC+n) = massfrac[n] * state(i,j,k,DENSITY);
+            }
+
+          } // rad <= rad_T
+
+          } // lambda
+      ); // ParallelFor
+    } // mfi
+  } // lev
+} // imposeHighT
