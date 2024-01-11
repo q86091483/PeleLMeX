@@ -1,6 +1,6 @@
 TOP = /home/zisen347/codes/exascale
-AMREX_HOME         ?= ${TOP}/amrex
 PELELMEX_HOME      ?= ${TOP}/PeleLMeX
+AMREX_HOME         ?= ${TOP}/amrex
 PELE_PHYSICS_HOME  ?= ${TOP}/PelePhysics
 AMREX_HYDRO_HOME   ?= ${TOP}/AMReX-Hydro
 PELEMP_HOME        ?= ${TOP}/PeleMP
@@ -8,7 +8,7 @@ SUNDIALS_HOME      ?= /home/zisen347/opt/archive/sundials
 
 # AMReX
 DIM = 3
-COMP = intel
+COMP = gnu
 PRECISION = DOUBLE
 USE_EB = FALSE
 USE_HYPRE = FALSE

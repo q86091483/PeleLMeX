@@ -142,13 +142,13 @@ pelelmex_initdata(
   amrex::Real xc, H, b, zc, wp, wn, theta_mix, theta_c, theta_norm, theta_ref,
               cn, rcn, cp, rcp, zdis, bot;
   amrex::Real mf;
-  xc = x - (0.0-prob_parm.jet_rad);
+  xc = x - (-prob_parm.jet_rad - prob_parm.jet_rad);
   H = prob_hi[prob_parm.jet_dir] - prob_lo[prob_parm.jet_dir];
   b = 0.0002 * pow(xc/H, 0.1);
-  zc = H * 0.45 * pow(xc/H, 0.25) * exp(-b);
-  wp = H * 0.7 * pow(xc/H, 0.25);
-  wn = H * 0.25 * pow(xc/H, 0.25);
-  theta_mix = 0.14027;
+  zc = H * 0.15 * pow(xc/H, 0.25) * exp(-b);
+  wp = H * 0.18 * pow(xc/H, 0.25);
+  wn = H * 0.12 * pow(xc/H, 0.25);
+  theta_mix = 0.01712; // 0.14027;
   if ((xc/H) < 1.0) {
     theta_c = 1 - 0.2 * pow(xc/H, 2);
   } else{
@@ -173,7 +173,7 @@ pelelmex_initdata(
         theta_ref = theta_c * rcn;
      }
      mf = theta_ref + theta_norm * (theta_c - theta_ref);
-     mf = mf * 0.3;
+     mf = mf * 0.1;
   }
 
   // Read table
@@ -310,8 +310,8 @@ bcnormal(
 #endif
 
   int njet = 2;
-  amrex::Vector<amrex::Real> jet_xs = {0., 	 0.};
-  amrex::Vector<amrex::Real> jet_ys = {-1E-3, +1E-3};
+  amrex::Vector<amrex::Real> jet_xs = {0., 0.};
+  amrex::Vector<amrex::Real> jet_ys = {-1.4E-3, 1.4E-3};
   amrex::Real radsq_min = 1E30;
 
   if (idir == jet_dir and (prob_parm.double_jet == 1 or sgn == 1)) {
@@ -385,21 +385,50 @@ bcnormal(
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
-zero_visc(
-  int i,
-  int j,
-  int k,
-  amrex::Array4<amrex::Real> const& beta,
-  amrex::GeometryData const& geomdata,
-  amrex::Box const& domainBox,
-  const int dir,
-  const int beta_comp,
-  const int nComp)
+zero_visc(int i, int j, int k,
+          amrex::Array4<amrex::Real> const& beta,
+          amrex::GeometryData const& geomdata,
+          amrex::Box const& dBox,
+          const int dir,
+          const int beta_comp,
+          const int nComp)
 {
-  amrex::ignore_unused(
-    i, j, k, beta, geomdata, domainBox, dir, beta_comp, nComp);
+  //amrex::ignore_unused(
+  //  i, j, k, beta, geomdata, domainBox, dir, beta_comp, nComp);
   // We treat species when beta_comp == 0 and nComp == NUM_SPECIES
   // otherwise this routine could be called for other face diffusivity (Temp,
   // velocity, ...)
+  //
+  const amrex::Real* prob_lo = geomdata.ProbLo();
+  const amrex::Real* dx      = geomdata.CellSize();
+  const amrex::Real z = prob_lo[2] + (k+0.5)*dx[2];
+  const amrex::Real y = prob_lo[1] + j*dx[1];
+  const amrex::Real x = prob_lo[0] + (i+0.5)*dx[0];
+
+  int cf_dir = 2;
+  int njet = 2;
+
+  amrex::Vector<amrex::Real> jet_xs = {0., 0.};
+  amrex::Vector<amrex::Real> jet_ys = {-1.4E-3, 1.4E-3};
+  amrex::Real jet_rad = 4E-4;
+
+  int is_in_jet = 0;
+  if (dir == cf_dir and k == 0) {
+
+
+    for(int l=0; l<njet; l++) {
+      amrex::Real r = std::sqrt((std::pow(x - jet_xs[l],2)+std::pow(z - jet_ys[l],2)));
+      if (r < jet_rad) {
+        is_in_jet = 1;
+      }
+    }
+
+    // Set diffusion coefficient to 0 to mimic a Neumann condition
+    if (is_in_jet == 0){
+      for (int n=0; n < nComp; n++) {
+        beta(i,j,k,n) = 0.;
+      }
+    }
+  }
 }
 #endif
