@@ -5,13 +5,14 @@ PELE_PHYSICS_HOME  ?= ${TOP}/PelePhysics
 AMREX_HYDRO_HOME   ?= ${TOP}/AMReX-Hydro
 PELEMP_HOME        ?= ${TOP}/PeleMP
 SUNDIALS_HOME      ?= /home/zisen347/opt/archive/sundials
+HYPRE_DIR ?= /home/zisen347/opt/hypre-2.28.0
 
 # AMReX
 DIM = 3
 COMP = gnu
 PRECISION = DOUBLE
 USE_EB = FALSE
-USE_HYPRE = FALSE
+USE_HYPRE = TRUE
 
 # Profiling
 PROFILE = FALSE

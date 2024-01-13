@@ -146,9 +146,9 @@ pelelmex_initdata(
   H = prob_hi[prob_parm.jet_dir] - prob_lo[prob_parm.jet_dir];
   b = 0.0002 * pow(xc/H, 0.1);
   zc = H * 0.15 * pow(xc/H, 0.25) * exp(-b);
-  wp = H * 0.18 * pow(xc/H, 0.25);
-  wn = H * 0.12 * pow(xc/H, 0.25);
-  theta_mix = 0.01712; // 0.14027;
+  wp = H * 0.38 * pow(xc/H, 0.28);
+  wn = H * 0.04 * pow(xc/H, 0.25);
+  theta_mix = 0.01712; 
   if ((xc/H) < 1.0) {
     theta_c = 1 - 0.2 * pow(xc/H, 2);
   } else{
@@ -156,7 +156,7 @@ pelelmex_initdata(
   }
   cn = 0.2 * pow(xc/H, -0.6) * exp(4.0 * pow(xc/H, 2.0));
   rcn = 1 - exp(-cn);
-  cp = 0.5 * pow(xc/H, 4.0);
+  cp = 0.5 * pow(xc/H, 1.5);
   rcp = 1 - exp(-cp);
   zdis = z - zc;
   if (xc<=0) {

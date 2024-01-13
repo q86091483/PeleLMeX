@@ -1,78 +1,84 @@
-#----------------------DOMAIN DEFINITION------------------------
-geometry.is_periodic = 0 1 0               # For each dir, 0: non-perio, 1: periodic
-geometry.coord_sys   = 0                   # 0 => cart, 1 => RZ
-geometry.prob_lo     = -1.20E-3  -2.80E-3   0.0         # x_lo y_lo (z_lo)
-geometry.prob_hi     = +8.40E-3  +2.80E-3  +4.0E-3         # x_hi y_hi (z_hi)
+#--------------------DOMAIN GEOMETRY------------------------------------------
+geometry.is_periodic = 0 1 0               	# For each dir, 0: non-perio, 1: periodic
+geometry.coord_sys   = 0                   	# 0 => cart, 1 => RZ
+geometry.prob_lo = -1.20E-3  -2.80E-3   0.0E-3  # x_lo y_lo (z_lo)
+geometry.prob_hi = +11.6E-3  +2.80E-3  +4.0E-3  # x_hi y_hi (z_hi)
 
-# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+#--------------------BNDY CONDITIONS-------------------------------------------
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
 peleLM.lo_bc = Inflow  Interior Inflow
-peleLM.hi_bc = Outflow Interior NoSlipWallAdiab
+peleLM.hi_bc = Outflow Interior SlipWallAdiab
 
-#-------------------------AMR CONTROL----------------------------
-amr.n_cell          = 96 56 40         # Level 0 number of cells in each direction   
+#--------------------AMR CONTROL-----------------------------------------------
+amr.n_cell          = 128 56 40         # Level 0 number of cells in each direction   
 amr.v               = 1                # AMR verbose
 amr.max_level       = 0                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
-amr.regrid_int      = 10                # how often to regrid
+amr.regrid_int      = 10               # how often to regrid
 amr.n_error_buf     = 2 2 2 2          # number of buffer cells in error est
 amr.grid_eff        = 0.7              # what constitutes an efficient grid
 amr.blocking_factor = 8                # block factor in grid generation (min box size)
 amr.max_grid_size   = 64               # max box size
 
-pmf.datafile = "initeq.dat" 
-
-#--------------------------- Problem -------------------------------
+#--------------------PROBLEM PARAMETERS----------------------------------------
 prob.P_mean = 1013250.0
 prob.V_j = 56.3
 prob.V_cf = 25.
 prob.jet_rad = 4.0E-4
 prob.jet_temp = 300.
-prob.global_eq_ratio = 0.6
 prob.ox_temp = 750.
 prob.XO2 = 2.1e-1
 prob.XN2 = 7.9e-1
-prob.init_time = -1
-prob.pertmag_cf = 0.0
-prob.pertmag_jet = 0.0
-prob.double_jet = 0
-prob.jet_dir = 2
-prob.cf_dir = 0
-prob.other_dir = 1
-prob.jet_purity = 1.0
-prob.bl_thickness = 1.0e-4
+prob.jet_dir 	= 2
+prob.cf_dir 	= 0
+prob.other_dir 	= 1
+prob.jet_purity = 1.0   		# Hydrogel vol. in jet
+pmf.datafile 	= "initeq.dat" 		# Initial condition
+prob.bl_thickness = 1.0e-4        # Width of tanh of jet/air mixing
+prob.init_time 		= -1		# Not used
+prob.global_eq_ratio 	= 0.6   	# Not used
+prob.pertmag_cf 	= 0.0 		# Not used
+prob.pertmag_jet 	= 0.0 		# Not used
+prob.double_jet 	= 0 		# Not used
 
-#-------------------------PeleLM CONTROL----------------------------
+#--------------------PeleLMeX CONTROL-----------------------------------------
 peleLM.v = 3
-peleLM.incompressible = 0
+peleLM.run_mode = normal	# [OPT, DEF=normal] Switch between time-advance mode (normal) or UnitTest (evaluate)
+peleLM.advection_scheme = "Godunov_PLM" # [OPT, DEF=Godunov_PLM] Advection scheme: Godunov_PLM, Godunov_PPM or Godunov_BDS
+peleLM.use_wbar = 1		# [OPT, DEF=1] Enable Wbar correction in diffusion fluxes
+#peleLM.sdc_iterMax = 1		# [OPT, DEF=1] Number of SDC iterations
+peleLM.deltaT_verbose = 2
+peleLM.deltaT_iterMax = 10            # [OPT, DEF=10] Maximum number of deltaT iterations
+#peleLM.deltaT_tol = 5e-5         # [OPT, DEF=1.e-10] Tolerance of the deltaT solve
+peleLM.deltaT_crashIfFailing = 1        # [OPT, DEF=1] Turn this off for production runs
+peleLM.num_init_iter = 3             # [OPT, DEF=3] Number of iterations to get initial pressure
+peleLM.num_divu_iter = 1             # [OPT, DEF=1] Number of divU iterations to get initial dt estimate
+peleLM.do_init_proj = 1             # [OPT, DEF=1] Control over initial projection
+peleLM.incompressible = 0		# [OPT, DEF=0] Enable to run fully incompressible, scalar advance is bypassed
 peleLM.rho = 4.0
-peleLM.mu  = 3.0E-5
-peleLM.use_wbar = 1
+peleLM.mu = 3.0E-5
+
+#--------------------TIME STEPPING---------------------------------------------
+amr.restart = chk_04280
+amr.max_step = 14260
 peleLM.sdc_iterMax = 1
-peleLM.advection_scheme = "Godunov_PLM"
+#diffusion.rtol = 5E-2
+#peleLM.deltaT_tol = 2E-2
 
-peleLM.deltaT_iterMax = 15
-peleLM.deltaT_crashIfFailing = 0
-diffusion.verbose = 2
-#diffusion.rtol = 5.0e-2
-#diffusion.atol = 1.0e-14
-
-amr.restart = chk_10690
-amr.plot_int = 10
-amr.check_int = 10
-amr.check_file = "chk_"
-amr.plot_file = "plt_"
-amr.max_step = 20120
-amr.dt_shrink = 1e-2
+amr.plot_int 	  = 20
+amr.check_int 	= 20
+amr.cfl 		    = 0.05
+amr.check_file	= "chk_"
+amr.plot_file 	= "plt_"
+amr.derive_plot_vars 	= avg_pressure mag_vort mass_fractions HeatRelease mixture_fraction
+amr.dt_shrink 		= 1e-2
+amr.dt_change_max = 1.1                # [OPT, DEF=1.1] maximum dt change between consecutive steps
+imr.stop_time 		= 10.0
 #amr.init_dt = 1e-1
-amr.stop_time = 10.0
-#amr.stop_time = 1.00
-amr.cfl = 0.05
 #amr.fixed_dt = 1e-3
-amr.derive_plot_vars = avg_pressure mag_vort mass_fractions HeatRelease
 
-# --------------- INPUTS TO CHEMISTRY REACTOR ---------------
+#--------------------CHEMISTRY INTEGRATOR---------------------------------------
 peleLM.chem_integrator = "ReactorCvode"
 peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE   
 peleLM.typical_values_reset_int = 5   # [OPT, DEF=10] Frequency at which the typical values are updated
@@ -81,11 +87,52 @@ ode.atol = 1.0e-6                     # Absolute tolerance factor applied on typ
 cvode.solve_type = denseAJ_direct     # CVODE Linear solve type (for Newton direction) 
 cvode.max_order  = 4                  # CVODE max BDF order. 
 
-#--------------------REFINEMENT CONTROL------------------------
-amr.refinement_indicators = overYH2 diffYH2 diffRho
+#-------------------------LINEAR SOLVERS---------------------------------------
+#nodal_proj.verbose = 1                      # [OPT, DEF=0] Verbose of the nodal projector
+#nodal_proj.rtol = 1.0e-11                   # [OPT, DEF=1e-11] Relative tolerance of the nodal projection
+#nodal_proj.atol = 1.0e-12                   # [OPT, DEF=1e-14] Absolute tolerance of the nodal projection
+#nodal_proj.mg_max_coarsening_level = 5      # [OPT, DEF=100] Maximum number of MG levels (useful when using EB)
+
+#mac_proj.verbose = 1                        # [OPT, DEF=0] Verbose of the MAC projector
+#mac_proj.rtol = 1.0e-11                     # [OPT, DEF=1e-11] Relative tolerance of the MAC projection
+#mac_proj.atol = 1.0e-12                     # [OPT, DEF=1e-14] Absolute tolerance of the MAC projection
+#mac_proj.mg_max_coarsening_level = 5        # [OPT, DEF=100] Maximum number of MG levels (useful when using EB)
+
+diffusion.verbose = 2                        # [OPT, DEF=0] Verbose of the scalar diffusion solve
+#diffusion.rtol = 5.0e-2                     # [OPT, DEF=1e-11] Relative tolerance of the scalar diffusion solve
+#diffusion.atol = 1.0e-12                    # [OPT, DEF=1e-14] Absolute tolerance of the scalar diffusion solve
+#diffusion.bottom_solver = hypre             # Diffusion solver used by MLMG ["bicgstab", "cg", "cgbicg", "bicgcg", "petsc", "hypre", "smoother"]
+
+#tensor_diffusion.verbose = 1                # [OPT, DEF=0] Verbose of the velocity tensor diffusion solve
+#tensor_diffusion.rtol = 1.0e-11             # [OPT, DEF=1e-11] Relative tolerance of the velocity tensor diffusion solve
+#tensor_diffusion.atol = 1.0e-12             # [OPT, DEF=1e-14] Absolute tolerance of the velocity tensor diffusion solve
+
+#--------------------DERIVED DIAGNOSTICS---------------------------------------
+peleLM.fuel_name = H2
+peleLM.mixtureFraction.format = Cantera
+peleLM.mixtureFraction.type   = mass
+peleLM.mixtureFraction.oxidTank = O2:0.233 N2:0.767
+peleLM.mixtureFraction.fuelTank = H2:1.0
+
+#--------------------REFINEMENT CONTROL----------------------------------------
+amr.refinement_indicators = overZ #overYH
+
+#amr.inner.max_level = 1
+#amr.inner.value_less = 10E-3
+#amr.inner.field_name = z
+
+amr.overZ.max_level = 1
+#amr.overZ.value_greater = 1E-2
+amr.overZ.field_name = mixture_fraction
+amr.overZ.in_box_lo = -0.4E-3    -1   -1
+amr.overZ.in_box_hi = +8.6E-3   +1   +1
+
+amr.overYH.max_level = 1
+amr.overYH.value_greater = 1E-8
+amr.overYH.field_name = Y(H)
 
 amr.overYH2.max_level = 3
-amr.overYH2.value_greater = 0.99
+amr.overYH2.value_greater = 1E-3
 amr.overYH2.field_name = Y(H2)
 
 amr.diffYH2.max_level = 3
