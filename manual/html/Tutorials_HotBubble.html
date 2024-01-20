@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rising light bubble &mdash; PeleLMeX 22.12 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/theme.css?v=df66b05f" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -145,7 +147,7 @@ obtain the skipped portions if needed.</p>
 <p>The makefile system is set up such that default paths are automatically set to the
 submodules obtained with the recursive <em>git clone</em>, however advanced users can set their own dependencies
 in the <cite>GNUmakefile</cite> for each case by updating the top-most lines as follows:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>PELELMEX_HOME     = &lt;path_to_PeleLMeX&gt;
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>PELE_HOME     = &lt;path_to_PeleLMeX&gt;
 AMREX_HOME        = &lt;path_to_MyAMReX&gt;
 AMREX_HYDRO_HOME  = &lt;path_to_MyAMReXHydro&gt;
 PELE_PHYSICS_HOME = &lt;path_to_MyPelePhysics&gt;
@@ -153,7 +155,7 @@ SUNDIALS_HOME     = &lt;path_to_MySUNDIALS&gt;
 </pre></div>
 </div>
 <p>or directly through shell environment variables (using <em>bash</em> for instance):</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>export PELELMEX_HOME=&lt;path_to_PeleLMeX&gt;
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>export PELE_HOME=&lt;path_to_PeleLMeX&gt;
 export AMREX_HOME=&lt;path_to_MyAMReX&gt;
 export AMREX_HYDRO_HOME=&lt;path_to_MyAMReXHydro&gt;
 export PELE_PHYSICS_HOME=&lt;path_to_MyPelePhysics&gt;
@@ -305,7 +307,7 @@ trigger debug compilation and other AMReX options. The compiler (<code class="do
 (in the present case only MPI is used) are then selected. Note that on OSX platform, one should update the compiler to <code class="docutils literal notranslate"><span class="pre">llvm</span></code>.</p>
 <p>In <cite>PeleLMeX</cite>, the chemistry model (set of species, their thermodynamic and transport properties as well as the description
 of their of chemical interactions) is specified at compile time. Chemistry models available in
-<cite>PelePhysics</cite> can used in <cite>PeleLMeX</cite> by specifying the name of the folder in <cite>PelePhysics/Support/Mechanisms/Models</cite> containing
+<cite>PelePhysics</cite> can used in <cite>PeleLMeX</cite> by specifying the name of the folder in <cite>PelePhysics/Mechanisms</cite> containing
 the relevant files, for example:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>Chemistry_Model = air
 </pre></div>
