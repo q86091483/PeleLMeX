@@ -144,11 +144,11 @@ pelelmex_initdata(
   amrex::Real mf;
   xc = x - (-prob_parm.jet_rad - prob_parm.jet_rad);
   H = prob_hi[prob_parm.jet_dir] - prob_lo[prob_parm.jet_dir];
-  b = 0.0002 * pow(xc/H, 0.1);
-  zc = H * 0.15 * pow(xc/H, 0.25) * exp(-b);
-  wp = H * 0.38 * pow(xc/H, 0.28);
-  wn = H * 0.04 * pow(xc/H, 0.25);
-  theta_mix = 0.01712; 
+  b = 0.002 * pow(xc/H, 0.1);
+  zc = H * 0.35 * pow(xc/H, 0.45) * exp(-b);
+  wp = H * 0.58 * pow(xc/H, 0.38);
+  wn = H * 0.12 * pow(xc/H, 0.25);
+  theta_mix = 0.0180444; 
   if ((xc/H) < 1.0) {
     theta_c = 1 - 0.2 * pow(xc/H, 2);
   } else{
@@ -156,12 +156,11 @@ pelelmex_initdata(
   }
   cn = 0.2 * pow(xc/H, -0.6) * exp(4.0 * pow(xc/H, 2.0));
   rcn = 1 - exp(-cn);
-  cp = 0.5 * pow(xc/H, 1.5);
+  cp = 0.5 * pow(xc/H, 1.0);
   rcp = 1 - exp(-cp);
   zdis = z - zc;
-  if (xc<=0) {
-     mf = 0.0;
-  } else {
+  mf = 0.0;
+  if (xc > 0) {
      bot = -log(2.0) * pow(zdis, 2.0);
      if (zdis > 0) {
         bot = bot / pow(wp+1E-30, 2.0);
@@ -173,7 +172,7 @@ pelelmex_initdata(
         theta_ref = theta_c * rcn;
      }
      mf = theta_ref + theta_norm * (theta_c - theta_ref);
-     mf = mf * 0.1;
+     mf = mf * 0.075;
   }
 
   // Read table
@@ -311,7 +310,7 @@ bcnormal(
 
   int njet = 2;
   amrex::Vector<amrex::Real> jet_xs = {0., 0.};
-  amrex::Vector<amrex::Real> jet_ys = {-1.4E-3, 1.4E-3};
+  amrex::Vector<amrex::Real> jet_ys = {-1.0E-3, +1.0E-3};
   amrex::Real radsq_min = 1E30;
 
   if (idir == jet_dir and (prob_parm.double_jet == 1 or sgn == 1)) {
@@ -324,7 +323,7 @@ bcnormal(
 
     factor =
       0.5 *
-      (1.0 - tanh((sqrt(radsq) - jet_rad) / (prob_parm.bl_thickness / 4.0)));
+      (1.0 - tanh((sqrt(radsq) - jet_rad) / (prob_parm.bl_thickness / 1.0)));
 
     for (int n = 0; n < NUM_SPECIES; n++) {
       molefrac[n] = factor * X_jet[n] + (1.0 - factor) * X_air[n];
@@ -354,10 +353,13 @@ bcnormal(
     } else {
       time_factor = 1.0;
     }
+    s_ext[VELX] = 0.0;
     s_ext[VELX] =
       (1 - 0.5 * prob_parm.double_jet) * sgn * time_factor * factor * U_jet[0];
+    s_ext[VELY] = 0.0;
     s_ext[VELY] =
       (1 - 0.5 * prob_parm.double_jet) * sgn * time_factor * factor * U_jet[1];
+    s_ext[VELZ] = 0.0;
     s_ext[VELZ] =
       (1 - 0.5 * prob_parm.double_jet) * sgn * time_factor * factor * U_jet[2];
   }
@@ -401,23 +403,23 @@ zero_visc(int i, int j, int k,
   //
   const amrex::Real* prob_lo = geomdata.ProbLo();
   const amrex::Real* dx      = geomdata.CellSize();
-  const amrex::Real z = prob_lo[2] + (k+0.5)*dx[2];
-  const amrex::Real y = prob_lo[1] + j*dx[1];
   const amrex::Real x = prob_lo[0] + (i+0.5)*dx[0];
+  const amrex::Real y = prob_lo[1] + (j+0.5)*dx[1];
+  const amrex::Real z = prob_lo[2] + k*dx[2];
 
-  int cf_dir = 2;
+  int jet_dir = 2;
   int njet = 2;
 
   amrex::Vector<amrex::Real> jet_xs = {0., 0.};
-  amrex::Vector<amrex::Real> jet_ys = {-1.4E-3, 1.4E-3};
-  amrex::Real jet_rad = 4E-4;
+  amrex::Vector<amrex::Real> jet_ys = {-1.0E-3, +1.0E-3};
+  amrex::Real jet_rad = 2.5E-4;
 
   int is_in_jet = 0;
-  if (dir == cf_dir and k == 0) {
+  if (dir == jet_dir and k == 0) {
 
 
     for(int l=0; l<njet; l++) {
-      amrex::Real r = std::sqrt((std::pow(x - jet_xs[l],2)+std::pow(z - jet_ys[l],2)));
+      amrex::Real r = std::sqrt((std::pow(x - jet_xs[l],2)+std::pow(y - jet_ys[l],2)));
       if (r < jet_rad) {
         is_in_jet = 1;
       }
