@@ -12,10 +12,10 @@ peleLM.hi_bc = Outflow Interior SlipWallAdiab
 
 #--------------------AMR CONTROL-----------------------------------------------
 amr.n_cell          = 112 32 48        # Level 0 number of cells in each direction   
-amr.v               = 1                # AMR verbose
+amr.v               = 3                # AMR verbose
 amr.max_level       = 1                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
-amr.regrid_int      = 1                # how often to regrid
+amr.regrid_int      = 1 1 1 1          # how often to regrid
 amr.n_error_buf     = 2 2 2 2          # number of buffer cells in error est
 amr.grid_eff        = 0.7              # what constitutes an efficient grid
 amr.blocking_factor = 16               # block factor in grid generation (min box size)
@@ -60,20 +60,20 @@ peleLM.rho = 4.0
 peleLM.mu = 3.0E-5
 
 #--------------------TIME STEPPING---------------------------------------------
-amr.restart = chk_20000
-amr.max_step = 30000
+amr.restart = chk_23210
+amr.max_step = 23220
 peleLM.sdc_iterMax = 1
-nodal_proj.verbose = 2
-mac_proj.verbose   = 2
+#nodal_proj.verbose = 2
+#mac_proj.verbose   = 2
 nodal_proj.rtol = 5e-10
 mac_proj.rtol   = 5e-10
 diffusion.rtol  = 5e-10
 #peleLM.deltaT_tol = 1E-11
 #ode.clean_init_massfrac = 1
 
-amr.plot_int = 200
-amr.check_int = 200
-amr.cfl = 0.6
+amr.plot_int = 1
+amr.check_int = 1
+amr.cfl = 0.5
 amr.check_file	= "chk_"
 amr.plot_file 	= "plt_"
 amr.derive_plot_vars 	= avg_pressure mag_vort mass_fractions HeatRelease mixture_fraction
@@ -120,7 +120,7 @@ peleLM.mixtureFraction.oxidTank = O2:0.233 N2:0.767
 peleLM.mixtureFraction.fuelTank = H2:1.0
 
 #--------------------REFINEMENT CONTROL----------------------------------------
-amr.refinement_indicators = overZ #bottomWall
+amr.refinement_indicators = overZ overHRR #bottomWall
 
 #amr.inner.max_level = 1
 #amr.inner.value_less = 10E-3
@@ -131,6 +131,11 @@ amr.overZ.max_level = 1
 amr.overZ.field_name = mixture_fraction
 amr.overZ.in_box_lo = -0.3E-3    -1      -1
 amr.overZ.in_box_hi = +10.0E-3   +4.5E-3   +1
+
+amr.overHRR.max_level = 2
+amr.overHRR.in_box_lo = -0.3E-3   -1      5E-4
+amr.overHRR.in_box_hi = +9.0E-3   +4.5E-3 3.0E-3
+amr.overHRR.field_name = HeatRelease
 
 #amr.bottomWall.max_level = 2
 #amr.bottomWall.field_name = HeatRelease
