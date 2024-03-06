@@ -1209,6 +1209,10 @@ PeleLM::differentialDiffusionUpdate(
     // Check for convergence failure
     if ((dTiter == m_deltaTIterMax - 1) && (deltaT_norm > m_deltaT_norm_max)) {
       if (m_crashOnDeltaTFail != 0) {
+        std::string suffix = "_step"+std::to_string(m_nstep)+"_sdcIter"+std::to_string(m_sdcIter)+"_deltaTiter"+std::to_string(dTiter);
+        WriteDebugPlotFile(GetVecOfConstPtrs(Tsave) , "Tsave" + suffix);
+        WriteDebugPlotFile(GetVecOfConstPtrs(rhs) , "rhs" + suffix);
+
         Abort("deltaT_iters not converged !");
       } else {
         Print() << "deltaT_iters not converged !\n";
