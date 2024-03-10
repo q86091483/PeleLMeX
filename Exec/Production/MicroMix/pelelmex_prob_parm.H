@@ -22,7 +22,7 @@ struct ProbParm
   amrex::Real jet_purity = 0.65_rt;
   amrex::Real bl_thickness = 2.0e-4_rt;
 
-  amrex::Real init_time = -1;
+  amrex::Real init_time = 1.0e-6_rt;
   int double_jet = 0;
 
   int jet_dir = 2;

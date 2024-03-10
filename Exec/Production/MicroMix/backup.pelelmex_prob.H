@@ -4,12 +4,12 @@
 #include <AMReX_FArrayBox.H>
 #include <AMReX_Geometry.H>
 #include <AMReX_SPACE.H>
+
 #include <PeleLMeX_Index.H>
 #include <PelePhysics.H>
 #include <pelelmex_prob_parm.H>
 #include <PMFData.H>
 #include <PMF.H>
-#include <math.h>
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
@@ -258,7 +258,7 @@ bcnormal(
   amrex::Real U_jet[AMREX_SPACEDIM] = {0.0};
   amrex::Real rho_air = 0.0;
   amrex::Real rho_jet = 0.0;
-  amrex::Real radsq = 0.0, rad = 0.0;
+  amrex::Real radsq = 0.0;
   amrex::Real factor = 0.0;
   amrex::Real area = 0.0;
   amrex::Real jet_vel = 0.0;
@@ -315,56 +315,38 @@ bcnormal(
 
   if (idir == jet_dir and (prob_parm.double_jet == 1 or sgn == 1)) {
 
-    amrex::Real P_cgs, Hjet_cgs, Hair_cgs, Hmix_cgs;
-    P_cgs = prob_parm.P_mean * 10.0;
-
-    // Radius
     for (int i = 0; i<njet; i++) {
       radsq = pow(x[other_dir]-jet_ys[i], 2) + pow(x[cf_dir]-jet_xs[i], 2);
       radsq_min = std::min(radsq_min, radsq);
     }
     radsq = radsq_min; 
-    rad = sqrt(radsq);
 
+    factor =
+      0.5 *
+      (1.0 - tanh((sqrt(radsq) - jet_rad) / (prob_parm.bl_thickness / 1.0)));
 
-    // Mixture fraction
-    factor = 0.5 *
-             (1.0 - tanh((sqrt(radsq) - jet_rad) / prob_parm.bl_thickness));
-
-    // Y
     for (int n = 0; n < NUM_SPECIES; n++) {
-      massfrac[n] = factor * Y_jet[n] + (1.0 - factor) * Y_air[n];
+      molefrac[n] = factor * X_jet[n] + (1.0 - factor) * X_air[n];
     }
-    eos.Y2X(massfrac, molefrac);
+    eos.X2Y(molefrac, massfrac);
 
-    // H
-    eos.TY2H(prob_parm.jet_temp, Y_jet, Hjet_cgs);
-    eos.TY2H(prob_parm.ox_temp,  Y_air, Hair_cgs);
-    Hmix_cgs = Hjet_cgs * factor + Hair_cgs * (1-factor);
+    amrex::Real rho_cgs, P_cgs, RhoH_temp;
+    P_cgs = prob_parm.P_mean * 10.0;
 
-    // T
-    amrex::Real Tmix = 0.0; // Without initial value for Tmix, there would be nan.
-    {
-    	eos.HY2T(Hmix_cgs, massfrac, Tmix);
-    	s_ext[TEMP] = Tmix;
-    }
+    s_ext[TEMP] =
+      factor * prob_parm.jet_temp + (1.0 - factor) * prob_parm.ox_temp;
 
-    // rho
-    amrex::Real rho_cgs;
-    {
-    	eos.PYT2R(P_cgs, massfrac, s_ext[TEMP], rho_cgs);
-	    s_ext[DENSITY] = rho_cgs * 1.0e3;
-    }
+    eos.PYT2R(P_cgs, massfrac, s_ext[TEMP], rho_cgs);
+    s_ext[DENSITY] = rho_cgs * 1.0e3;
 
-    // rhoH
-    eos.TY2H(s_ext[TEMP], massfrac, Hmix_cgs);
-    s_ext[RHOH] = Hmix_cgs * 1.0e-4 * s_ext[DENSITY]; // CGS -> MKS conversion
+    eos.TY2H(s_ext[TEMP], massfrac, RhoH_temp);
+    s_ext[RHOH] = RhoH_temp * 1.0e-4 * s_ext[DENSITY]; // CGS -> MKS conversion
 
     for (int n = 0; n < NUM_SPECIES; n++) {
       s_ext[FIRSTSPEC + n] = massfrac[n] * s_ext[DENSITY];
     }
 
-    // U, V, W
+    // Velocity
     amrex::Real time_factor = 0.0;
     if (time < prob_parm.init_time) {
       time_factor = (time / prob_parm.init_time) * (time / prob_parm.init_time);
@@ -380,29 +362,10 @@ bcnormal(
     s_ext[VELZ] = 0.0;
     s_ext[VELZ] =
       (1 - 0.5 * prob_parm.double_jet) * sgn * time_factor * factor * U_jet[2];
-
-    int myproc = amrex::ParallelDescriptor::MyProc();
-    if (rad <= 2.0*jet_rad and 
-           (isnan(s_ext[RHOH]) or isnan(s_ext[TEMP]) or isnan(s_ext[DENSITY]) or 
-	    isnan(s_ext[VELX]) or isnan(s_ext[VELY]) or isnan(s_ext[VELZ]))  ) 
-    {
-			amrex::Print(myproc) << "At proc " << myproc 
-                           << ", (x,y,z,r) = (" << x[0] << ", " << x[1] << ", " << x[2] << ", " 
-                           << rad << ")" << std::endl;
-    	for (int i = 0; i<NUM_SPECIES; i++) {
-            amrex::Print(myproc) << "  - massfrac[" << i << "]: " << massfrac[i] << std::endl;
-			}
-			amrex::Print(myproc) << "  - Z        = " << factor << std::endl;
-    	amrex::Print(myproc) << "  - Hmix_cgs = " << Hmix_cgs << ", " 
-                           << isnan(Hmix_cgs) << ", " << Hjet_cgs << ", " << Hair_cgs << std::endl;
-    	amrex::Print(myproc) << "  - Tmix     = " << Tmix << std::endl;
-    	amrex::Print(myproc) << "  - rho_cgs  = " << rho_cgs << std::endl;
-			amrex::Print(myproc) << std::endl;
-    }
-  } // if jet inlet
+  }
 
   if ((idir == cf_dir) and (sgn == 1)) {
-    	// Density
+    // Density
     s_ext[DENSITY] = rho_air;
     // Mass fraction
     for (int n = 0; n < NUM_SPECIES; n++) {
@@ -418,26 +381,6 @@ bcnormal(
     s_ext[VELX] = U_air[0];
     s_ext[VELY] = U_air[1];
     s_ext[VELZ] = U_air[2];
-
-    int myproc = amrex::ParallelDescriptor::MyProc();
-    if (x[0] <= 0.014/224 and
-           (isnan(s_ext[RHOH]) or isnan(s_ext[TEMP]) or isnan(s_ext[DENSITY]) or 
-	    			isnan(s_ext[VELX]) or isnan(s_ext[VELY]) or isnan(s_ext[VELZ]))  ) 
-    {
-			amrex::Print(myproc) << "At proc " << myproc 
-                           << ", (x,y,z,r) = (" << x[0] << ", " << x[1] << ", " << x[2] << ", " 
-                           << rad << ")" << std::endl;
-    	for (int i = 0; i<NUM_SPECIES; i++) {
-          amrex::Print(myproc) << "  - massfrac[" << i << "]: " << s_ext[FIRSTSPEC+i] << std::endl;
-			}
-    	amrex::Print(myproc) << "  - Tmix     = " << s_ext[TEMP] << std::endl;
-    	amrex::Print(myproc) << "  - rho_cgs  = " << s_ext[DENSITY] << std::endl;
-    	amrex::Print(myproc) << "  - U  = " << s_ext[VELX] << std::endl;
-    	amrex::Print(myproc) << "  - V  = " << s_ext[VELY] << std::endl;
-    	amrex::Print(myproc) << "  - W  = " << s_ext[VELZ] << std::endl;
-			amrex::Print(myproc) << std::endl;
-    }
-
   }
 }
 
