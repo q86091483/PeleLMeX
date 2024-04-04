@@ -43,5 +43,8 @@ struct ProbParm
   amrex::Real *xin = nullptr;
   amrex::Real *yin = nullptr;
   amrex::Real *zin = nullptr;
+  amrex::Real *dxin = nullptr;
+  amrex::Real *dyin = nullptr;
+  amrex::Real *dzin = nullptr;
 };
 #endif

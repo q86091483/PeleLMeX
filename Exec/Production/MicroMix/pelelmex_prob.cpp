@@ -132,11 +132,30 @@ PeleLM::readProbParm()
   amrex::Vector<amrex::Real> xin(nxin); /* this needs to be double */
   amrex::Vector<amrex::Real> yin(nyin); 
   amrex::Vector<amrex::Real> zin(nzin); 
+  amrex::Vector<amrex::Real> dxin(nxin); 
+  amrex::Vector<amrex::Real> dyin(nyin); 
+  amrex::Vector<amrex::Real> dzin(nzin); 
   amrex::Vector<amrex::Real> uvwin(nxin * nyin * nzin * 6); 
+
   read_coord_csv(file_x, nxin, xin);
   read_coord_csv(file_y, nyin, yin);
   read_coord_csv(file_z, nzin, zin);
   read_csv(file_uvw, nxin, nyin, nzin, uvwin);
+
+	for (int i = 0; i < nxin-1; ++i) {
+		dxin[i] = xin[i+1] - xin[i]; 
+  }
+  dxin[nxin-1] = xin[1] - xin[0];
+
+	for (int i = 0; i < nyin-1; ++i) {
+		dyin[i] = yin[i+1] - yin[i]; 
+  }
+  dyin[nyin-1] = yin[1] - yin[0];
+
+	for (int i = 0; i < nzin-1; ++i) {
+		dzin[i] = zin[i+1] - zin[i]; 
+  }
+  dzin[nzin-1] = zin[1] - zin[0]; // Note that z is the height and not periodic
 
   // Pass data to local prob_parm
   prob_parm_l.do_turbInlet = do_turbInlet;
@@ -150,17 +169,25 @@ PeleLM::readProbParm()
   prob_parm_l.xin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
   prob_parm_l.yin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
   prob_parm_l.zin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real));
+
+  prob_parm_l.dxin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
+  prob_parm_l.dyin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
+  prob_parm_l.dzin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real));
+
   prob_parm_l.uin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
   prob_parm_l.vin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
   prob_parm_l.win = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
   for (int i = 0; i < nxin; ++i) {
     prob_parm_l.xin[i] = xin[i];
+    prob_parm_l.dxin[i] = dxin[i];
   }
   for (int i = 0; i < nyin; ++i) {
     prob_parm_l.yin[i] = yin[i];
+    prob_parm_l.dyin[i] = dyin[i];
   }
   for (int i = 0; i < nzin; ++i) {
     prob_parm_l.zin[i] = zin[i];
+    prob_parm_l.dzin[i] = dzin[i];
   }
   for (int i = 0; i < nxin*nyin*nzin; ++i) {
     prob_parm_l.uin[i] = uvwin[3 + i * 6];
@@ -181,12 +208,33 @@ PeleLM::readProbParm()
   PeleLM::prob_parm->xin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
   PeleLM::prob_parm->yin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
   PeleLM::prob_parm->zin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real)); 
+  PeleLM::prob_parm->dxin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
+  PeleLM::prob_parm->dyin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
+  PeleLM::prob_parm->dzin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real)); 
   PeleLM::prob_parm->uin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
   PeleLM::prob_parm->vin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
   PeleLM::prob_parm->win = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
   std::memcpy(&PeleLM::prob_parm->xin,&prob_parm_l.xin,sizeof(prob_parm_l.xin));
   std::memcpy(&PeleLM::prob_parm->yin,&prob_parm_l.yin,sizeof(prob_parm_l.yin));
   std::memcpy(&PeleLM::prob_parm->zin,&prob_parm_l.zin,sizeof(prob_parm_l.zin));
+
+  std::memcpy(&PeleLM::prob_parm->dxin,&prob_parm_l.dxin,sizeof(prob_parm_l.dxin));
+  std::memcpy(&PeleLM::prob_parm->dyin,&prob_parm_l.dyin,sizeof(prob_parm_l.dyin));
+  std::memcpy(&PeleLM::prob_parm->dzin,&prob_parm_l.dzin,sizeof(prob_parm_l.dzin));
+
+  //amrex::Print() << " x " << std::endl;
+	//for (int i=0; i<nxin; ++i) {
+  //  amrex::Print() << PeleLM::prob_parm->dxin[i] << std::endl;
+  //}
+  //amrex::Print() << " y " << std::endl;
+	//for (int i=0; i<nyin; ++i) {
+  //  amrex::Print() << PeleLM::prob_parm->dyin[i] << std::endl;
+  //}
+  //amrex::Print() << " z " << std::endl;
+	//for (int i=0; i<nzin; ++i) {
+  //  amrex::Print() << PeleLM::prob_parm->dzin[i] << std::endl;
+  //}
+
   std::memcpy(&PeleLM::prob_parm->uin,&prob_parm_l.uin,sizeof(prob_parm_l.uin));
   std::memcpy(&PeleLM::prob_parm->vin,&prob_parm_l.vin,sizeof(prob_parm_l.vin));
   std::memcpy(&PeleLM::prob_parm->win,&prob_parm_l.win,sizeof(prob_parm_l.win));

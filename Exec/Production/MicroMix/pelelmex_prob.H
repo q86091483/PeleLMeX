@@ -84,20 +84,20 @@ void getTurbVel(amrex::Real t, amrex::Real x, amrex::Real y, amrex::Real z,
     mod[idim] = std::fmod(x - prob_lo[0] + mod[idim], prob_parm.Lxin) + prob_parm.xin[0];
     locate(prob_parm.xin, prob_parm.nxin, mod[idim], idx[idim]);
     idxp1[idim] = (idx[idim] + 1) % prob_parm.nxin;
-    slp[idim] = (mod[idim] - prob_parm.xin[idx[idim]]) / (prob_parm.xin[idxp1[idim]] - prob_parm.xin[idx[idim]]);
+    slp[idim] = (mod[idim] - prob_parm.xin[idx[idim]]) / prob_parm.dxin[idx[idim]];
     // y
     idim = 1;
     mod[idim] = y;
     locate(prob_parm.yin, prob_parm.nyin, mod[idim], idx[idim]);
     idxp1[idim] = (idx[idim] + 1) % prob_parm.nyin;
-    slp[idim] = (mod[idim] - prob_parm.yin[idx[idim]]) / (prob_parm.yin[idxp1[idim]] - prob_parm.yin[idx[idim]]);
+    slp[idim] = (mod[idim] - prob_parm.yin[idx[idim]]) / prob_parm.dyin[idx[idim]];
     // z
     idim = 2;
     mod[idim] = z;
     locate(prob_parm.zin, prob_parm.nzin, mod[idim], idx[idim]);
     idxp1[idim] = (idx[idim] + 1) % prob_parm.nzin;
     idxp1[idim] = idx[idim] + 1;
-    slp[idim] = (mod[idim] - prob_parm.zin[idx[idim]]) / (prob_parm.zin[idxp1[idim]] - prob_parm.zin[idx[idim]]);
+    slp[idim] = (mod[idim] - prob_parm.zin[idx[idim]]) / prob_parm.dzin[idx[idim]];
 
     int nxin = prob_parm.nxin;
     int n1 = prob_parm.nxin;
@@ -411,6 +411,7 @@ bcnormal(
   X_jet[H2_ID] = prob_parm.jet_purity;
   X_jet[N2_ID] = 1.0 - prob_parm.jet_purity;
 
+
   // Get air/jet mass fraction and densities
   // Mass fraction
   eos.X2Y(X_air, Y_air);
@@ -568,7 +569,6 @@ bcnormal(
       s_ext[VELY] = uinterp[1];
       s_ext[VELZ] = uinterp[2];
     }
-
 
     int myproc = amrex::ParallelDescriptor::MyProc();
     if (x[0] <= 0.014/224 and
