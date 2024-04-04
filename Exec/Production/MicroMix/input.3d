@@ -8,23 +8,23 @@ geometry.prob_hi = +122.50E-4  +2.000E-3  +6.000E-3  # x_hi y_hi (z_hi)
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
 peleLM.lo_bc = Inflow  Interior Inflow
-peleLM.hi_bc = Outflow Interior SlipWallAdiab
+peleLM.hi_bc = Outflow Interior NoSlipWallAdiab
 
 #--------------------AMR CONTROL-----------------------------------------------
-amr.n_cell          = 224 64 96        # Level 0 number of cells in each direction   
+amr.n_cell          = 336 96 144       # Level 0 number of cells in each direction   
 amr.v               = 2                # AMR verbose
-amr.max_level       = 2                # maximum level number allowed
+amr.max_level       = 0                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
 amr.regrid_int      = 2                # how often to regrid
 amr.n_error_buf     = 2 2 2 2          # number of buffer cells in error est
 amr.grid_eff        = 0.7              # what constitutes an efficient grid
-amr.blocking_factor = 32 16 8 8             # block factor in grid generation (min box size)
-amr.max_grid_size   = 32 16 16 16               # max box size
+amr.blocking_factor = 16               # block factor in grid generation (min box size)
+amr.max_grid_size   = 64               # max box size
 
 #--------------------PROBLEM PARAMETERS----------------------------------------
-prob.P_mean = 1013250.0
-prob.V_j = 108.0
-prob.V_cf = 17.5
+prob.P_mean = 506625
+prob.V_j = 219.8
+prob.V_cf = 35.58
 prob.jet_rad = 2.5E-4
 prob.jet_temp = 300.
 prob.ox_temp = 750.
@@ -42,6 +42,14 @@ prob.pertmag_cf 	= 0.0 		# Not used
 prob.pertmag_jet 	= 0.0 		# Not used
 prob.double_jet 	= 0 		# Not used
 
+prob.do_turbInlet = 0
+prob.nxin = 129
+prob.nyin = 65
+prob.nzin = 130
+prob.file_x = "turbin/channel.x"
+prob.file_y = "turbin/channel.y"
+prob.file_z = "turbin/channel.z"
+prob.file_uvw = "turbin/channel.uvw"
 #--------------------PeleLMeX CONTROL-----------------------------------------
 peleLM.v = 3
 peleLM.run_mode = normal	# [OPT, DEF=normal] Switch between time-advance mode (normal) or UnitTest (evaluate)
@@ -50,24 +58,24 @@ peleLM.use_wbar = 1		# [OPT, DEF=1] Enable Wbar correction in diffusion fluxes
 peleLM.deltaT_verbose = 2
 #peleLM.deltaT_iterMax = 20      # [OPT, DEF=10] Maximum number of deltaT iterations
 #peleLM.deltaT_tol = 5e-5        # [OPT, DEF=1.e-10] Tolerance of the deltaT solve
-#peleLM.deltaT_crashIfFailing = 0 # [OPT, DEF=1] Turn this off for production runs
+peleLM.deltaT_crashIfFailing = 0 # [OPT, DEF=1] Turn this off for production runs
 peleLM.num_init_iter = 3        # [OPT, DEF=3] Number of iterations to get initial pressure
 peleLM.num_divu_iter = 1        # [OPT, DEF=1] Number of divU iterations to get initial dt estimate
-peleLM.do_init_proj = 1         # [OPT, DEF=1] Control over initial projection
+peleLM.do_init_proj = 0         # [OPT, DEF=1] Control over initial projection
 peleLM.incompressible = 0       # [OPT, DEF=0] Enable to run fully incompressible, scalar advance is bypassed
 peleLM.rho = 4.0
 peleLM.mu = 3.0E-5
 
 #--------------------TIME STEPPING---------------------------------------------
-amr.restart = chk_03520
-amr.max_step = 4000
-peleLM.sdc_iterMax = 1
+amr.restart = chk_00300
+amr.max_step = 2000
+peleLM.sdc_iterMax = 2
 #nodal_proj.verbose = 2
 #mac_proj.verbose   = 2
 nodal_proj.rtol = 5e-10
 mac_proj.rtol   = 5e-10
 diffusion.rtol  = 5E-10
-peleLM.deltaT_tol = 1E-4
+peleLM.deltaT_tol = 5E-4
 #transport.use_soret = 1
 
 amr.plot_int = 20
@@ -86,7 +94,6 @@ imr.stop_time 		= 10.0
 peleLM.chem_integrator = "ReactorCvode"
 peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE   
 peleLM.typical_values_reset_int = 10   # [OPT, DEF=10] Frequency at which the typical values are updated
-#peleLM.floor_species = 1
 ode.rtol = 1.0e-6                     # Relative tolerance of the chemical solve
 ode.atol = 1.0e-6                     # Absolute tolerance factor applied on typical values
 cvode.solve_type = denseAJ_direct     # CVODE Linear solve type (for Newton direction) 
@@ -120,11 +127,23 @@ peleLM.mixtureFraction.oxidTank = O2:0.233 N2:0.767
 peleLM.mixtureFraction.fuelTank = H2:1.0
 
 #--------------------REFINEMENT CONTROL----------------------------------------
-amr.refinement_indicators = overZ overHRR #bottomWall
+amr.refinement_indicators = overZ overHRR overMagVort inlet lowerWall overMagVortHigh
 
 #amr.inner.max_level = 1
 #amr.inner.value_less = 10E-3
 #amr.inner.field_name = z
+
+amr.inlet.max_level = 1
+amr.inlet.in_box_lo =  -1    -1   -1
+amr.inlet.in_box_hi = 0.0    +1   4.5E-3
+
+amr.upperWall.max_level =  2
+amr.upperWall.in_box_lo = -1   -1   5.9E-3
+amr.upperWall.in_box_hi = +1   +1   6E-3
+
+amr.lowerWall.max_level = 2
+amr.lowerWall.in_box_lo = -1  -5.000E-3   -1
+amr.lowerWall.in_box_hi = +1   5.000E-3   5E-4
 
 amr.overZ.max_level = 1
 amr.overZ.value_greater = 1E-3
@@ -135,6 +154,15 @@ amr.overZ.field_name = mixture_fraction
 amr.overHRR.max_level = 2
 amr.overHRR.value_greater = 4E10
 amr.overHRR.field_name = HeatRelease
+
+amr.overMagVort.max_level = 2
+amr.overMagVort.value_greater = 8E5
+amr.overMagVort.field_name = mag_vort
+
+amr.overMagVortHigh.max_level = 3
+amr.overMagVortHigh.value_greater = 8E5
+amr.overMagVortHigh.field_name = mag_vort
+
 
 #amr.bottomWall.max_level = 2
 #amr.bottomWall.field_name = HeatRelease
@@ -163,3 +191,5 @@ amr.overHRR.field_name = HeatRelease
 #
 #
 #ode.clean_init_massfrac = 0
+peleLM.floor_species = 1
+

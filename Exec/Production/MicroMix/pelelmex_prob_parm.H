@@ -29,5 +29,19 @@ struct ProbParm
   int cf_dir = 0;
   int other_dir = 1;
 
+  // Turbulent channel inlet at the low end of x direction
+  int do_turbInlet = 0;
+  int nxin = 0;  // Stretched coordinate
+  int nyin = 0;  // uniform
+  int nzin = 0;  // uniform
+  amrex::Real Lxin = 0.0_rt;
+  amrex::Real Lyin = 0.0_rt;
+  amrex::Real Lzin = 0.0_rt;
+  amrex::Real *uin = nullptr;
+  amrex::Real *vin = nullptr;
+  amrex::Real *win = nullptr;
+  amrex::Real *xin = nullptr;
+  amrex::Real *yin = nullptr;
+  amrex::Real *zin = nullptr;
 };
 #endif

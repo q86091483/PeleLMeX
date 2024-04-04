@@ -11,6 +11,135 @@
 #include <PMF.H>
 #include <math.h>
 
+// -----------------------------------------------------------
+// Search for the closest index in an array to a given value
+// using the bisection technique.
+// INPUTS/OUTPUTS:
+// xtable(0:n-1) => array to search in (ascending order)
+// n             => array size
+// x             => x location
+// idxlo        <=> output st. xtable(idxlo) <= x < xtable(idxlo+1)
+// -----------------------------------------------------------
+AMREX_GPU_DEVICE
+AMREX_FORCE_INLINE
+void
+locate(const amrex::Real* xtable, const int n, const amrex::Real& x, int& idxlo)
+{
+  // If x is out of bounds, return boundary index
+  if (x >= xtable[n - 1]) {
+    idxlo = n - 1;
+    return;
+  }
+  if (x <= xtable[0]) {
+    idxlo = 0;
+    return;
+  }
+
+  // Do the bisection
+  idxlo = 0;
+  int idxhi = n - 1;
+  bool notdone = true;
+  while (notdone) {
+    if (idxhi - idxlo <= 1) {
+      notdone = false;
+    } else {
+      const int idxmid = (idxhi + idxlo) / 2;
+      if (x >= xtable[idxmid]) {
+        idxlo = idxmid;
+      } else {
+        idxhi = idxmid;
+      }   
+    }
+  }
+}
+
+
+AMREX_GPU_DEVICE
+AMREX_FORCE_INLINE
+void getTurbVel(amrex::Real t, amrex::Real x, amrex::Real y, amrex::Real z,
+                amrex::GeometryData const& geomdata,
+                ProbParm const& prob_parm,
+                amrex::Vector<amrex::Real>& uinterp)
+{
+    // Inlet Velocity fluctuation
+    // Fill in the velocities
+    amrex::Real xinterp[3] = {0.0};
+    xinterp[0] = x;
+    xinterp[1] = y;
+    xinterp[2] = z;
+
+    // Domain end
+    const amrex::Real* prob_lo = geomdata.ProbLo();
+
+    // Interpolation factors
+    amrex::Real mod[3] = {0.0};
+    int idx[3] = {0};
+    int idxp1[3] = {0};
+    amrex::Real slp[3] = {0.0};
+
+    int idim;
+    // x 
+    idim = 0;
+    mod[idim] = prob_parm.Lxin - std::fmod(prob_parm.V_cf * t, prob_parm.Lxin);
+    mod[idim] = std::fmod(x - prob_lo[0] + mod[idim], prob_parm.Lxin) + prob_parm.xin[0];
+    locate(prob_parm.xin, prob_parm.nxin, mod[idim], idx[idim]);
+    idxp1[idim] = (idx[idim] + 1) % prob_parm.nxin;
+    slp[idim] = (mod[idim] - prob_parm.xin[idx[idim]]) / (prob_parm.xin[idxp1[idim]] - prob_parm.xin[idx[idim]]);
+    // y
+    idim = 1;
+    mod[idim] = y;
+    locate(prob_parm.yin, prob_parm.nyin, mod[idim], idx[idim]);
+    idxp1[idim] = (idx[idim] + 1) % prob_parm.nyin;
+    slp[idim] = (mod[idim] - prob_parm.yin[idx[idim]]) / (prob_parm.yin[idxp1[idim]] - prob_parm.yin[idx[idim]]);
+    // z
+    idim = 2;
+    mod[idim] = z;
+    locate(prob_parm.zin, prob_parm.nzin, mod[idim], idx[idim]);
+    idxp1[idim] = (idx[idim] + 1) % prob_parm.nzin;
+    idxp1[idim] = idx[idim] + 1;
+    slp[idim] = (mod[idim] - prob_parm.zin[idx[idim]]) / (prob_parm.zin[idxp1[idim]] - prob_parm.zin[idx[idim]]);
+
+    int nxin = prob_parm.nxin;
+    int n1 = prob_parm.nxin;
+    int n2 = prob_parm.nyin;
+
+    const amrex::Real f0 = (1 - slp[0]) * (1 - slp[1]) * (1 - slp[2]);
+    const amrex::Real f1 = slp[0] * (1 - slp[1]) * (1 - slp[2]);
+    const amrex::Real f2 = (1 - slp[0]) * slp[1] * (1 - slp[2]);
+    const amrex::Real f3 = (1 - slp[0]) * (1 - slp[1]) * slp[2];
+    const amrex::Real f4 = slp[0] * (1 - slp[1]) * slp[2];
+    const amrex::Real f5 = (1 - slp[0]) * slp[1] * slp[2];
+    const amrex::Real f6 = slp[0] * slp[1] * (1 - slp[2]);
+    const amrex::Real f7 = slp[0] * slp[1] * slp[2];
+    uinterp[0] =   prob_parm.uin[  idx[0] + n1 * (  idx[1] + n2 * idx[2])] * f0
+                 + prob_parm.uin[idxp1[0] + n1 * (  idx[1] + n2 * idx[2])] * f1
+                 + prob_parm.uin[  idx[0] + n1 * (idxp1[1] + n2 * idx[2])] * f2
+                 + prob_parm.uin[  idx[0] + n1 * (  idx[1] + n2 * idxp1[2])] * f3
+                 + prob_parm.uin[idxp1[0] + n1 * (  idx[1] + n2 * idxp1[2])] * f4
+                 + prob_parm.uin[  idx[0] + n1 * (idxp1[1] + n2 * idxp1[2])] * f5
+                 + prob_parm.uin[idxp1[0] + n1 * (idxp1[1] + n2 * idx[2])] * f6
+                 + prob_parm.uin[idxp1[0] + n1 * (idxp1[1] + n2 * idxp1[2])] * f7;
+
+    uinterp[1] =   prob_parm.vin[  idx[0] + n1 * (  idx[1] + n2 * idx[2])] * f0 
+                 + prob_parm.vin[idxp1[0] + n1 * (  idx[1] + n2 * idx[2])] * f1
+                 + prob_parm.vin[  idx[0] + n1 * (idxp1[1] + n2 * idx[2])] * f2
+                 + prob_parm.vin[  idx[0] + n1 * (  idx[1] + n2 * idxp1[2])] * f3
+                 + prob_parm.vin[idxp1[0] + n1 * (  idx[1] + n2 * idxp1[2])] * f4
+                 + prob_parm.vin[  idx[0] + n1 * (idxp1[1] + n2 * idxp1[2])] * f5
+                 + prob_parm.vin[idxp1[0] + n1 * (idxp1[1] + n2 * idx[2])] * f6
+                 + prob_parm.vin[idxp1[0] + n1 * (idxp1[1] + n2 * idxp1[2])] * f7;
+
+    uinterp[2] =   prob_parm.win[  idx[0] + n1 * (  idx[1] + n2 * idx[2])] * f0
+                 + prob_parm.win[idxp1[0] + n1 * (  idx[1] + n2 * idx[2])] * f1
+                 + prob_parm.win[  idx[0] + n1 * (idxp1[1] + n2 * idx[2])] * f2
+                 + prob_parm.win[  idx[0] + n1 * (  idx[1] + n2 * idxp1[2])] * f3
+                 + prob_parm.win[idxp1[0] + n1 * (  idx[1] + n2 * idxp1[2])] * f4
+                 + prob_parm.win[  idx[0] + n1 * (idxp1[1] + n2 * idxp1[2])] * f5
+                 + prob_parm.win[idxp1[0] + n1 * (idxp1[1] + n2 * idx[2])] * f6
+                 + prob_parm.win[idxp1[0] + n1 * (idxp1[1] + n2 * idxp1[2])] * f7;
+}
+
+
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
@@ -54,8 +183,10 @@ pelelmex_initdata(
   molefrac[N2_ID] = prob_parm.X_N2;
   eos.X2Y(molefrac, massfrac);
 
-  XF[H2_ID] = prob_parm.jet_purity;
-  XF[N2_ID] = 1-prob_parm.jet_purity;
+  //XF[H2_ID] = prob_parm.jet_purity;
+  //XF[N2_ID] = 1-prob_parm.jet_purity;
+  XF[O2_ID] = 0.21;
+  XF[N2_ID] = 0.79;
   eos.X2Y(XF, YF);
 
   XO[O2_ID] = prob_parm.X_O2;
@@ -119,6 +250,15 @@ pelelmex_initdata(
   AMREX_D_TERM(state(i, j, k, VELX) = x_velocity;
                , state(i, j, k, VELY) = y_velocity;
                , state(i, j, k, VELZ) = z_velocity);
+  
+  if (prob_parm.do_turbInlet == 1) {
+    amrex::Vector<amrex::Real> uinterp(3);
+    amrex::Real tcur = 0.0;
+    getTurbVel(tcur, x, y, z, geomdata, prob_parm, uinterp);
+    state(i,j,k,VELX) = uinterp[0];
+    state(i,j,k,VELY) = uinterp[1];
+    state(i,j,k,VELZ) = uinterp[2];
+  }
 
   amrex::Real P_cgs = prob_parm.P_mean * 10.0;
 
@@ -267,7 +407,7 @@ bcnormal(
 
   // Initialize the jet and air molefracs
   X_air[O2_ID] = prob_parm.X_O2;
-  X_air[N2_ID] = prob_parm.X_N2;
+  X_air[N2_ID] = 1-prob_parm.X_O2;
   X_jet[H2_ID] = prob_parm.jet_purity;
   X_jet[N2_ID] = 1.0 - prob_parm.jet_purity;
 
@@ -381,6 +521,7 @@ bcnormal(
     s_ext[VELZ] =
       (1 - 0.5 * prob_parm.double_jet) * sgn * time_factor * factor * U_jet[2];
 
+
     int myproc = amrex::ParallelDescriptor::MyProc();
     if (rad <= 2.0*jet_rad and 
            (isnan(s_ext[RHOH]) or isnan(s_ext[TEMP]) or isnan(s_ext[DENSITY]) or 
@@ -418,6 +559,16 @@ bcnormal(
     s_ext[VELX] = U_air[0];
     s_ext[VELY] = U_air[1];
     s_ext[VELZ] = U_air[2];
+
+    if (prob_parm.do_turbInlet == 1) {
+      amrex::Vector<amrex::Real> uinterp(3);
+      amrex::Real tcur = time;
+      getTurbVel(tcur, x[0], x[1], x[2], geomdata, prob_parm, uinterp);
+      s_ext[VELX] = uinterp[0];
+      s_ext[VELY] = uinterp[1];
+      s_ext[VELZ] = uinterp[2];
+    }
+
 
     int myproc = amrex::ParallelDescriptor::MyProc();
     if (x[0] <= 0.014/224 and
