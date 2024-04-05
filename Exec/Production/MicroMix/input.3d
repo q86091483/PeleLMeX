@@ -11,7 +11,7 @@ peleLM.lo_bc = Inflow  Interior Inflow
 peleLM.hi_bc = Outflow Interior NoSlipWallAdiab
 
 #--------------------AMR CONTROL-----------------------------------------------
-amr.n_cell          = 112 32 48       # Level 0 number of cells in each direction   
+amr.n_cell          = 140 40 60        # Level 0 number of cells in each direction   
 amr.v               = 2                # AMR verbose
 amr.max_level       = 0                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
@@ -22,9 +22,9 @@ amr.blocking_factor = 16               # block factor in grid generation (min bo
 amr.max_grid_size   = 64               # max box size
 
 #--------------------PROBLEM PARAMETERS----------------------------------------
-prob.P_mean = 506625
-prob.V_j = 219.8
-prob.V_cf = 35.58
+prob.P_mean = 405300
+prob.V_j = 234.
+prob.V_cf = 38.
 prob.jet_rad = 2.5E-4
 prob.jet_temp = 300.
 prob.ox_temp = 750.

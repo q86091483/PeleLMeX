@@ -115,139 +115,130 @@ PeleLM::readProbParm()
   // Read local prob_parm_l 
   ProbParm prob_parm_l;
   
+	// Parameters of inlet channel turbulence 
   int do_turbInlet;
   pp.query("do_turbInlet", do_turbInlet);
 
-  int nxin, nyin, nzin;
-  pp.query("nxin", nxin); 
-  pp.query("nyin", nyin); 
-  pp.query("nzin", nzin); 
+  if (do_turbInlet == 1) {
 
-  std::string file_x, file_y, file_z, file_uvw;
-  pp.query("file_x", file_x);
-  pp.query("file_y", file_y);
-  pp.query("file_z", file_z);
-  pp.query("file_uvw", file_uvw);
+  	int nxin, nyin, nzin;
+  	pp.query("nxin", nxin); 
+  	pp.query("nyin", nyin); 
+  	pp.query("nzin", nzin); 
 
-  amrex::Vector<amrex::Real> xin(nxin); /* this needs to be double */
-  amrex::Vector<amrex::Real> yin(nyin); 
-  amrex::Vector<amrex::Real> zin(nzin); 
-  amrex::Vector<amrex::Real> dxin(nxin); 
-  amrex::Vector<amrex::Real> dyin(nyin); 
-  amrex::Vector<amrex::Real> dzin(nzin); 
-  amrex::Vector<amrex::Real> uvwin(nxin * nyin * nzin * 6); 
+  	std::string file_x, file_y, file_z, file_uvw;
+  	pp.query("file_x", file_x);
+  	pp.query("file_y", file_y);
+  	pp.query("file_z", file_z);
+  	pp.query("file_uvw", file_uvw);
 
-  read_coord_csv(file_x, nxin, xin);
-  read_coord_csv(file_y, nyin, yin);
-  read_coord_csv(file_z, nzin, zin);
-  read_csv(file_uvw, nxin, nyin, nzin, uvwin);
+  	amrex::Vector<amrex::Real> xin(nxin); /* this needs to be double */
+  	amrex::Vector<amrex::Real> yin(nyin); 
+  	amrex::Vector<amrex::Real> zin(nzin); 
+  	amrex::Vector<amrex::Real> dxin(nxin); 
+  	amrex::Vector<amrex::Real> dyin(nyin); 
+  	amrex::Vector<amrex::Real> dzin(nzin); 
+  	amrex::Vector<amrex::Real> uvwin(nxin * nyin * nzin * 6); 
 
-	for (int i = 0; i < nxin-1; ++i) {
-		dxin[i] = xin[i+1] - xin[i]; 
-  }
-  dxin[nxin-1] = xin[1] - xin[0];
+  	read_coord_csv(file_x, nxin, xin);
+  	read_coord_csv(file_y, nyin, yin);
+  	read_coord_csv(file_z, nzin, zin);
+  	read_csv(file_uvw, nxin, nyin, nzin, uvwin);
 
-	for (int i = 0; i < nyin-1; ++i) {
-		dyin[i] = yin[i+1] - yin[i]; 
-  }
-  dyin[nyin-1] = yin[1] - yin[0];
+		for (int i = 0; i < nxin-1; ++i) {
+			dxin[i] = xin[i+1] - xin[i]; 
+  	}
+  	dxin[nxin-1] = xin[1] - xin[0];
 
-	for (int i = 0; i < nzin-1; ++i) {
-		dzin[i] = zin[i+1] - zin[i]; 
-  }
-  dzin[nzin-1] = zin[1] - zin[0]; // Note that z is the height and not periodic
+		for (int i = 0; i < nyin-1; ++i) {
+			dyin[i] = yin[i+1] - yin[i]; 
+  	}
+  	dyin[nyin-1] = yin[1] - yin[0];
 
-  // Pass data to local prob_parm
-  prob_parm_l.do_turbInlet = do_turbInlet;
-  prob_parm_l.nxin = nxin;
-  prob_parm_l.nyin = nyin;
-  prob_parm_l.nzin = nzin;
-  prob_parm_l.Lxin   = xin[nxin - 1] - xin[0];
-  prob_parm_l.Lyin   = yin[nyin - 1] - yin[0];
-  prob_parm_l.Lzin   = zin[nzin - 1] - zin[0];
+		for (int i = 0; i < nzin-1; ++i) {
+			dzin[i] = zin[i+1] - zin[i]; 
+  	}
+  	dzin[nzin-1] = zin[1] - zin[0]; // Note that z is the height and not periodic
 
-  prob_parm_l.xin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
-  prob_parm_l.yin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
-  prob_parm_l.zin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real));
+  	// Pass data to local prob_parm
+  	prob_parm_l.do_turbInlet = do_turbInlet;
+  	prob_parm_l.nxin = nxin;
+  	prob_parm_l.nyin = nyin;
+  	prob_parm_l.nzin = nzin;
+  	prob_parm_l.Lxin   = xin[nxin - 1] - xin[0];
+ 		prob_parm_l.Lyin   = yin[nyin - 1] - yin[0];
+  	prob_parm_l.Lzin   = zin[nzin - 1] - zin[0];
 
-  prob_parm_l.dxin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
-  prob_parm_l.dyin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
-  prob_parm_l.dzin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real));
+  	prob_parm_l.xin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
+  	prob_parm_l.yin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
+  	prob_parm_l.zin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real));
 
-  prob_parm_l.uin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
-  prob_parm_l.vin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
-  prob_parm_l.win = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
-  for (int i = 0; i < nxin; ++i) {
-    prob_parm_l.xin[i] = xin[i];
-    prob_parm_l.dxin[i] = dxin[i];
-  }
-  for (int i = 0; i < nyin; ++i) {
-    prob_parm_l.yin[i] = yin[i];
-    prob_parm_l.dyin[i] = dyin[i];
-  }
-  for (int i = 0; i < nzin; ++i) {
-    prob_parm_l.zin[i] = zin[i];
-    prob_parm_l.dzin[i] = dzin[i];
-  }
-  for (int i = 0; i < nxin*nyin*nzin; ++i) {
-    prob_parm_l.uin[i] = uvwin[3 + i * 6];
-    prob_parm_l.vin[i] = uvwin[4 + i * 6];
-    prob_parm_l.win[i] = uvwin[5 + i * 6];
-  }
+  	prob_parm_l.dxin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
+  	prob_parm_l.dyin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
+  	prob_parm_l.dzin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real));
 
-  // Initialize PeleLM::prob_parm container
-  PeleLM::prob_parm->do_turbInlet = prob_parm_l.do_turbInlet;
-  PeleLM::prob_parm->nxin = prob_parm_l.nxin;
-  PeleLM::prob_parm->nyin = prob_parm_l.nyin;
-  PeleLM::prob_parm->nzin = prob_parm_l.nzin;
-  PeleLM::prob_parm->Lxin = prob_parm_l.Lxin;
-  PeleLM::prob_parm->Lyin = prob_parm_l.Lyin;
-  PeleLM::prob_parm->Lzin = prob_parm_l.Lzin;
+  	prob_parm_l.uin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
+  	prob_parm_l.vin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
+  	prob_parm_l.win = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
+  	for (int i = 0; i < nxin; ++i) {
+    	prob_parm_l.xin[i] = xin[i];
+    	prob_parm_l.dxin[i] = dxin[i];
+  	}
+  	for (int i = 0; i < nyin; ++i) {
+    	prob_parm_l.yin[i] = yin[i];
+    	prob_parm_l.dyin[i] = dyin[i];
+  	}
+  	for (int i = 0; i < nzin; ++i) {
+    	prob_parm_l.zin[i] = zin[i];
+    	prob_parm_l.dzin[i] = dzin[i];
+  	}
+  	for (int i = 0; i < nxin*nyin*nzin; ++i) {
+    	prob_parm_l.uin[i] = uvwin[3 + i * 6];
+    	prob_parm_l.vin[i] = uvwin[4 + i * 6];
+    	prob_parm_l.win[i] = uvwin[5 + i * 6];
+  	}
 
-  // Copy into PeleLM::prob_parm: CPU only for now
-  PeleLM::prob_parm->xin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
-  PeleLM::prob_parm->yin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
-  PeleLM::prob_parm->zin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real)); 
-  PeleLM::prob_parm->dxin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
-  PeleLM::prob_parm->dyin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
-  PeleLM::prob_parm->dzin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real)); 
-  PeleLM::prob_parm->uin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
-  PeleLM::prob_parm->vin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
-  PeleLM::prob_parm->win = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
-  std::memcpy(&PeleLM::prob_parm->xin,&prob_parm_l.xin,sizeof(prob_parm_l.xin));
-  std::memcpy(&PeleLM::prob_parm->yin,&prob_parm_l.yin,sizeof(prob_parm_l.yin));
-  std::memcpy(&PeleLM::prob_parm->zin,&prob_parm_l.zin,sizeof(prob_parm_l.zin));
+  	// Initialize PeleLM::prob_parm container
+  	PeleLM::prob_parm->do_turbInlet = prob_parm_l.do_turbInlet;
+  	PeleLM::prob_parm->nxin = prob_parm_l.nxin;
+  	PeleLM::prob_parm->nyin = prob_parm_l.nyin;
+  	PeleLM::prob_parm->nzin = prob_parm_l.nzin;
+  	PeleLM::prob_parm->Lxin = prob_parm_l.Lxin;
+  	PeleLM::prob_parm->Lyin = prob_parm_l.Lyin;
+  	PeleLM::prob_parm->Lzin = prob_parm_l.Lzin;
 
-  std::memcpy(&PeleLM::prob_parm->dxin,&prob_parm_l.dxin,sizeof(prob_parm_l.dxin));
-  std::memcpy(&PeleLM::prob_parm->dyin,&prob_parm_l.dyin,sizeof(prob_parm_l.dyin));
-  std::memcpy(&PeleLM::prob_parm->dzin,&prob_parm_l.dzin,sizeof(prob_parm_l.dzin));
+  	// Copy into PeleLM::prob_parm: CPU only for now
+  	PeleLM::prob_parm->xin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
+  	PeleLM::prob_parm->yin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
+  	PeleLM::prob_parm->zin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real)); 
+  	PeleLM::prob_parm->dxin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*sizeof(amrex::Real));
+  	PeleLM::prob_parm->dyin = (amrex::Real*) amrex::The_Arena()->alloc(nyin*sizeof(amrex::Real));
+  	PeleLM::prob_parm->dzin = (amrex::Real*) amrex::The_Arena()->alloc(nzin*sizeof(amrex::Real)); 
+  	PeleLM::prob_parm->uin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
+  	PeleLM::prob_parm->vin = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
+  	PeleLM::prob_parm->win = (amrex::Real*) amrex::The_Arena()->alloc(nxin*nyin*nzin*sizeof(amrex::Real));
+  	std::memcpy(&PeleLM::prob_parm->xin,&prob_parm_l.xin,sizeof(prob_parm_l.xin));
+  	std::memcpy(&PeleLM::prob_parm->yin,&prob_parm_l.yin,sizeof(prob_parm_l.yin));
+  	std::memcpy(&PeleLM::prob_parm->zin,&prob_parm_l.zin,sizeof(prob_parm_l.zin));
 
-  //amrex::Print() << " x " << std::endl;
-	//for (int i=0; i<nxin; ++i) {
-  //  amrex::Print() << PeleLM::prob_parm->dxin[i] << std::endl;
-  //}
-  //amrex::Print() << " y " << std::endl;
-	//for (int i=0; i<nyin; ++i) {
-  //  amrex::Print() << PeleLM::prob_parm->dyin[i] << std::endl;
-  //}
-  //amrex::Print() << " z " << std::endl;
-	//for (int i=0; i<nzin; ++i) {
-  //  amrex::Print() << PeleLM::prob_parm->dzin[i] << std::endl;
-  //}
+  	std::memcpy(&PeleLM::prob_parm->dxin,&prob_parm_l.dxin,sizeof(prob_parm_l.dxin));
+  	std::memcpy(&PeleLM::prob_parm->dyin,&prob_parm_l.dyin,sizeof(prob_parm_l.dyin));
+  	std::memcpy(&PeleLM::prob_parm->dzin,&prob_parm_l.dzin,sizeof(prob_parm_l.dzin));
 
-  std::memcpy(&PeleLM::prob_parm->uin,&prob_parm_l.uin,sizeof(prob_parm_l.uin));
-  std::memcpy(&PeleLM::prob_parm->vin,&prob_parm_l.vin,sizeof(prob_parm_l.vin));
-  std::memcpy(&PeleLM::prob_parm->win,&prob_parm_l.win,sizeof(prob_parm_l.win));
+  	std::memcpy(&PeleLM::prob_parm->uin,&prob_parm_l.uin,sizeof(prob_parm_l.uin));
+  	std::memcpy(&PeleLM::prob_parm->vin,&prob_parm_l.vin,sizeof(prob_parm_l.vin));
+  	std::memcpy(&PeleLM::prob_parm->win,&prob_parm_l.win,sizeof(prob_parm_l.win));
 
-  //int myproc = amrex::ParallelDescriptor::MyProc();
-  //int NProcs = amrex::ParallelDescriptor::NProcs();
-  //for (int i=0; i<NProcs; i++) {
-  //  amrex::ParallelDescriptor::Barrier();
-  //  if (myproc==i) {
-  //    for (int m=0; m<nxin; m++)
-  //      amrex::AllPrint() << myproc << "  " << PeleLM::prob_parm->uin[m] << "\n"; 
-  //  }
-  //}
+  	//int myproc = amrex::ParallelDescriptor::MyProc();
+  	//int NProcs = amrex::ParallelDescriptor::NProcs();
+  	//for (int i=0; i<NProcs; i++) {
+  	//  amrex::ParallelDescriptor::Barrier();
+  	//  if (myproc==i) {
+  	//    for (int m=0; m<nxin; m++)
+  	//      amrex::AllPrint() << myproc << "  " << PeleLM::prob_parm->uin[m] << "\n"; 
+  	//  }
+  	//}
+  } // turbin parameters
 
   std::string type;
   pp.query("P_mean", PeleLM::prob_parm->P_mean);
