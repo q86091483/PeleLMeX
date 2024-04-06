@@ -2,7 +2,7 @@
 geometry.is_periodic = 0 1 0               	# For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                   	# 0 => cart, 1 => RZ
 geometry.prob_lo = -17.500E-4  -2.000E-3   0.000E-3  # x_lo y_lo (z_lo)
-geometry.prob_hi = +122.50E-4  +2.000E-3  +6.000E-3  # x_hi y_hi (z_hi)
+geometry.prob_hi = +126.50E-4  +2.000E-3  +6.400E-3  # x_hi y_hi (z_hi)
 
 #--------------------BNDY CONDITIONS-------------------------------------------
 # Interior, Inflow, Outflow, Symmetry,
@@ -11,20 +11,20 @@ peleLM.lo_bc = Inflow  Interior Inflow
 peleLM.hi_bc = Outflow Interior NoSlipWallAdiab
 
 #--------------------AMR CONTROL-----------------------------------------------
-amr.n_cell          = 140 40 60        # Level 0 number of cells in each direction   
+amr.n_cell          = 144 40 64        # Level 0 number of cells in each direction   
 amr.v               = 2                # AMR verbose
-amr.max_level       = 0                # maximum level number allowed
+amr.max_level       = 1                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
 amr.regrid_int      = 2                # how often to regrid
 amr.n_error_buf     = 2 2 2 2          # number of buffer cells in error est
 amr.grid_eff        = 0.7              # what constitutes an efficient grid
-amr.blocking_factor = 16               # block factor in grid generation (min box size)
+amr.blocking_factor = 8               # block factor in grid generation (min box size)
 amr.max_grid_size   = 64               # max box size
 
 #--------------------PROBLEM PARAMETERS----------------------------------------
 prob.P_mean = 405300
 prob.V_j = 234.
-prob.V_cf = 38.
+prob.V_cf = 37.
 prob.jet_rad = 2.5E-4
 prob.jet_temp = 300.
 prob.ox_temp = 750.
@@ -67,8 +67,8 @@ peleLM.rho = 4.0
 peleLM.mu = 3.0E-5
 
 #--------------------TIME STEPPING---------------------------------------------
-#amr.restart = chk_00100
-amr.max_step = 2000
+amr.restart = chk_01000
+amr.max_step = 5000
 peleLM.sdc_iterMax = 2
 #nodal_proj.verbose = 2
 #mac_proj.verbose   = 2
@@ -78,9 +78,9 @@ diffusion.rtol  = 5E-10
 peleLM.deltaT_tol = 5E-4
 #transport.use_soret = 1
 
-amr.plot_int = 100
-amr.check_int = 100
-amr.cfl = 0.4
+amr.plot_int = 50
+amr.check_int = 50
+amr.cfl = 0.8
 amr.check_file	= "chk_"
 amr.plot_file 	= "plt_"
 amr.derive_plot_vars 	= avg_pressure mag_vort mass_fractions HeatRelease mixture_fraction
@@ -91,7 +91,7 @@ imr.stop_time 		= 10.0
 #amr.fixed_dt = 1e-3
 
 #--------------------CHEMISTRY INTEGRATOR---------------------------------------
-peleLM.chem_integrator = "ReactorNull"
+peleLM.chem_integrator = "ReactorCvode"
 peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE   
 peleLM.typical_values_reset_int = 10   # [OPT, DEF=10] Frequency at which the typical values are updated
 ode.rtol = 1.0e-6                     # Relative tolerance of the chemical solve
