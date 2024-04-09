@@ -589,7 +589,12 @@ bcnormal(
 			amrex::Print(myproc) << std::endl;
     }
 
-  }
+  } // if cross flow inlet
+
+  if ((idir == jet_dir) and (sgn == -1)) {
+		s_ext[TEMP] = prob_parm.ox_temp;
+  } // if upper wall
+
 }
 
 AMREX_GPU_DEVICE
