@@ -54,14 +54,14 @@ ifeq ($(USE_SOOT), TRUE)
    DEFINES += -DNUM_SOOT_MOMENTS=$(NUM_SOOT_MOMENTS)
 endif
 ifeq ($(USE_AUX), TRUE)
-   DEFINES += -DPELELM_USE_AUX
+   DEFINES += -DPELE_USE_AUX
    ifeq ($(USE_AGE), TRUE)
-      DEFINES += -DPELELM_USE_AGE
+      DEFINES += -DPELE_USE_AGE
    endif
    ifeq ($(USE_AGEPV), TRUE)
-      DEFINES += -DPELELM_USE_AGEPV
+      DEFINES += -DPELE_USE_AGEPV
    endif
-end if
+endif
 
 Bpack += $(foreach dir, $(LMdirs), $(PELELMEX_HOME)/$(dir)/Make.package)
 Blocs += $(foreach dir, $(LMdirs), $(PELELMEX_HOME)/$(dir))
