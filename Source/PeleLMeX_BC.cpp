@@ -31,6 +31,9 @@ int temp_bc[] = {INT_DIR,  EXT_DIR,  FOEXTRAP, REFLECT_EVEN,
 int divu_bc[] = {INT_DIR,      REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN,
                  REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN};
 
+int age_bc[] = {INT_DIR,      EXT_DIR,      FOEXTRAP,     REFLECT_EVEN,
+                REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN};
+
 // Following incflo rather than IAMR here
 int force_bc[] = {BCType::int_dir,  BCType::foextrap, BCType::foextrap,
                   BCType::foextrap, BCType::foextrap, BCType::foextrap,
