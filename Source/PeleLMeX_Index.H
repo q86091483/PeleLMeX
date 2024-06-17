@@ -22,8 +22,31 @@
 #else
 #define NUMSOOTVAR 0
 #endif
+
 #define FIRSTAUX (RHORT + NUMEFIELD + NUMSOOTVAR + 1)
-#define NVAR (FIRSTAUX + 0)
-// TODO: handle NAUX
+
+#ifdef PELE_USE_AUX
+  // Age variable
+  #ifdef PELE_USE_AGE
+    #define AGE FIRSTAUX
+    #define NUMAGE 1
+  #else
+    #define AGE 0
+    #define NUMAGE 0
+  #endif
+  // Age progress variable
+  #ifdef PELE_USE_AGEPV
+    #define AGEPV (FIRSTAUX + NUMAGE)
+    #define NUMAGEPV 1
+  #else
+    #define AGEPV 0
+    #define NUMAGEPV 0
+  #endif
+  #define NUMAUX (NUMAGE + NUMAGEPV)
+#else
+  #define NUMAUX 0
+#endif
+
+#define NVAR (FIRSTAUX + NUMAUX)
 
 #endif
