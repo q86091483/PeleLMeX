@@ -55,6 +55,9 @@ ifeq ($(USE_SOOT), TRUE)
 endif
 ifeq ($(USE_AUX), TRUE)
    DEFINES += -DPELE_USE_AUX
+   ifeq ($(USE_MIXF), TRUE)
+      DEFINES += -DPELE_USE_MIXF
+   endif
    ifeq ($(USE_AGE), TRUE)
       DEFINES += -DPELE_USE_AGE
    endif

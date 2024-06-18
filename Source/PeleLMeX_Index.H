@@ -26,23 +26,31 @@
 #define FIRSTAUX (RHORT + NUMEFIELD + NUMSOOTVAR + 1)
 
 #ifdef PELE_USE_AUX
+  // User-defined mixture fraction
+  #ifdef PELE_USE_MIXF
+    #define MIXF FIRSTAUX
+    #define NUMMIXF 1
+  #else
+    #define MIXF -1
+    #define NUMMIXF 0
+  #endif
   // Age variable
   #ifdef PELE_USE_AGE
-    #define AGE FIRSTAUX
-    #define NUMAGE 1
+    #define AGE (FIRSTAUX + NUMMIXF)
+    #define NUMAGE 2
   #else
-    #define AGE 0
+    #define AGE -1
     #define NUMAGE 0
   #endif
   // Age progress variable
   #ifdef PELE_USE_AGEPV
-    #define AGEPV (FIRSTAUX + NUMAGE)
-    #define NUMAGEPV 1
+    #define AGEPV (FIRSTAUX + NUMMIXF + NUMAGE)
+    #define NUMAGEPV NUMAGE
   #else
-    #define AGEPV 0
+    #define AGEPV -1
     #define NUMAGEPV 0
   #endif
-  #define NUMAUX (NUMAGE + NUMAGEPV)
+  #define NUMAUX (NUMMIXF + NUMAGE + NUMAGEPV)
 #else
   #define NUMAUX 0
 #endif
