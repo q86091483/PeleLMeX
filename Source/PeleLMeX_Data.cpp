@@ -60,7 +60,7 @@ PeleLM::LevelDataReact::LevelDataReact(
   const amrex::DistributionMapping& dm,
   const amrex::FabFactory<FArrayBox>& factory)
 {
-  int IRsize = NUM_SPECIES;
+  int IRsize = NUM_SPECIES + NUMAUX;
 #ifdef PELE_USE_EFIELD
   IRsize += 1;
 #endif
@@ -124,11 +124,11 @@ PeleLM::AdvanceDiffData::AdvanceDiffData(
     // Define MFs
     for (int lev = 0; lev <= a_finestLevel; lev++) {
       Dn[lev].define(
-        ba[lev], dm[lev], NUM_SPECIES + 2, nGrowAdv, MFInfo(), *factory[lev]);
+        ba[lev], dm[lev], NUM_SPECIES + 2 + NUMAUX, nGrowAdv, MFInfo(), *factory[lev]);
       Dnp1[lev].define(
-        ba[lev], dm[lev], NUM_SPECIES + 2, nGrowAdv, MFInfo(), *factory[lev]);
+        ba[lev], dm[lev], NUM_SPECIES + 2 + NUMAUX, nGrowAdv, MFInfo(), *factory[lev]);
       Dhat[lev].define(
-        ba[lev], dm[lev], NUM_SPECIES + 2, nGrowAdv, MFInfo(), *factory[lev]);
+        ba[lev], dm[lev], NUM_SPECIES + 2 + NUMAUX, nGrowAdv, MFInfo(), *factory[lev]);
       if (a_use_wbar != 0) {
         Dwbar[lev].define(
           ba[lev], dm[lev], NUM_SPECIES, nGrowAdv, MFInfo(), *factory[lev]);
@@ -170,7 +170,7 @@ PeleLM::AdvanceAdvData::AdvanceAdvData(
     Forcing.resize(a_finestLevel + 1);
     mac_divu.resize(a_finestLevel + 1);
   }
-#ifdef PELE_USE_EFIELD
+#ifdef PELE_USE_EFIEL
   uDrift.resize(a_finestLevel + 1);
 #endif
 
@@ -198,7 +198,7 @@ PeleLM::AdvanceAdvData::AdvanceAdvData(
         *factory[lev]); // Species + TEMP + nE
 #else
       Forcing[lev].define(
-        ba[lev], dm[lev], NUM_SPECIES + 1, nGrowAdv, MFInfo(),
+        ba[lev], dm[lev], NUM_SPECIES + 1 + NUMAUX, nGrowAdv, MFInfo(),
         *factory[lev]); // Species + TEMP
 #endif
       mac_divu[lev].define(
