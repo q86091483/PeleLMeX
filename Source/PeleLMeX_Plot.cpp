@@ -168,6 +168,23 @@ PeleLM::WritePlotFile()
     plt_VarsName.push_back("rhoh");
     plt_VarsName.push_back("temp");
     plt_VarsName.push_back("RhoRT");
+#ifdef PELE_USE_AUX
+  #ifdef PELE_USE_MIXF
+    for (int i = 0; i < NUMMIXF; i++) {
+      plt_VarsName.push_back("mixture_fraction_userdef_" + std::to_string(i));
+    }
+  #endif
+  #ifdef PELE_USE_AGE
+    for (int i = 0; i < NUMAGE; i++) {
+      plt_VarsName.push_back("age_" + std::to_string(i));
+    }
+  #endif
+  #ifdef PELE_USE_AGEPV
+    for (int i = 0; i < NUMAGEPV; i++) {
+      plt_VarsName.push_back("agepv_" + std::to_string(i));
+    }
+  #endif
+#endif
 #ifdef PELE_USE_EFIELD
     plt_VarsName.push_back("nE");
     plt_VarsName.push_back("phiV");
@@ -274,6 +291,20 @@ PeleLM::WritePlotFile()
       }
       MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, RHOH, cnt, 3, 0);
       cnt += 3;
+#ifdef PELE_USE_AUX
+  #if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
+      cnt += NUMMIXF;
+      MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, MIXF, cnt, NUMMIXF, 0);
+  #endif
+  #if (defined PELE_USE_AGE) && (NUMAGE > 0)
+      cnt += NUMAGE;
+      MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, AGE, cnt, NUMAGE, 0);
+  #endif
+  #if (defined PELE_USE_NUMAGEPV) && (NUMAGE > 0)
+      cnt + = NUMAGEPV;
+      MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, AGEPV, cnt, NUMAGEPV, 0);
+  #endif
+#endif
 #ifdef PELE_USE_EFIELD
       MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, NE, cnt, 2, 0);
       cnt += 2;
