@@ -318,7 +318,11 @@ PeleLM::calcDiffusivity(const TimeStamp& a_time)
             Array4<Real const>(sma[box_no], TEMP), Array4<Real>(dma[box_no], 0),
             Array4<Real>(dma[box_no], NUM_SPECIES + 2),
             Array4<Real>(dma[box_no], NUM_SPECIES),
-            Array4<Real>(dma[box_no], NUM_SPECIES + 1), ltransparm);
+            Array4<Real>(dma[box_no], NUM_SPECIES + 1),
+#if defined(PELE_USE_AUX) && (NUMAUX > 0)
+            Array4<Real>(dma[box_no], 2*NUM_SPECIES+2),
+#endif
+            ltransparm);
 
         } else {
           if (do_unity_le != 0) {
@@ -348,6 +352,43 @@ PeleLM::calcDiffusivity(const TimeStamp& a_time)
   }
   Gpu::streamSynchronize();
 }
+
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+void
+PeleLM::calcDiffusivity_Aux(const TimeStamp& a_time)
+{
+  BL_PROFILE("PeleLMeX::calcDiffusivity_Aux()");
+
+  for (int lev = 0; lev <= finest_level; ++lev) {
+
+    auto* ldata_p = getLevelDataPtr(lev, a_time);
+
+    // Transport data pointer
+    auto const* ltransparm = trans_parms.device_trans_parm();
+
+    // MultiArrays
+    auto const& sma = ldata_p->state.const_arrays();
+    auto const& dma = ldata_p->diff_cc.arrays();
+
+    const amrex::Real Sc_inv = m_Schmidt_inv;
+    const amrex::Real Pr_inv = m_Prandtl_inv;
+    const int do_unity_le = m_unity_Le;
+    const int do_soret = m_use_soret;
+    amrex::ParallelFor(
+      ldata_p->diff_cc, ldata_p->diff_cc.nGrowVect(),
+      [=] AMREX_GPU_DEVICE(int box_no, int i, int j, int k) noexcept {
+        if (do_soret != 0) {
+          //getTransportCoeffSoret(
+          //  i, j, k, Array4<Real const>(sma[box_no], FIRSTSPEC),
+          //  Array4<Real const>(sma[box_no], TEMP), Array4<Real>(dma[box_no], 0),
+          //  Array4<Real>(dma[box_no], NUM_SPECIES + 2),
+          //  Array4<Real>(dma[box_no], NUM_SPECIES),
+          //  Array4<Real>(dma[box_no], NUM_SPECIES + 1), ltransparm);
+        }
+      });
+  }
+}
+#endif
 
 Array<MultiFab, AMREX_SPACEDIM>
 PeleLM::getDiffusivity(

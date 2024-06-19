@@ -503,6 +503,13 @@ public:
    */
   void calcDiffusivity(const PeleLM::TimeStamp& a_time);
 
+  /**
+   * \brief Compute the cell-centereds diffusivity for auxiliary fields
+   * on all levels filling the specified container of Old or New LevelData
+   * \param a_time either Old or New stamp
+   */
+  void calcDiffusivity_Aux(const PeleLM::TimeStamp& a_time);
+
   // get edge-centered diffusivity on a per level / per comp basis
   /**
    * \brief Compute face-averaged diffusivity (or else) from

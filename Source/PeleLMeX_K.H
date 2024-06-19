@@ -139,6 +139,9 @@ getTransportCoeffSoret(
   amrex::Array4<amrex::Real> const& rhotheta,
   amrex::Array4<amrex::Real> const& lambda,
   amrex::Array4<amrex::Real> const& mu,
+#if defined(PELE_USE_AUX) && (NUMAUX > 0)
+  amrex::Array4<amrex::Real> const& rhoDaux,
+#endif
   pele::physics::transport::TransParm<
     pele::physics::PhysicsType::eos_type,
     pele::physics::PhysicsType::transport_type> const* trans_parm) noexcept
@@ -188,6 +191,13 @@ getTransportCoeffSoret(
   }
   lambda(i, j, k) = lambda_cgs * 1.0e-5_rt;
   mu(i, j, k) = mu_cgs * 1.0e-1_rt;
+
+#if defined(PELE_USE_AUX) && (NUMAUX > 0)
+  // Diffusivities for auxiliary fields
+  for (int n = 0; n < NUMAUX; n++) {
+    rhoDaux(i, j, k, n) = 0.0;
+  }
+#endif
 }
 
 AMREX_GPU_DEVICE

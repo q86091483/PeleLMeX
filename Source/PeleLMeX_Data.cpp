@@ -39,9 +39,9 @@ PeleLM::LevelData::LevelData(
       divu.define(ba, dm, 1, 1, MFInfo(), factory);
     }
     if (a_use_soret != 0) {
-      diff_cc.define(ba, dm, 2 * NUM_SPECIES + 2, 1, MFInfo(), factory);
+      diff_cc.define(ba, dm, 2 * NUM_SPECIES + 2 + NUMAUX, 1, MFInfo(), factory);
     } else {
-      diff_cc.define(ba, dm, NUM_SPECIES + 2, 1, MFInfo(), factory);
+      diff_cc.define(ba, dm, NUM_SPECIES + 2 + NUMAUX, 1, MFInfo(), factory);
     }
 
 #ifdef PELE_USE_EFIELD
