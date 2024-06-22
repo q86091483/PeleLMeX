@@ -237,15 +237,15 @@ void PeleLM::imposeHighT() {
             for (int n = 0; n < NUM_SPECIES; n++) {
               massfrac[n] = state(i,j,k,FIRSTSPEC+n) / state(i,j,k,DENSITY);
             }
-            massfrac[H2_ID] = 6.86665300e-05;
-            massfrac[O2_ID] = 6.65301167e-02;
-            massfrac[H2O_ID] = 1.78018215e-01; 
-            massfrac[H_ID] = 4.23935063e-06;
-            massfrac[O_ID] = 2.75149017e-04;
-            massfrac[OH_ID] = 3.49664589e-03;
-            massfrac[HO2_ID] = 1.17798132e-05;
-            massfrac[H2O2_ID] = 1.18889448e-06;
-            massfrac[N2_ID] = 7.51593999e-01;
+//            massfrac[H2_ID] = 6.86665300e-05;
+//            massfrac[O2_ID] = 6.65301167e-02;
+//            massfrac[H2O_ID] = 1.78018215e-01; 
+//            massfrac[H_ID] = 4.23935063e-06;
+//            massfrac[O_ID] = 2.75149017e-04;
+//            massfrac[OH_ID] = 3.49664589e-03;
+//            massfrac[HO2_ID] = 1.17798132e-05;
+//            massfrac[H2O2_ID] = 1.18889448e-06;
+//            massfrac[N2_ID] = 7.51593999e-01;
 
             state(i,j,k,TEMP) = eta*2334 + (1-eta)*state(i,j,k,TEMP);
             amrex::Real rho_cgs;
