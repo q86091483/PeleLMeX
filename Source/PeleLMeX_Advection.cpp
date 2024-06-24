@@ -944,7 +944,7 @@ PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
 #endif
   } // lev - calc advFluxDivergence
   // TODO Zisen: This assumes passive variables have no diffusive fluxes
-  updateScalarComp(advData, FIRSTAUX, NUMAUX);
+  //updateScalarComp(advData, FIRSTAUX, NUMAUX);
 }
 #endif
 

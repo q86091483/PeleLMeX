@@ -358,10 +358,16 @@ PeleLM::oneSDC(
 #endif
   // Get scalar advection SDC forcing
   getScalarAdvForce(advData, diffData);
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+  getScalarAdvForce_Aux(advData, diffData);
+#endif
 
   // Get AofS: (\nabla \cdot (\rho Y Umac))^{n+1/2,k}
   // and for density = \sum_k AofS_k
   computeScalarAdvTerms(advData);
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+  computeScalarAdvTerms_Aux(advData);
+#endif
 
   // Compute \rho^{np1,k+1} and fillpatch new density
   updateDensity(advData);
