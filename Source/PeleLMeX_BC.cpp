@@ -93,7 +93,7 @@ PeleLM::setBoundaryConditions()
 
   // Initialize the BCRecs
   m_bcrec_state.resize(NVAR);
-  int sizeForceBC = std::max(AMREX_SPACEDIM, NUM_SPECIES + 2);
+  int sizeForceBC = std::max(AMREX_SPACEDIM, NUM_SPECIES + 2 + NUMAUX);
   m_bcrec_force.resize(sizeForceBC);
 
   // Convert m_phys_bc into field BCs

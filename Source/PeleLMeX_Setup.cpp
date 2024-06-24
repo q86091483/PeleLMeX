@@ -738,6 +738,27 @@ PeleLM::variablesSetup()
     m_DiffTypeState[TEMP] = 0;
     m_AdvTypeState[RHORT] = 0;
     m_DiffTypeState[RHORT] = 0;
+#ifdef PELE_USE_AUX
+  #if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
+    for (int i = 0; i < NUMMIXF; i++) {
+      m_AdvTypeState[MIXF+i] = 1;
+      m_DiffTypeState[MIXF+i] = 1;
+    }
+  #endif
+  #if (defined PELE_USE_AGE) && (NUMAGE > 0)
+    for (int i = 0; i < NUMMIXF; i++) {
+      m_AdvTypeState[AGE+i] = 1;
+      m_DiffTypeState[AGE+i] = 1;
+    }
+  #endif
+  #if (defined PELE_USE_AGEPV) && (NUMAGEPV > 0)
+    for (int i = 0; i < NUMMIXF; i++) {
+      m_AdvTypeState[AGEPV+i] = 1;
+      m_DiffTypeState[AGEPV+i] = 1;
+    }
+  #endif
+#endif
+
 #ifdef PELE_USE_EFIELD
     m_AdvTypeState[NE] = 0;
     m_DiffTypeState[NE] = 0;
