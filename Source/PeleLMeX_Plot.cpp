@@ -293,16 +293,16 @@ PeleLM::WritePlotFile()
       cnt += 3;
 #ifdef PELE_USE_AUX
   #if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
-      cnt += NUMMIXF;
       MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, MIXF, cnt, NUMMIXF, 0);
+      cnt += NUMMIXF;
   #endif
   #if (defined PELE_USE_AGE) && (NUMAGE > 0)
-      cnt += NUMAGE;
       MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, AGE, cnt, NUMAGE, 0);
+      cnt += NUMAGE;
   #endif
   #if (defined PELE_USE_NUMAGEPV) && (NUMAGE > 0)
-      cnt + = NUMAGEPV;
       MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, AGEPV, cnt, NUMAGEPV, 0);
+      cnt + = NUMAGEPV;
   #endif
 #endif
 #ifdef PELE_USE_EFIELD
