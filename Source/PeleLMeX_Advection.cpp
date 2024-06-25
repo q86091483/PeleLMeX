@@ -944,7 +944,7 @@ PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
 #endif
   } // lev - calc advFluxDivergence
   // TODO Zisen: This assumes passive variables have no diffusive fluxes
-  updateScalarComp(advData, FIRSTAUX, NUMAUX);
+  //updateScalarComp(advData, FIRSTAUX, NUMAUX);
 }
 #endif
 
@@ -1127,7 +1127,8 @@ PeleLM::computePassiveAdvTerms(
 
 void
 PeleLM::updateScalarComp(
-  std::unique_ptr<AdvanceAdvData>& advData, int state_comp, int ncomp)
+  std::unique_ptr<AdvanceAdvData>& advData,
+  int state_comp, int ncomp)
 {
   for (int lev = 0; lev <= finest_level; ++lev) {
 
@@ -1155,3 +1156,45 @@ PeleLM::updateScalarComp(
   }
   averageDown(AmrNewTime, state_comp, ncomp);
 }
+
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+void
+PeleLM::updateScalarAux(
+  std::unique_ptr<AdvanceAdvData>& advData,
+  std::unique_ptr<AdvanceDiffData>& diffData)
+{
+  for (int lev = 0; lev <= finest_level; ++lev) {
+
+    // Get level data ptr
+    auto* ldataOld_p = getLevelDataPtr(lev, AmrOldTime);
+    auto* ldataNew_p = getLevelDataPtr(lev, AmrNewTime);
+#ifdef AMREX_USE_OMP
+#pragma omp parallel if (Gpu::notInLaunchRegion())
+#endif
+    for (MFIter mfi(ldataNew_p->state, TilingIfNotGPU()); mfi.isValid();
+         ++mfi) {
+      Box const& bx = mfi.tilebox();
+      auto const& old_arr = ldataOld_p->state.const_array(mfi, 0);
+      auto const& new_arr = ldataNew_p->state.array(mfi, 0);
+      auto const& a_of_s = advData->AofS[lev].const_array(mfi, 0);
+      auto const& ext = m_extSource[lev]->const_array(mfi, 0);
+      amrex::ParallelFor(
+        bx, [old_arr, new_arr, a_of_s, ext, dt = m_dt]
+          AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+          for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
+            new_arr(i, j, k, n) = old_arr(i, j, k, n)
+              + dt * (a_of_s(i, j, k, n) + ext(i, j, k,n));
+          }
+        });
+      //amrex::ParallelFor(
+      //  bx, ncomp,
+      //  [old_arr, new_arr, a_of_s, ext,
+      //   dt = m_dt] AMREX_GPU_DEVICE(int i, int j, int k, int n) noexcept {
+      //    new_arr(i, j, k, n) =
+      //      old_arr(i, j, k, n) + dt * (a_of_s(i, j, k, n) + ext(i, j, k, n));
+      //  });
+    }
+  }
+  averageDown(AmrNewTime, FIRSTAUX, NUMAUX);
+}
+#endif

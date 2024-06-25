@@ -367,6 +367,7 @@ PeleLM::oneSDC(
   computeScalarAdvTerms(advData);
 #if (defined PELE_USE_AUX) && (NUMAUX > 0)
   computeScalarAdvTerms_Aux(advData);
+  updateScalarAux(advData, diffData);
 #endif
 
   // Compute \rho^{np1,k+1} and fillpatch new density

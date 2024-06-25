@@ -1411,11 +1411,12 @@ public:
   void getScalarAdvForce_Aux(
     std::unique_ptr<AdvanceAdvData>& advData,
     std::unique_ptr<AdvanceDiffData>& diffData);
+  void computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData);
+  void updateScalarAux(
+    std::unique_ptr<AdvanceAdvData>& advData,
+    std::unique_ptr<AdvanceDiffData>& diffData);
 #endif
   void computeScalarAdvTerms(std::unique_ptr<AdvanceAdvData>& advData);
-#if (defined PELE_USE_AUX) && (NUMAUX > 0)
-  void computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData);
-#endif
   void computePassiveAdvTerms(
     std::unique_ptr<AdvanceAdvData>& advData, int state_comp, int ncomp);
   void updateDensity(std::unique_ptr<AdvanceAdvData>& advData);
