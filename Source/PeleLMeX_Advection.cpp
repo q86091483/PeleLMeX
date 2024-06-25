@@ -1181,9 +1181,15 @@ PeleLM::updateScalarAux(
       amrex::ParallelFor(
         bx, [old_arr, new_arr, a_of_s, ext, dt = m_dt]
           AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+          // Advection
           for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
             new_arr(i, j, k, n) = old_arr(i, j, k, n)
               + dt * (a_of_s(i, j, k, n) + ext(i, j, k,n));
+          }
+          // Reaction
+          for (int n = 0; n < NUMAGE; n++) {
+            new_arr(i, j, k, AGE + n) = old_arr(i, j, k, AGE+n)
+              + dt * old_arr(i, j, k, MIXF + n);
           }
         });
       //amrex::ParallelFor(

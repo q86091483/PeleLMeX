@@ -37,7 +37,7 @@
   // Age variable
   #ifdef PELE_USE_AGE
     #define AGE (FIRSTAUX + NUMMIXF)
-    #define NUMAGE 2
+    #define NUMAGE 1
   #else
     #define AGE -1
     #define NUMAGE 0
