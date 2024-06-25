@@ -1188,7 +1188,7 @@ PeleLM::updateScalarAux(
           }
           // Reaction
           for (int n = 0; n < NUMAGE; n++) {
-            new_arr(i, j, k, AGE + n) = old_arr(i, j, k, AGE+n)
+            new_arr(i, j, k, AGE + n) = new_arr(i, j, k, AGE + n)
               + dt * old_arr(i, j, k, MIXF + n);
           }
         });
