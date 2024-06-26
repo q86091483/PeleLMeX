@@ -1196,9 +1196,8 @@ PeleLM::updateScalarAux(
           }
           // Diffusion
           for (int n = 0; n < NUM_SPECIES; n++) {
-            new_arr(i, j, k, n) = new_arr(i, j, k, n)
+            new_arr(i, j, k, FIRSTSPEC+n) = new_arr(i, j, k, FIRSTSPEC+n)
               + dt * dn(i, j, k, n) * spec_Bilger_fact[n] / (Zfu - Zox);
-            amrex::Print() << spec_Bilger_fact[n] << ", " << Zfu << ", " << Zox << std::endl;
           }
           // Reaction
           for (int n = 0; n < NUMAGE; n++) {
