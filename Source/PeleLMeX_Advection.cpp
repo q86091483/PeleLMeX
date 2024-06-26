@@ -1171,6 +1171,9 @@ PeleLM::updateScalarAux(
 #ifdef AMREX_USE_OMP
 #pragma omp parallel if (Gpu::notInLaunchRegion())
 #endif
+    for (int n = 0; n < NUM_SPECIES; n++) {
+      amrex::Print() << "spec_Bilger_fact[" << n << "] = " << spec_Bilger_fact[n] << std::endl;
+    }
     for (MFIter mfi(ldataNew_p->state, TilingIfNotGPU()); mfi.isValid();
          ++mfi) {
       Box const& bx = mfi.tilebox();
