@@ -1204,7 +1204,7 @@ PeleLM::updateScalarAux(
           amrex::Real rhs_mixf = 0.0;
           amrex::Real rhs_age = 0.0;
           for (int m = 0; m < NUM_SPECIES; m++) {
-            rhs_mixf += dt * dn(i, j, k, m) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
+            rhs_mixf += dn(i, j, k, m) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
           }
 #if (NUMMIXF > 0)
           new_arr(i,j,k,MIXF+0) += dt * rhs_mixf;
