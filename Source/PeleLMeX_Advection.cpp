@@ -1200,13 +1200,28 @@ PeleLM::updateScalarAux(
             new_arr(i, j, k, n) = old_arr(i, j, k, n)
               + dt * (a_of_s(i, j, k, n) + ext(i, j, k,n));
           }
-          // Diffusion - mixture_fraction_userdef
-          for (int n = MIXF; n < MIXF+NUMMIXF; n++) {
-            for (int m = 0; m < NUM_SPECIES; m++) {
-              new_arr(i, j, k, n) = new_arr(i, j, k, n)
-                + dt * dn(i, j, k, m) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
-            }
+          // Diffusion
+          amrex::Real rhs_mixf = 0.0;
+          amrex::Real rhs_age = 0.0;
+          for (int m = 0; m < NUM_SPECIES; m++) {
+            rhs_mixf += dt * dn(i, j, k, m) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
           }
+#if (NUMMIXF > 0)
+          new_arr(i,j,k,MIXF+0) += dt * rhs_mixf;
+#endif
+#if (NUMMIXF > 1)
+          new_arr(i,j,k,MIXF+1) -= dt * rhs_mixf;
+#endif
+#if (NUMAGE > 0)
+          rhs_age = new_arr(i,j,k,AGE+0) / (new_arr(i,j,k,MIXF+0) + 1E-8);
+          rhs_age *= rhs_mixf;
+          new_arr(i,j,k,AGE+0) += dt * rhs_age;
+#endif
+#if (NUMAGE > 1)
+          rhs_age = new_arr(i,j,k,AGE+1) / (new_arr(i,j,k,MIXF+1) + 1E-8);
+          rhs_age *= -rhs_mixf;
+          new_arr(i,j,k,AGE+1) += dt * rhs_age;
+#endif
           // Reaction
           for (int n = 0; n < NUMAGE; n++) {
             new_arr(i, j, k, AGE + n) = new_arr(i, j, k, AGE + n)
