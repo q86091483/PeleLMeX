@@ -1,3 +1,4 @@
+#include "PeleLMeX_Index.H"
 #include <PeleLMeX.H>
 #include <PeleLMeX_K.H>
 #include <PeleLMeX_Utils.H>
@@ -1181,13 +1182,22 @@ PeleLM::updateScalarAux(
       auto const& new_arr = ldataNew_p->state.array(mfi, 0);
       auto const& a_of_s = advData->AofS[lev].const_array(mfi, 0);
       auto const& ext = m_extSource[lev]->const_array(mfi, 0);
+      auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
       amrex::ParallelFor(
-        bx, [old_arr, new_arr, a_of_s, ext, dt = m_dt]
+        bx, [old_arr, new_arr, a_of_s, ext, dn,
+                    &spec_Bilger_fact = std::as_const(spec_Bilger_fact),
+                    &Zfu = std::as_const(Zfu), Zox = std::as_const(Zox),
+                    dt = m_dt]
           AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
           // Advection
           for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
             new_arr(i, j, k, n) = old_arr(i, j, k, n)
               + dt * (a_of_s(i, j, k, n) + ext(i, j, k,n));
+          }
+          // Diffusion
+          for (int n = 0; n < NUM_SPECIES; n++) {
+            new_arr(i, j, k, n) = new_arr(i, j, k, n)
+              + dt * dn(i, j, k, n) * spec_Bilger_fact[n] / (Zfu - Zox);
           }
           // Reaction
           for (int n = 0; n < NUMAGE; n++) {
