@@ -288,6 +288,13 @@ PeleLM::getScalarAdvForce_Aux(
   std::unique_ptr<AdvanceAdvData>& advData,
   std::unique_ptr<AdvanceDiffData>& diffData)
 {
+  amrex::Real Zox_lcl = Zox;
+  amrex::Real Zfu_lcl = Zfu;
+  amrex::GpuArray<amrex::Real, NUM_SPECIES> fact_Bilger;
+  for (int n = 0; n < NUM_SPECIES; ++n) {
+    fact_Bilger[n] = spec_Bilger_fact[n];
+  }
+
   for (int lev = 0; lev <= finest_level; ++lev) {
 
     // Get t^{n} data pointer
@@ -297,9 +304,11 @@ PeleLM::getScalarAdvForce_Aux(
 #ifdef AMREX_USE_OMP
 #pragma omp parallel if (Gpu::notInLaunchRegion())
 #endif
+
     for (MFIter mfi(advData->Forcing[lev], TilingIfNotGPU()); mfi.isValid();
          ++mfi) {
       const Box& bx = mfi.tilebox();
+      auto const& old_arr = ldata_p->state.const_array(mfi, 0);
       auto const& rho = ldata_p->state.const_array(mfi, DENSITY);
       auto const& rhoY = ldata_p->state.const_array(mfi, FIRSTSPEC);
       auto const& T = ldata_p->state.const_array(mfi, TEMP);
@@ -313,12 +322,42 @@ PeleLM::getScalarAdvForce_Aux(
       auto const& fAux = advData->Forcing[lev].array(mfi, NUM_SPECIES+1);
       amrex::ParallelFor(
         bx,
-        [rho, rhoY, T, dn, ddn, r, fY, fT, fAux, extRhoY, extRhoH, dp0dt = m_dp0dt,
-         is_closed_ch = m_closed_chamber,
-         do_react = m_do_react] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+        [old_arr, rho, rhoY, T, dn, ddn, r, fY, fT, fAux, extRhoY, extRhoH,
+            fact_Bilger, Zox_lcl, Zfu_lcl,
+            dp0dt = m_dp0dt,
+            is_closed_ch = m_closed_chamber,do_react = m_do_react]
+          AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+
           buildAdvectionForcing_Aux(
             i, j, k, rho, rhoY, T, dn, ddn, r, extRhoY, extRhoH, dp0dt,
             is_closed_ch, do_react, fY, fT, fAux);
+
+          // Diffusion force
+          amrex::Real rhs_mixf = 0.0;
+          amrex::Real rhs_age = 0.0;
+          for (int m = 0; m < NUM_SPECIES; m++) {
+            rhs_mixf += dn(i, j, k, m) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
+          }
+  #if (NUMMIXF > 0)
+          fAux(i,j,k,0) = 1.0 * rhs_mixf;
+  #endif
+  #if (NUMMIXF > 1)
+          fAux(i,j,k,1) = -1.0 * rhs_mixf;
+  #endif
+  #if (NUMAGE > 0)
+          rhs_age = old_arr(i,j,k,AGE) / (old_arr(i,j,k,MIXF) + 1E-8);
+          rhs_age *= rhs_mixf;
+          fAux(i,j,k,NUMMIXF) = rhs_age;
+  #endif
+  #if (NUMAGE > 1)
+          rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-8);
+          rhs_age *= -rhs_mixf;
+          fAux(i,j,k,NUMMIXF+1) = rhs_age;
+  #endif
+          // Reaction
+          for (int n = 0; n < NUMAGE; n++) {
+            fAux(i,j,k,NUMMIXF+n) += old_arr(i,j,k,MIXF+n);
+          }
         });
     }
   }
@@ -1213,9 +1252,9 @@ PeleLM::updateScalarAux(
           new_arr(i,j,k,MIXF+1) -= dt * rhs_mixf;
 #endif
 #if (NUMAGE > 0)
-          rhs_age = new_arr(i,j,k,AGE+0) / (new_arr(i,j,k,MIXF+0) + 1E-8);
+          rhs_age = new_arr(i,j,k,AGE) / (new_arr(i,j,k,MIXF) + 1E-8);
           rhs_age *= rhs_mixf;
-          new_arr(i,j,k,AGE+0) += dt * rhs_age;
+          new_arr(i,j,k,AGE) += dt * rhs_age;
 #endif
 #if (NUMAGE > 1)
           rhs_age = new_arr(i,j,k,AGE+1) / (new_arr(i,j,k,MIXF+1) + 1E-8);
