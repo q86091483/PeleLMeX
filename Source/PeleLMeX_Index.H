@@ -37,7 +37,7 @@
   // Age variable
   #ifdef PELE_USE_AGE
     #define AGE (FIRSTAUX + NUMMIXF)
-    #define NUMAGE 2
+    #define NUMAGE NUMMIXF
   #else
     #define AGE -1
     #define NUMAGE 0
@@ -45,7 +45,7 @@
   // Age progress variable
   #ifdef PELE_USE_AGEPV
     #define AGEPV (FIRSTAUX + NUMMIXF + NUMAGE)
-    #define NUMAGEPV NUMAGE
+    #define NUMAGEPV NUMMIXF
   #else
     #define AGEPV -1
     #define NUMAGEPV 0

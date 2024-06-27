@@ -348,16 +348,29 @@ PeleLM::getScalarAdvForce_Aux(
           rhs_age = old_arr(i,j,k,AGE) / (old_arr(i,j,k,MIXF) + 1E-8);
           rhs_age *= rhs_mixf;
           fAux(i,j,k,NUMMIXF) = rhs_age;
+    #if (NUMAGEPV > 0)
+          fAux(i,j,k,NUMMIXF+NUMAGE) = rhs_age;
+    #endif
   #endif
   #if (NUMAGE > 1)
           rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-8);
           rhs_age *= -rhs_mixf;
           fAux(i,j,k,NUMMIXF+1) = rhs_age;
+    #if (NUMAGEPV > 1)
+          fAux(i,j,k,NUMMIXF+NUMAGE+1) = rhs_age;
+    #endif
   #endif
           // Reaction
           for (int n = 0; n < NUMAGE; n++) {
             fAux(i,j,k,NUMMIXF+n) += old_arr(i,j,k,MIXF+n);
           }
+  #if(NUMAGEPV > 0)
+          if (old_arr(i, j, k, TEMP) > 1750) {
+            if (int n = 0; n < NUMAGEPV; n++) {
+              fAux(i,j,k,NUMMIXF+NUMAGE+n) += old_arr(i,j,k,MIXF+n);
+            }
+          }
+  #endif
         });
     }
   }
@@ -1255,17 +1268,31 @@ PeleLM::updateScalarAux(
           rhs_age = new_arr(i,j,k,AGE) / (new_arr(i,j,k,MIXF) + 1E-8);
           rhs_age *= rhs_mixf;
           new_arr(i,j,k,AGE) += dt * rhs_age;
+  #if (NUMAGEPV > 0)
+          new_arr(i,j,k,AGEPV) += dt * rhs_age;
+  #endif
 #endif
 #if (NUMAGE > 1)
           rhs_age = new_arr(i,j,k,AGE+1) / (new_arr(i,j,k,MIXF+1) + 1E-8);
           rhs_age *= -rhs_mixf;
           new_arr(i,j,k,AGE+1) += dt * rhs_age;
+  #if (NUMAGEPV > 1)
+          new_arr(i,j,k,AGEPV+1) += dt * rhs_age;
+  #endif
 #endif
           // Reaction
           for (int n = 0; n < NUMAGE; n++) {
             new_arr(i, j, k, AGE + n) = new_arr(i, j, k, AGE + n)
               + dt * old_arr(i, j, k, MIXF + n);
           }
+#if (NUMAGEPV > 0)
+          if (old_arr(i, j, k, TEMP) > 1750) {
+            for (int n = 0; n < NUMAGEPV; n++) {
+              new_arr(i, j, k, AGEPV + n) = new_arr(i, j, k, AGEPV + n)
+                + dt * old_arr(i, j, k, MIXF + n);
+            }
+          }
+#endif
         });
       //amrex::ParallelFor(
       //  bx, ncomp,
