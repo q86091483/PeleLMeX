@@ -338,6 +338,7 @@ PeleLM::getScalarAdvForce_Aux(
           for (int m = 0; m < NUM_SPECIES; m++) {
             rhs_mixf += dn(i, j, k, m) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
           }
+          rhs_mixf *= 1000;
   #if (NUMMIXF > 0)
           fAux(i,j,k,0) = 1.0 * rhs_mixf;
   #endif
@@ -353,7 +354,6 @@ PeleLM::getScalarAdvForce_Aux(
           rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-8);
           rhs_age *= -rhs_mixf;
           fAux(i,j,k,NUMMIXF+1) = rhs_age;
-          amrex::Print() << NUMMIXF << ", " << rhs_age <<  std::endl;
   #endif
           // Reaction
           for (int n = 0; n < NUMAGE; n++) {
