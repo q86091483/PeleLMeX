@@ -353,6 +353,7 @@ PeleLM::getScalarAdvForce_Aux(
           rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-8);
           rhs_age *= -rhs_mixf;
           fAux(i,j,k,NUMMIXF+1) = rhs_age;
+          amrex::Print() << NUMMIXF << ", " << rhs_age <<  std::endl;
   #endif
           // Reaction
           for (int n = 0; n < NUMAGE; n++) {
