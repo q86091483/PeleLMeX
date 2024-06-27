@@ -338,7 +338,6 @@ PeleLM::getScalarAdvForce_Aux(
           for (int m = 0; m < NUM_SPECIES; m++) {
             rhs_mixf += dn(i, j, k, m) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
           }
-          rhs_mixf *= 1000;
   #if (NUMMIXF > 0)
           fAux(i,j,k,0) = 1.0 * rhs_mixf;
   #endif
