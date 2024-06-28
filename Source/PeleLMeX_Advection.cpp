@@ -345,7 +345,7 @@ PeleLM::getScalarAdvForce_Aux(
           fAux(i,j,k,1) = -1.0 * rhs_mixf;
   #endif
   #if (NUMAGE > 0)
-          rhs_age = old_arr(i,j,k,AGE) / (old_arr(i,j,k,MIXF) + 1E-8);
+          rhs_age = old_arr(i,j,k,AGE) / (old_arr(i,j,k,MIXF) + 1E-3*old_arr(i,j,k,DENSITY));
           rhs_age *= rhs_mixf;
           //rhs_age = 0.0;
           fAux(i,j,k,NUMMIXF) = rhs_age;
@@ -354,7 +354,7 @@ PeleLM::getScalarAdvForce_Aux(
     #endif
   #endif
   #if (NUMAGE > 1)
-          rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-8);
+          rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-3*old_arr(i,j,k,DENSITY));
           rhs_age *= -rhs_mixf;
           //rhs_age = 0.0;
           fAux(i,j,k,NUMMIXF+1) = rhs_age;
