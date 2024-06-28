@@ -300,7 +300,7 @@ PeleLM::WritePlotFile()
       MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, AGE, cnt, NUMAGE, 0);
       cnt += NUMAGE;
   #endif
-  #if (defined PELE_USE_AGEPV) && (NUMAGE > 0)
+  #if (defined PELE_USE_AGEPV) && (NUMAGEPV > 0)
       MultiFab::Copy(mf_plt[lev], m_leveldata_new[lev]->state, AGEPV, cnt, NUMAGEPV, 0);
       cnt += NUMAGEPV;
   #endif
