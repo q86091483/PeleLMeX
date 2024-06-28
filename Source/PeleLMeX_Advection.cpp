@@ -345,18 +345,24 @@ PeleLM::getScalarAdvForce_Aux(
           fAux(i,j,k,1) = -1.0 * rhs_mixf;
   #endif
   #if (NUMAGE > 0)
-          rhs_age = old_arr(i,j,k,AGE) / (old_arr(i,j,k,MIXF) + 1E-8);
-          rhs_age *= rhs_mixf;
-          //rhs_age = 0.0;
+          if (old_arr(i,j,k,MIXF)/old_arr(i,j,k,DENSITY) > 1E-3) {
+            rhs_age = old_arr(i,j,k,AGE) / (old_arr(i,j,k,MIXF) + 1E-8);
+            rhs_age *= rhs_mixf;
+          } else {
+            rhs_age = 0.0;
+          }
           fAux(i,j,k,NUMMIXF) = rhs_age;
     #if (NUMAGEPV > 0)
           fAux(i,j,k,NUMMIXF+NUMAGE) = rhs_age;
     #endif
   #endif
   #if (NUMAGE > 1)
-          rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-8);
-          rhs_age *= -rhs_mixf;
-          //rhs_age = 0.0;
+          if (old_arr(i,j,k,MIXF+1)/old_arr(i,j,k,DENSITY) > 1E-3) {
+            rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-8);
+            rhs_age *= -rhs_mixf;
+          } else{
+            rhs_age = 0.0;
+          }
           fAux(i,j,k,NUMMIXF+1) = rhs_age;
     #if (NUMAGEPV > 1)
           fAux(i,j,k,NUMMIXF+NUMAGE+1) = rhs_age;
@@ -1267,18 +1273,24 @@ PeleLM::updateScalarAux(
           new_arr(i,j,k,MIXF+1) -= dt * rhs_mixf;
 #endif
 #if (NUMAGE > 0)
-          rhs_age = old_arr(i,j,k,AGE) / (old_arr(i,j,k,MIXF) + 1E-8);
-          rhs_age *= rhs_mixf;
-          //rhs_age = 0.0;
+          if (old_arr(i,j,k,MIXF)/old_arr(i,j,k,DENSITY) > 1E-3) {
+            rhs_age = old_arr(i,j,k,AGE) / (old_arr(i,j,k,MIXF) + 1E-8);
+            rhs_age *= rhs_mixf;
+          } else {
+            rhs_age = 0.0;
+          }
           new_arr(i,j,k,AGE) += dt * rhs_age;
   #if (NUMAGEPV > 0)
           new_arr(i,j,k,AGEPV) += dt * rhs_age;
   #endif
 #endif
 #if (NUMAGE > 1)
-          rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-8);
-          rhs_age *= -rhs_mixf;
-          //rhs_age = 0.0;
+          if (old_arr(i,j,k,MIXF+1)/old_arr(i,j,k,DENSITY) > 1E-3) {
+            rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-8);
+            rhs_age *= -rhs_mixf;
+          } else {
+            rhs_age = 0.0;
+          }
           new_arr(i,j,k,AGE+1) += dt * rhs_age;
   #if (NUMAGEPV > 1)
           new_arr(i,j,k,AGEPV+1) += dt * rhs_age;
