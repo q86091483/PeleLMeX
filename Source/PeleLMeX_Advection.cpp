@@ -1269,7 +1269,7 @@ PeleLM::updateScalarAux(
 #if (NUMAGE > 0)
           rhs_age = old_arr(i,j,k,AGE) / (old_arr(i,j,k,MIXF) + 1E-3);
           rhs_age *= rhs_mixf;
-          rhs_age = 0.0;
+          //rhs_age = 0.0;
           new_arr(i,j,k,AGE) += dt * rhs_age;
   #if (NUMAGEPV > 0)
           new_arr(i,j,k,AGEPV) += dt * rhs_age;
@@ -1278,7 +1278,7 @@ PeleLM::updateScalarAux(
 #if (NUMAGE > 1)
           rhs_age = old_arr(i,j,k,AGE+1) / (old_arr(i,j,k,MIXF+1) + 1E-3);
           rhs_age *= -rhs_mixf;
-          rhs_age = 0.0;
+          //rhs_age = 0.0;
           new_arr(i,j,k,AGE+1) += dt * rhs_age;
   #if (NUMAGEPV > 1)
           new_arr(i,j,k,AGEPV+1) += dt * rhs_age;
