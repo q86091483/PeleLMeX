@@ -1237,6 +1237,7 @@ PeleLM::updateScalarAux(
       auto const& a_of_s = advData->AofS[lev].const_array(mfi, 0);
       auto const& ext = m_extSource[lev]->const_array(mfi, 0);
       auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
+      auto const& dnp1 = diffData->Dnp1[lev].const_array(mfi, 0);
 
       amrex::Real Zox_lcl = Zox;
       amrex::Real Zfu_lcl = Zfu;
@@ -1245,20 +1246,20 @@ PeleLM::updateScalarAux(
         fact_Bilger[n] = spec_Bilger_fact[n];
       }
       amrex::ParallelFor(
-        bx, [old_arr, new_arr, a_of_s, ext, dn,
+        bx, [old_arr, new_arr, a_of_s, ext, dn, dnp1,
                     fact_Bilger, Zox_lcl, Zfu_lcl,
                     dt = m_dt]
           AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
           // Advection
           for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
             new_arr(i, j, k, n) = old_arr(i, j, k, n)
-              + dt * (a_of_s(i, j, k, n) + ext(i, j, k,n));
+              + dt * a_of_s(i, j, k, n);
           }
           // Diffusion
           amrex::Real rhs_mixf = 0.0;
           amrex::Real rhs_age = 0.0;
           for (int m = 0; m < NUM_SPECIES; m++) {
-            rhs_mixf += dn(i, j, k, m) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
+            rhs_mixf += 0.5*(dn(i, j, k, m)+dnp1(i,j,k,m)) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
           }
 #if (NUMMIXF > 0)
           new_arr(i,j,k,MIXF+0) += dt * rhs_mixf;
