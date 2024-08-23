@@ -473,10 +473,10 @@ PeleLM::getScalarReactForce(
         });
 #if (defined PELE_USE_AUX) && (NUMAUX > 0)
 #if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
-      auto const& a_of_s = advData->AofS[lev].const_array(mfi, FIRSTAUX);
+      auto const& a_of_s = advData->AofS[lev].const_array(mfi, 0);
       auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
       auto const& dnp1 = diffData->Dnp1[lev].const_array(mfi, 0);
-      auto const& fAux = advData->Forcing[lev].array(mfi, FIRSTAUX);
+      auto const& fAux = advData->Forcing[lev].array(mfi, NUM_SPECIES+1);
       auto const& new_arr = ldataNew_p->state.array(mfi, 0);
       auto const& old_arr = ldataOld_p->state.array(mfi, 0);
 
