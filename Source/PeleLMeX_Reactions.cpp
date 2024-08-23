@@ -497,6 +497,7 @@ PeleLM::getScalarReactForce(
           }
           //fAux(i, j, k, 0) = a_of_s(i, j, k, MIXF); //  + 1.0 * rhs_mixf;
           new_arr(i, j, k, MIXF+0) = 0.4;
+          amrex::Print() << MIXF << std::endl;
           //  dt * (a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf);
 #if (NUMMIXF > 1)
           //fAux(i, j, k, 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
