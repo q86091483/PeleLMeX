@@ -367,7 +367,7 @@ PeleLM::oneSDC(
   computeScalarAdvTerms(advData);
 #if (defined PELE_USE_AUX) && (NUMAUX > 0)
   computeScalarAdvTerms_Aux(advData);
-  updateScalarAux(advData, diffData);
+  //updateScalarAux(advData, diffData);
 #endif
 
   // Compute \rho^{np1,k+1} and fillpatch new density
@@ -424,7 +424,7 @@ PeleLM::oneSDC(
     ScalReacStart = ParallelDescriptor::second();
   }
   // Get external forcing for chemistry
-  getScalarReactForce(advData);
+  getScalarReactForce(advData, diffData);
 
   // Integrate chemistry
   advanceChemistry(advData);

@@ -434,7 +434,9 @@ PeleLM::computeInstantaneousReactionRate(
 }
 
 void
-PeleLM::getScalarReactForce(std::unique_ptr<AdvanceAdvData>& advData)
+PeleLM::getScalarReactForce(
+  std::unique_ptr<AdvanceAdvData>& advData,
+  std::unique_ptr<AdvanceDiffData>& diffData)
 {
   // The differentialDiffusionUpdate just provided the {np1,kp1} AD state
   // -> use it to build the external forcing for the chemistry
@@ -469,6 +471,41 @@ PeleLM::getScalarReactForce(std::unique_ptr<AdvanceAdvData>& advData)
           }
           extF_rhoH(i, j, k) = (rhoH_n(i, j, k) - rhoH_o(i, j, k)) * dtinv;
         });
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+#if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
+      auto const& a_of_s = advData->AofS[lev].const_array(mfi, FIRSTAUX);
+      auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
+      auto const& dnp1 = diffData->Dnp1[lev].const_array(mfi, 0);
+      auto const& fAux = advData->Forcing[lev].array(mfi, FIRSTAUX);
+      auto const& new_arr = ldataNew_p->state.array(mfi, 0);
+      auto const& old_arr = ldataOld_p->state.array(mfi, 0);
+
+      amrex::Real Zox_lcl = Zox;
+      amrex::Real Zfu_lcl = Zfu;
+      amrex::GpuArray<amrex::Real, NUM_SPECIES> fact_Bilger;
+      for (int n = 0; n < NUM_SPECIES; ++n) {
+        fact_Bilger[n] = spec_Bilger_fact[n];
+      }
+      amrex::ParallelFor(
+        bx, [rhoY_o, rhoY_n, a_of_s, fAux, dn, dnp1,
+                    new_arr, old_arr,
+                    fact_Bilger, Zox_lcl, Zfu_lcl,
+                    dt = m_dt]
+          AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+          amrex::Real rhs_mixf = 0.0;
+          amrex::Real rhs_age = 0.0;
+          for (int m = 0; m > NUM_SPECIES; m++) {
+            rhs_mixf += 0.5 * (dn(i, j, k, m) + dnp1(i, j, k, m)) *
+              fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
+          }
+          fAux(i, j, k, 0) = a_of_s(i, j, k) + 1.0 * rhs_mixf;
+          new_arr(i, j, k, MIXF+0) += old_arr(i, j, k, MIXF+0) + dt * fAux(i, j, k, 0);
+#if (NUMMIXF > 1)
+          fAux(i, j, k, 1) = a_of_s(i, j, k) - 1.0 * rhs_mixf;
+#endif
+        }); // ParallelFor
+#endif
+#endif
     }
   }
 }

@@ -1427,7 +1427,9 @@ public:
     std::unique_ptr<AdvanceAdvData>& advData,
     std::unique_ptr<AdvanceDiffData>& diffData);
 
-  void getScalarReactForce(std::unique_ptr<AdvanceAdvData>& advData);
+  void getScalarReactForce(
+    std::unique_ptr<AdvanceAdvData>& advData,
+    std::unique_ptr<AdvanceDiffData>& diffData);
   //-----------------------------------------------------------------------------
 
 #ifdef PELE_USE_EFIELD

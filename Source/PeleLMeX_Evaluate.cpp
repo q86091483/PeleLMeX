@@ -337,7 +337,7 @@ PeleLM::evaluateChemExtForces(
   differentialDiffusionUpdate(advData, diffData);
 
   // Get external forcing for chemistry
-  getScalarReactForce(advData);
+  getScalarReactForce(advData, diffData);
 
   // Copy external forcing for chemistry into outgoing container
   for (int lev = 0; lev <= finest_level; ++lev) {
