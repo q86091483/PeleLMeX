@@ -491,7 +491,7 @@ PeleLM::getScalarReactForce(
 #if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
           amrex::Real rhs_mixf = 0.0;
           amrex::Real rhs_age = 0.0;
-          for (int m = 0; m > NUM_SPECIES; m++) {
+          for (int m = 0; m < NUM_SPECIES; m++) {
             rhs_mixf += 0.5 * (dn(i, j, k, m) + dnp1(i, j, k, m)) *
               fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
           }
