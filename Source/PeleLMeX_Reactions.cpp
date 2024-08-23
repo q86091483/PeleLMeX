@@ -460,19 +460,7 @@ PeleLM::getScalarReactForce(
       auto const& react = ldataR_p->I_R.const_array(mfi, 0);
       auto const& extF_rhoY = advData->Forcing[lev].array(mfi, 0);
       auto const& extF_rhoH = advData->Forcing[lev].array(mfi, NUM_SPECIES);
-      amrex::Real dtinv = 1.0 / m_dt;
-      amrex::ParallelFor(
-        bx, [rhoY_o, rhoH_o, rhoY_n, rhoH_n, react, extF_rhoY, extF_rhoH,
-             dtinv] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-          for (int n = 0; n < NUM_SPECIES; n++) {
-            extF_rhoY(i, j, k, n) =
-              (rhoY_n(i, j, k, n) - rhoY_o(i, j, k, n)) * dtinv -
-              react(i, j, k, n);
-          }
-          extF_rhoH(i, j, k) = (rhoH_n(i, j, k) - rhoH_o(i, j, k)) * dtinv;
-        });
-#if (defined PELE_USE_AUX) && (NUMAUX > 0)
-#if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
+
       auto const& a_of_s = advData->AofS[lev].const_array(mfi, 0);
       auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
       auto const& dnp1 = diffData->Dnp1[lev].const_array(mfi, 0);
@@ -480,18 +468,27 @@ PeleLM::getScalarReactForce(
       auto const& new_arr = ldataNew_p->state.array(mfi, 0);
       auto const& old_arr = ldataOld_p->state.array(mfi, 0);
 
+      amrex::Real dtinv = 1.0 / m_dt;
       amrex::Real Zox_lcl = Zox;
       amrex::Real Zfu_lcl = Zfu;
       amrex::GpuArray<amrex::Real, NUM_SPECIES> fact_Bilger;
       for (int n = 0; n < NUM_SPECIES; ++n) {
         fact_Bilger[n] = spec_Bilger_fact[n];
       }
+
       amrex::ParallelFor(
-        bx, [rhoY_o, rhoY_n, a_of_s, fAux, dn, dnp1,
-                    new_arr, old_arr,
-                    fact_Bilger, Zox_lcl, Zfu_lcl,
-                    dt = m_dt]
-          AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+        bx, [rhoY_o, rhoH_o, rhoY_n, rhoH_n, react, extF_rhoY, extF_rhoH,
+             a_of_s, fAux, dn, dnp1, new_arr, old_arr, fact_Bilger, Zox_lcl, Zfu_lcl,
+             dtinv, dt = m_dt] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+          for (int n = 0; n < NUM_SPECIES; n++) {
+            extF_rhoY(i, j, k, n) =
+              (rhoY_n(i, j, k, n) - rhoY_o(i, j, k, n)) * dtinv -
+              react(i, j, k, n);
+          }
+          extF_rhoH(i, j, k) = (rhoH_n(i, j, k) - rhoH_o(i, j, k)) * dtinv;
+
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+#if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
           amrex::Real rhs_mixf = 0.0;
           amrex::Real rhs_age = 0.0;
           for (int m = 0; m > NUM_SPECIES; m++) {
@@ -501,7 +498,7 @@ PeleLM::getScalarReactForce(
           fAux(i, j, k, 0) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
           new_arr(i, j, k, MIXF+0) = old_arr(i, j, k, MIXF+0) + dt * fAux(i, j, k, 0);
 #if (NUMMIXF > 1)
-          fAux(i, j, k, 1) = a_of_s(i, j, k) - 1.0 * rhs_mixf;
+          fAux(i, j, k, 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
 #endif
         }); // ParallelFor
 #endif
