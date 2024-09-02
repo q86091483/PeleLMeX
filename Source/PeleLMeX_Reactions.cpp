@@ -78,6 +78,35 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
         extF_rhoH(i, j, k) *= 10.0;
       });
 
+    // Reset new to old for auxiliary variables and convert MKS -> CGS
+#if (NUMAUX > 0)
+    auto const& rhoAux_o = ldataOld_p->state.array(mfi, FIRSTAUX);
+    auto const& rhoAux_n = ldataNew_p->state.array(mfi, FIRSTAUX);
+    auto const& extF_rhoAux = a_extForcing.array(mfi, NUM_SPECIES+1);
+    ParallelFor(
+      bx, [rhoAux_o, rhoAux_n, extF_rhoAux]
+        AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+#if (NUMMIXF > 0)
+        for (int n = 0; n < NUMMIXF; n++) {
+          rhoAux_n(i,j,k,MIXF_IN_AUX+n) = rhoAux_o(i,j,k,MIXF_IN_AUX+n) * 1.0e-3;
+          extF_rhoAux(i, j, k, MIXF_IN_AUX+n) *= 1.0e-3;
+        }
+#if (NUMAGE > 0)
+        for (int n = 0; n < NUMAGE; n++) {
+          rhoAux_n(i,j,k,AGE_IN_AUX+n) = rhoAux_o(i,j,k,AGE_IN_AUX+n) * 1.0e-3;
+          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 1.0e-3;
+        }
+#endif // #if (NUMAGE > 0)
+#if (NUMAGEPV > 0)
+        for (int n = 0; n < NUMAGEPV; n++) {
+          rhoAux_n(i,j,k,AGEPV_IN_AUX+n) = rhoAux_o(i,j,k,AGEPV_IN_AUX+n) * 1.0e-3;
+          extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 1.0e-3;
+        }
+#endif // #if (NUMAGEPV > 0)
+#endif // #if (NUMMIX > 0)
+      }); // ParallelFor
+#endif // if (NUMAUX > 0)
+
 #ifdef PELE_USE_EFIELD
     // Pass nE -> rhoY_e & FnE -> FrhoY_e
     auto const& nE_o = ldataOld_p->state.const_array(mfi, NE);
@@ -99,8 +128,11 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
     Real time_chem = 0;
     /* Solve */
     m_reactor->react(
-      bx, rhoY_n, extF_rhoY, temp_n, rhoH_n, extF_rhoH, fcl, mask_arr, dt_incr,
-      time_chem
+      bx, rhoY_n, extF_rhoY, temp_n, rhoH_n, extF_rhoH,
+#if (NUMAUX > 0)
+      rhoAux_n, extF_rhoAux,
+#endif
+      fcl, mask_arr, dt_incr, time_chem
 #ifdef AMREX_USE_GPU
       ,
       amrex::Gpu::gpuStream()
@@ -118,6 +150,32 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
         rhoH_n(i, j, k) *= 0.1;
         extF_rhoH(i, j, k) *= 0.1;
       });
+
+    // Convert CGS -> MKS for auxiliary variables
+#if (NUMAUX > 0)
+    ParallelFor(
+      bx, [rhoAux_n, extF_rhoAux]
+        AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+#if (NUMMIXF > 0)
+        for (int n = 0; n < NUMMIXF; n++) {
+          rhoAux_n(i,j,k,MIXF_IN_AUX+n) *= 1.0e3;
+          extF_rhoAux(i, j, k, MIXF_IN_AUX+n) *= 1.0e3;
+        }
+#if (NUMAGE > 0)
+        for (int n = 0; n < NUMAGE; n++) {
+          rhoAux_n(i,j,k,AGE_IN_AUX+n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 1.0e3;
+        }
+#endif // #if (NUMAGE > 0)
+#if (NUMAGEPV > 0)
+        for (int n = 0; n < NUMAGEPV; n++) {
+          rhoAux_n(i,j,k,AGEPV_IN_AUX+n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 1.0e3;
+        }
+#endif // #if (NUMAGEPV > 0)
+#endif // #if (NUMMIX > 0)
+      }); // ParallelFor
+#endif // if (NUMAUX > 0)
 
 #ifdef PELE_USE_EFIELD
     // rhoY_e -> nE and set rhoY_e to zero
@@ -239,9 +297,10 @@ PeleLM::advanceChemistryBAChem(
         extF_rhoH(i, j, k) *= 10.0;
       });
 
-#if (NUMAUX > 0) // Conver MKS -> CGS for auxiliary variables
+    // Convert MKS -> CGS for auxiliary variables
+#if (NUMAUX > 0)
     auto const& rhoAux_o = chemState.array(mfi, NUM_SPECIES + 3);
-    auto const& extF_rhoAux = chemForcing.array(mfi, NUM_SPECIES);
+    auto const& extF_rhoAux = chemForcing.array(mfi, NUM_SPECIES + 1);
     ParallelFor(
       bx, [rhoAux_o, extF_rhoAux]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
@@ -292,8 +351,11 @@ PeleLM::advanceChemistryBAChem(
       Real time_chem = 0;
       /* Solve */
       m_reactor->react(
-        bx, rhoY_o, extF_rhoY, temp_o, rhoH_o, extF_rhoH, fcl, mask_arr,
-        dt_incr, time_chem
+        bx, rhoY_o, extF_rhoY, temp_o, rhoH_o, extF_rhoH,
+#if (NUMAUX > 0)
+        rhoAux_o, extF_rhoAux,
+#endif
+        fcl, mask_arr, dt_incr, time_chem
 #ifdef AMREX_USE_GPU
         ,
         amrex::Gpu::gpuStream()
@@ -315,6 +377,33 @@ PeleLM::advanceChemistryBAChem(
         rhoH_o(i, j, k) *= 0.1;
       });
 
+    // Convert CGS -> MKS for auxiliary variables
+#if (NUMAUX > 0)
+    ParallelFor(
+      bx, [rhoAux_o, extF_rhoAux]
+        AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+#if (NUMMIXF > 0)
+        for (int n = 0; n < NUMMIXF; n++) {
+          rhoAux_o(i, j, k, MIXF_IN_AUX+n) *= 1.0e3;
+          extF_rhoAux(i, j, k, MIXF_IN_AUX+n) *= 1.0e3;
+        }
+#if (NUMAGE > 0)
+        for (int n = 0; n < NUMAGE; n++) {
+          rhoAux_o(i, j, k, AGE_IN_AUX+n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 1.0e3;
+        }
+#endif // #if (NUMAGE > 0)
+#if (NUMAGEPV > 0)
+        for (int n = 0; n < NUMAGEPV; n++) {
+          rhoAux_o(i, j, k, AGEPV_IN_AUX+n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 1.0e3;
+        }
+#endif // #if (NUMAGEPV > 0)
+#endif // #if (NUMMIX > 0)
+      }); // ParallelFor
+#endif // #if (NUM_AUX > 0)
+
+
 #ifdef PELE_USE_EFIELD
     // rhoY_e -> nE and set rhoY_e to zero
     Real invmwt[NUM_SPECIES] = {0.0};
@@ -330,7 +419,7 @@ PeleLM::advanceChemistryBAChem(
 #ifdef AMREX_USE_GPU
     Gpu::Device::streamSynchronize();
 #endif
-  }
+  } // mfi
 
   // ParallelCopy into newstate MFs
   // Get the entire new state
