@@ -188,7 +188,7 @@ PeleLM::advanceChemistryBAChem(
   auto* ldataR_p = getLevelDataReactPtr(lev);
 
   // Set chemistry MFs based on baChem and dmapChem
-  MultiFab chemState(*m_baChem[lev], *m_dmapChem[lev], NUM_SPECIES + 3, 0);
+  MultiFab chemState(*m_baChem[lev], *m_dmapChem[lev], NUM_SPECIES + 3 + NUMAUX, 0);
   MultiFab chemForcing(*m_baChem[lev], *m_dmapChem[lev], nCompForcing(), 0);
   MultiFab functC(*m_baChem[lev], *m_dmapChem[lev], 1, 0);
 #ifdef PELE_USE_EFIELD
@@ -204,7 +204,7 @@ PeleLM::advanceChemistryBAChem(
 #endif
 
   // ParallelCopy into chem MFs
-  chemState.ParallelCopy(ldataOld_p->state, FIRSTSPEC, 0, NUM_SPECIES + 3);
+  chemState.ParallelCopy(ldataOld_p->state, FIRSTSPEC, 0, NUM_SPECIES + 3 + NUMAUX);
   chemForcing.ParallelCopy(a_extForcing, 0, 0, nCompForcing());
 #ifdef PELE_USE_EFIELD
   chemnE.ParallelCopy(ldataOld_p->state, NE, 0, 1);
@@ -229,8 +229,8 @@ PeleLM::advanceChemistryBAChem(
 
     // Convert MKS -> CGS
     ParallelFor(
-      bx, [rhoY_o, rhoH_o, extF_rhoY,
-           extF_rhoH] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+      bx, [rhoY_o, rhoH_o, extF_rhoY, extF_rhoH]
+        AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
         for (int n = 0; n < NUM_SPECIES; n++) {
           rhoY_o(i, j, k, n) *= 1.0e-3;
           extF_rhoY(i, j, k, n) *= 1.0e-3;
@@ -238,6 +238,33 @@ PeleLM::advanceChemistryBAChem(
         rhoH_o(i, j, k) *= 10.0;
         extF_rhoH(i, j, k) *= 10.0;
       });
+
+#if (NUMAUX > 0) // Conver MKS -> CGS for auxiliary variables
+    auto const& rhoAux_o = chemState.array(mfi, NUM_SPECIES + 3);
+    auto const& extF_rhoAux = chemForcing.array(mfi, NUM_SPECIES);
+    ParallelFor(
+      bx, [rhoAux_o, extF_rhoAux]
+        AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+#if (NUMMIXF > 0)
+        for (int n = 0; n < NUMMIXF; n++) {
+          rhoAux_o(i, j, k, MIXF_IN_AUX+n) *= 1.0e-3;
+          extF_rhoAux(i, j, k, MIXF_IN_AUX+n) *= 1.0e-3;
+        }
+#if (NUMAGE > 0)
+        for (int n = 0; n < NUMAGE; n++) {
+          rhoAux_o(i, j, k, AGE_IN_AUX+n) *= 1.0e-3;
+          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 1.0e-3;
+        }
+#endif // #if (NUMAGE > 0)
+#if (NUMAGEPV > 0)
+        for (int n = 0; n < NUMAGEPV; n++) {
+          rhoAux_o(i, j, k, AGEPV_IN_AUX+n) *= 1.0e-3;
+          extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 1.0e-3;
+        }
+#endif // #if (NUMAGEPV > 0)
+#endif // #if (NUMMIX > 0)
+      }); // ParallelFor
+#endif // #if (NUM_AUX > 0)
 
 #ifdef PELE_USE_EFIELD
     // Pass nE -> rhoY_e & FnE -> FrhoY_e

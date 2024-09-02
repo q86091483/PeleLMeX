@@ -29,25 +29,31 @@
   // User-defined mixture fraction
   #ifdef PELE_USE_MIXF
     #define MIXF FIRSTAUX
+    #define MIXF_IN_AUX (MIXF - FIRSTAUX)
     #define NUMMIXF 2
   #else
     #define MIXF -1
+    #define MIXF_IN_AUX -1
     #define NUMMIXF 0
   #endif
   // Age variable
   #ifdef PELE_USE_AGE
     #define AGE (FIRSTAUX + NUMMIXF)
+    #define AGE_IN_AUX (AGE - FIRSTAUX)
     #define NUMAGE NUMMIXF
   #else
     #define AGE -1
+    #define AGE_IN_AUX -1
     #define NUMAGE 0
   #endif
   // Age progress variable
   #ifdef PELE_USE_AGEPV
     #define AGEPV (FIRSTAUX + NUMMIXF + NUMAGE)
+    #define AGEPV_IN_AUX (AGEPV - FIRSTAUX)
     #define NUMAGEPV NUMMIXF
   #else
     #define AGEPV -1
+    #define AGEPV_IN_AUX -1
     #define NUMAGEPV 0
   #endif
   #define NUMAUX (NUMMIXF + NUMAGE + NUMAGEPV)

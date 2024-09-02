@@ -1561,9 +1561,9 @@ public:
   static int nCompForcing()
   {
 #ifdef PELE_USE_EFIELD
-    return NUM_SPECIES + 2;
+    return NUM_SPECIES + 2 + NUMAUX;
 #else
-    return NUM_SPECIES + 1;
+    return NUM_SPECIES + 1 + NUMAUX;
 #endif
   }
 
