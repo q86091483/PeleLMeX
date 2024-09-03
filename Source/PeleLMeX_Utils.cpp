@@ -1371,6 +1371,11 @@ PeleLM::setTypicalValues(const TimeStamp& a_time, int is_init)
 #ifdef PELE_USE_EFIELD
     typical_values[NE] = 0.5 * (stateMax[NE] + stateMin[NE]);
 #endif
+#if (NUMAUX > 0)
+    for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
+      typical_values[n] = 0.5 * (stateMax[n] + stateMin[n]);
+    }
+#endif
 
     // Pass into chemsitry if requested
     updateTypicalValuesChem();
@@ -1417,7 +1422,7 @@ PeleLM::updateTypicalValuesChem()
 #endif
     {
       Vector<Real> typical_values_chem;
-      typical_values_chem.resize(NUM_SPECIES + 1);
+      typical_values_chem.resize(NUM_SPECIES + 1 + NUMAUX);
       for (int i = 0; i < NUM_SPECIES; ++i) {
         typical_values_chem[i] = amrex::max(
           m_typicalYvalMin * typical_values[DENSITY] * 1.E-3,
@@ -1431,6 +1436,11 @@ PeleLM::updateTypicalValuesChem()
       eos.molecular_weight(mwt);
       typical_values_chem[E_ID] =
         typical_values[NE] / Na * mwt[E_ID] * 1.0e-6 * 1.0e-2;
+#endif
+#if (NUMAUX > 0)
+      for (int i = 0; i < NUMAUX; i++) {
+        typical_values_chem[NUM_SPECIES + 1 + i] = typical_values[FIRSTAUX + i];
+      }
 #endif
       m_reactor->set_typ_vals_ode(typical_values_chem);
     }
