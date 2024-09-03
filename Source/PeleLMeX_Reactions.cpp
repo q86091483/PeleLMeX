@@ -617,9 +617,9 @@ PeleLM::getScalarReactForce(
 #if (NUMMIXF > 1)
           //fAux(i, j, k, 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
 #endif
+#endif // #if (NUMMIXF > 0)
+#endif // #if (NUMAUX > 0)
         }); // ParallelFor
-#endif
-#endif
     }
   }
 }
