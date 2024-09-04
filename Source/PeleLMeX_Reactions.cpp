@@ -611,11 +611,13 @@ PeleLM::getScalarReactForce(
             rhs_mixf += 0.5 * (dn(i, j, k, m) + dnp1(i, j, k, m)) *
               fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
           }
-          fAux(i, j, k, 0) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
-          new_arr(i, j, k, MIXF+0) = old_arr(i, j, k, MIXF+0)
-            + dt * fAux(i, j, k, 0);
+          //fAux(i, j, k, 0) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
+          fAux(i, j, k, 0) = 1.0;
+          //new_arr(i, j, k, MIXF+0) = old_arr(i, j, k, MIXF+0)
+          //  + dt * fAux(i, j, k, 0);
 #if (NUMMIXF > 1)
           //fAux(i, j, k, 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
+          fAux(i, j, k, 1) = 1.0;
 #endif
 #endif // #if (NUMMIXF > 0)
 #endif // #if (NUMAUX > 0)
