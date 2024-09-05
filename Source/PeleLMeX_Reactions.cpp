@@ -640,17 +640,19 @@ PeleLM::getScalarReactForce(
           //  + dt * fAux(i, j, k, 0);
 #if (NUMMIXF > 1)
           //fAux(i, j, k, 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
-          fAux(i, j, k, MIXF_IN_AUX + 1) = a_of_s(i, j, k, MIXF) - 1.0 * rhs_mixf;
+          fAux(i, j, k, MIXF_IN_AUX + 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
 #endif // # if (NUMMIXF > 1)
-
-#if (NUMAGE > 0)
-          for (int n = 0; n < NUMAGE; n++) {
-          fAux(i, j, k, AGE_IN_AUX+n) =
-            (rhoAux_n(i,j,k,AGE_IN_AUX+n)/rhoAux_n(i,j,k,MIXF_IN_AUX+n)) * fAux(i,j,k,MIXF_IN_AUX+n)
-            + rhoAux_n(i, j, k, MIXF_IN_AUX+n);
-          }
-#endif
 #endif // #if (NUMMIXF > 0)
+#if (NUMAGE > 0)
+          fAux(i, j, k, AGE_IN_AUX) =
+            (rhoAux_n(i,j,k,AGE_IN_AUX)/rhoAux_n(i,j,k,MIXF_IN_AUX)) * 1.0 * rhs_mixf
+            + rhoAux_n(i, j, k, MIXF_IN_AUX);
+#if (NUMAGE > 1)
+          fAux(i, j, k, AGE_IN_AUX+1) =
+            (rhoAux_n(i,j,k,AGE_IN_AUX+1)/rhoAux_n(i,j,k,MIXF_IN_AUX+1)) * -1.0 * rhs_mixf
+            + rhoAux_n(i, j, k, MIXF_IN_AUX+1);
+#endif // #if (NUMAGE > 1)
+#endif // #if (NUMAGE > 0)
 #endif // #if (NUMAUX > 0)
         }); // ParallelFor
     }
