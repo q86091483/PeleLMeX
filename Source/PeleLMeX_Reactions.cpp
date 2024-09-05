@@ -1,3 +1,4 @@
+#include "PeleLMeX_Index.H"
 #include <PeleLMeX.H>
 #include <PeleLMeX_K.H>
 #ifdef PELE_USE_EFIELD
@@ -589,6 +590,8 @@ PeleLM::getScalarReactForce(
       auto const& rhoH_o = ldataOld_p->state.const_array(mfi, RHOH);
       auto const& rhoY_n = ldataNew_p->state.const_array(mfi, FIRSTSPEC);
       auto const& rhoH_n = ldataNew_p->state.const_array(mfi, RHOH);
+      auto const& rhoAux_n = ldataNew_p->state.const_array(mfi, FIRSTAUX);
+
       auto const& react = ldataR_p->I_R.const_array(mfi, 0);
       auto const& extF_rhoY = advData->Forcing[lev].array(mfi, 0);
       auto const& extF_rhoH = advData->Forcing[lev].array(mfi, NUM_SPECIES);
@@ -609,7 +612,7 @@ PeleLM::getScalarReactForce(
       }
 
       amrex::ParallelFor(
-        bx, [rhoY_o, rhoH_o, rhoY_n, rhoH_n, react, extF_rhoY, extF_rhoH,
+        bx, [rhoY_o, rhoH_o, rhoY_n, rhoH_n, rhoAux_n, react, extF_rhoY, extF_rhoH,
              a_of_s, fAux, dn, dnp1, new_arr, old_arr, fact_Bilger, Zox_lcl, Zfu_lcl,
              dtinv, dt = m_dt] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
           for (int n = 0; n < NUM_SPECIES; n++) {
@@ -632,12 +635,20 @@ PeleLM::getScalarReactForce(
             rho_n += rhoY_n(i, j, k, m);
           }
           //fAux(i, j, k, 0) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
-          fAux(i, j, k, 0) = 0.0; //a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
+          fAux(i, j, k, MIXF_IN_AUX) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
           //new_arr(i, j, k, MIXF+0) = old_arr(i, j, k, MIXF+0)
           //  + dt * fAux(i, j, k, 0);
 #if (NUMMIXF > 1)
           //fAux(i, j, k, 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
-          fAux(i, j, k, 1) = 0.0;
+          fAux(i, j, k, MIXF_IN_AUX + 1) = a_of_s(i, j, k, MIXF) - 1.0 * rhs_mixf;
+#endif // # if (NUMMIXF > 1)
+
+#if (NUMAGE > 0)
+          for (int n = 0; n < NUMAGE; n++) {
+          fAux(i, j, k, AGE_IN_AUX+n) =
+            (rhoAux_n(i,j,k,AGE_IN_AUX+n)/rhoAux_n(i,j,k,MIXF_IN_AUX+n)) * fAux(i,j,k,MIXF_IN_AUX+n)
+            + rhoAux_n(i, j, k, MIXF_IN_AUX+n);
+          }
 #endif
 #endif // #if (NUMMIXF > 0)
 #endif // #if (NUMAUX > 0)
