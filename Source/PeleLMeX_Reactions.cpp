@@ -607,12 +607,16 @@ PeleLM::getScalarReactForce(
 #if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
           amrex::Real rhs_mixf = 0.0;
           amrex::Real rhs_age = 0.0;
+          amrex::Real rho_n = 0.0;
           for (int m = 0; m < NUM_SPECIES; m++) {
             rhs_mixf += 0.5 * (dn(i, j, k, m) + dnp1(i, j, k, m)) *
               fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
           }
+          for (int m = 0; m < NUM_SPECIES; m++) {
+            rho_n += rhoY_n(i, j, k, m);
+          }
           //fAux(i, j, k, 0) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
-          fAux(i, j, k, 0) = 0.0;
+          fAux(i, j, k, 0) = rho_n;
           //new_arr(i, j, k, MIXF+0) = old_arr(i, j, k, MIXF+0)
           //  + dt * fAux(i, j, k, 0);
 #if (NUMMIXF > 1)
