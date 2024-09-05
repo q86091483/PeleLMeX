@@ -423,8 +423,8 @@ PeleLM::advanceChemistryBAChem(
 
   // ParallelCopy into newstate MFs
   // Get the entire new state
-  MultiFab StateTemp(grids[lev], dmap[lev], NUM_SPECIES + 3, 0);
-  StateTemp.ParallelCopy(chemState, 0, 0, NUM_SPECIES + 3);
+  MultiFab StateTemp(grids[lev], dmap[lev], NUM_SPECIES + 3 + NUMAUX, 0);
+  StateTemp.ParallelCopy(chemState, 0, 0, NUM_SPECIES + 3 + NUMAUX);
   ldataR_p->functC.ParallelCopy(functC, 0, 0, 1);
 #ifdef PELE_USE_EFIELD
   MultiFab nETemp(grids[lev], dmap[lev], 1, 0);
@@ -477,6 +477,22 @@ PeleLM::advanceChemistryBAChem(
         // Compute I_R
         nEdot(i, j, k) =
           -(nE_o(i, j, k) - nE_n(i, j, k)) * dt_inv - FnE(i, j, k);
+      });
+#endif
+
+#if (NUMAUX > 0)
+    auto const& rhoAux_n = ldataNew_p->state.array(mfi, FIRSTAUX);
+    auto const& rhoAux_o = ldataOld_p->state.array(mfi, FIRSTAUX);
+    auto const& extF_rhoAux = a_extForcing.const_array(mfi, NUM_SPECIES + 1);
+    auto const& rhoAuxdot = ldataR_p->I_R.array(mfi, NUM_SPECIES);
+    ParallelFor(
+      bx, [state_arr, rhoAux_n, rhoAux_o, extF_rhoAux, rhoAuxdot, dt_inv]
+        AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+        for (int n = 0; n < NUMAUX; n++) {
+          rhoAux_n(i, j, k, n) = state_arr(i, j, k, FIRSTAUX + n);
+          rhoAuxdot(i, j, k, n) = (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv -
+            extF_rhoAux(i, j, k, n);
+        }
       });
 #endif
   }
