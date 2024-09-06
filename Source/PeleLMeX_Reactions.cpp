@@ -634,22 +634,20 @@ PeleLM::getScalarReactForce(
           for (int m = 0; m < NUM_SPECIES; m++) {
             rho_n += rhoY_n(i, j, k, m);
           }
-          //fAux(i, j, k, 0) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
-          fAux(i, j, k, MIXF_IN_AUX) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
-          //new_arr(i, j, k, MIXF+0) = old_arr(i, j, k, MIXF+0)
-          //  + dt * fAux(i, j, k, 0);
+          //fAux(i, j, k, MIXF_IN_AUX) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
+          fAux(i, j, k, MIXF_IN_AUX) = +1.0 * rhs_mixf;
 #if (NUMMIXF > 1)
-          //fAux(i, j, k, 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
-          fAux(i, j, k, MIXF_IN_AUX + 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
+          //fAux(i, j, k, MIXF_IN_AUX + 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
+          fAux(i, j, k, MIXF_IN_AUX) = -1.0 * rhs_mixf;
 #endif // # if (NUMMIXF > 1)
 #endif // #if (NUMMIXF > 0)
 #if (NUMAGE > 0)
-          fAux(i, j, k, AGE_IN_AUX) = a_of_s(i, j, k, AGE)
-            + (rhoAux_n(i,j,k,AGE_IN_AUX)/rhoAux_n(i,j,k,MIXF_IN_AUX)) * 1.0 * rhs_mixf;
+          fAux(i, j, k, AGE_IN_AUX) = 0.0; //a_of_s(i, j, k, AGE)
+            // + (rhoAux_n(i,j,k,AGE_IN_AUX)/rhoAux_n(i,j,k,MIXF_IN_AUX)) * 1.0 * rhs_mixf;
             // + rhoAux_n(i, j, k, MIXF_IN_AUX);
 #if (NUMAGE > 1)
-          fAux(i, j, k, AGE_IN_AUX+1) = a_of_s(i, j, k, AGE+1)
-            + (rhoAux_n(i,j,k,AGE_IN_AUX+1)/rhoAux_n(i,j,k,MIXF_IN_AUX+1)) * -1.0 * rhs_mixf;
+          fAux(i, j, k, AGE_IN_AUX+1) = 0.0; //a_of_s(i, j, k, AGE+1)
+            // + (rhoAux_n(i,j,k,AGE_IN_AUX+1)/rhoAux_n(i,j,k,MIXF_IN_AUX+1)) * -1.0 * rhs_mixf;
             //+ rhoAux_n(i, j, k, MIXF_IN_AUX+1);
 #endif // #if (NUMAGE > 1)
 #endif // #if (NUMAGE > 0)
