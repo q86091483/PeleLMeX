@@ -1251,7 +1251,7 @@ PeleLM::updateAdvAux(
           AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
           // Advection
           for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
-            new_arr(i, j, k, n) = old_arr(i, j, k, n)
+            new_arr(i, j, k, n) = new_arr(i, j, k, n)
               + dt * a_of_s(i, j, k, n);
           }
           // Diffusion
