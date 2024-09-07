@@ -424,9 +424,6 @@ PeleLM::oneSDC(
   }
   // Get external forcing for chemistry
   getScalarReactForce(advData, diffData);
-#if (NUMAUX > 0)
-  updateAdvAux(advData, diffData);
-#endif
 
   // Integrate chemistry
   advanceChemistry(advData);
@@ -437,6 +434,12 @@ PeleLM::oneSDC(
     amrex::Print() << "   - oneSDC()::ScalarReaction()  --> Time: "
                    << ScalReacEnd << "\n";
   }
+
+  // Update auxiliary variables with advection fluxes.
+#if (NUMAUX > 0)
+  updateAdvAux(advData, diffData);
+#endif
+
   checkMemory("ScalReact");
   BL_PROFILE_VAR_STOP(PLM_REAC);
   //----------------------------------------------------------------
