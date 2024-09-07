@@ -1214,7 +1214,7 @@ PeleLM::updateScalarComp(
 
 #if (defined PELE_USE_AUX) && (NUMAUX > 0)
 void
-PeleLM::updateScalarAux(
+PeleLM::updateAdvAux(
   std::unique_ptr<AdvanceAdvData>& advData,
   std::unique_ptr<AdvanceDiffData>& diffData)
 {
@@ -1235,19 +1235,18 @@ PeleLM::updateScalarAux(
       auto const& old_arr = ldataOld_p->state.const_array(mfi, 0);
       auto const& new_arr = ldataNew_p->state.array(mfi, 0);
       auto const& a_of_s = advData->AofS[lev].const_array(mfi, 0);
-      auto const& ext = m_extSource[lev]->const_array(mfi, 0);
-      auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
-      auto const& dnp1 = diffData->Dnp1[lev].const_array(mfi, 0);
+      //auto const& ext = m_extSource[lev]->const_array(mfi, 0);
+      //auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
+      //auto const& dnp1 = diffData->Dnp1[lev].const_array(mfi, 0);
 
-      amrex::Real Zox_lcl = Zox;
-      amrex::Real Zfu_lcl = Zfu;
-      amrex::GpuArray<amrex::Real, NUM_SPECIES> fact_Bilger;
-      for (int n = 0; n < NUM_SPECIES; ++n) {
-        fact_Bilger[n] = spec_Bilger_fact[n];
-      }
+      //amrex::Real Zox_lcl = Zox;
+      //amrex::Real Zfu_lcl = Zfu;
+      //amrex::GpuArray<amrex::Real, NUM_SPECIES> fact_Bilger;
+      //for (int n = 0; n < NUM_SPECIES; ++n) {
+      //  fact_Bilger[n] = spec_Bilger_fact[n];
+      //}
       amrex::ParallelFor(
-        bx, [old_arr, new_arr, a_of_s, ext, dn, dnp1,
-                    fact_Bilger, Zox_lcl, Zfu_lcl,
+        bx, [old_arr, new_arr, a_of_s,
                     dt = m_dt]
           AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
           // Advection
@@ -1256,47 +1255,47 @@ PeleLM::updateScalarAux(
               + dt * a_of_s(i, j, k, n);
           }
           // Diffusion
-          amrex::Real rhs_mixf = 0.0;
-          amrex::Real rhs_age = 0.0;
-          for (int m = 0; m < NUM_SPECIES; m++) {
-            rhs_mixf += 0.5*(dn(i, j, k, m)+dnp1(i,j,k,m)) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
-          }
+          //amrex::Real rhs_mixf = 0.0;
+          //amrex::Real rhs_age = 0.0;
+          //for (int m = 0; m < NUM_SPECIES; m++) {
+          //  rhs_mixf += 0.5*(dn(i, j, k, m)+dnp1(i,j,k,m)) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
+          //}
 #if (NUMMIXF > 0)
-          new_arr(i,j,k,MIXF+0) += dt * rhs_mixf;
+          //new_arr(i,j,k,MIXF+0) += dt * rhs_mixf;
 #endif
 #if (NUMMIXF > 1)
-          new_arr(i,j,k,MIXF+1) -= dt * rhs_mixf;
+          //new_arr(i,j,k,MIXF+1) -= dt * rhs_mixf;
 #endif
 #if (NUMAGE > 0)
-          rhs_age = old_arr(i,j,k,AGE) / old_arr(i,j,k,MIXF);
-          rhs_age *= rhs_mixf;
+          //rhs_age = old_arr(i,j,k,AGE) / old_arr(i,j,k,MIXF);
+          //rhs_age *= rhs_mixf;
           //rhs_age = 0.0;
-          new_arr(i,j,k,AGE) += dt * rhs_age;
+          //new_arr(i,j,k,AGE) += dt * rhs_age;
   #if (NUMAGEPV > 0)
-          new_arr(i,j,k,AGEPV) += dt * rhs_age;
+          //new_arr(i,j,k,AGEPV) += dt * rhs_age;
   #endif
 #endif
 #if (NUMAGE > 1)
-          rhs_age = old_arr(i,j,k,AGE+1) / old_arr(i,j,k,MIXF+1);
-          rhs_age *= -rhs_mixf;
+          //rhs_age = old_arr(i,j,k,AGE+1) / old_arr(i,j,k,MIXF+1);
+          //rhs_age *= -rhs_mixf;
           //rhs_age = 0.0;
-          new_arr(i,j,k,AGE+1) += dt * rhs_age;
+          //new_arr(i,j,k,AGE+1) += dt * rhs_age;
   #if (NUMAGEPV > 1)
-          new_arr(i,j,k,AGEPV+1) += dt * rhs_age;
+          //new_arr(i,j,k,AGEPV+1) += dt * rhs_age;
   #endif
 #endif
           // Reaction
-          for (int n = 0; n < NUMAGE; n++) {
-            new_arr(i, j, k, AGE + n) = new_arr(i, j, k, AGE + n)
-              + dt * old_arr(i, j, k, MIXF + n);
-          }
+          //for (int n = 0; n < NUMAGE; n++) {
+          //  new_arr(i, j, k, AGE + n) = new_arr(i, j, k, AGE + n)
+          //    + dt * old_arr(i, j, k, MIXF + n);
+          //}
 #if (NUMAGEPV > 0)
-          if (old_arr(i, j, k, TEMP) > 1750) {
-            for (int n = 0; n < NUMAGEPV; n++) {
-              new_arr(i, j, k, AGEPV + n) = new_arr(i, j, k, AGEPV + n)
-                + dt * old_arr(i, j, k, MIXF + n);
-            }
-          }
+          //if (old_arr(i, j, k, TEMP) > 1750) {
+          //  for (int n = 0; n < NUMAGEPV; n++) {
+          //    new_arr(i, j, k, AGEPV + n) = new_arr(i, j, k, AGEPV + n)
+          //      + dt * old_arr(i, j, k, MIXF + n);
+          //  }
+          //}
 #endif
         });
       //amrex::ParallelFor(

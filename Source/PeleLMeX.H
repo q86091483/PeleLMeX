@@ -1412,7 +1412,7 @@ public:
     std::unique_ptr<AdvanceAdvData>& advData,
     std::unique_ptr<AdvanceDiffData>& diffData);
   void computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData);
-  void updateScalarAux(
+  void updateAdvAux(
     std::unique_ptr<AdvanceAdvData>& advData,
     std::unique_ptr<AdvanceDiffData>& diffData);
 #endif
