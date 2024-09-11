@@ -230,6 +230,22 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
           -(nE_o(i, j, k) - nE_n(i, j, k)) * dt_inv - FnE(i, j, k);
       });
 #endif
+
+#if (NUMAUX > 0)
+    auto const& rhoAux_o = ldataOld_p->state.const_array(mfi, FIRSTAUX);
+    auto const& rhoAux_n = ldataNew_p->state.const_array(mfi, FIRSTAUX);
+    auto const& extF_rhoAux = a_extForcing.const_array(mfi, NUM_SPECIES + 1);
+    auto const& rhoAuxdot = ldataR_p->I_R.array(mfi, NUM_SPECIES);
+    ParallelFor(
+      bx, NUMAUX,
+      [rhoAux_o, rhoAux_n, extF_rhoAux, rhoAuxdot,
+       dt_inv] AMREX_GPU_DEVICE(int i, int j, int k, int n) noexcept {
+        rhoAuxdot(i, j, k, n) =
+          -(rhoAux_o(i, j, k, n) - rhoAux_n(i, j, k, n)) * dt_inv -
+          extF_rhoAux(i, j, k, n);
+      });
+#endif
+
   }
 }
 

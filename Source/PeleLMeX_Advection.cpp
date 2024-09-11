@@ -314,7 +314,7 @@ PeleLM::getScalarAdvForce_Aux(
       auto const& T = ldata_p->state.const_array(mfi, TEMP);
       auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
       auto const& ddn = diffData->Dn[lev].const_array(mfi, NUM_SPECIES + 1);
-      auto const& r = ldataR_p->I_R.const_array(mfi);
+      auto const& r = ldataR_p->I_R.const_array(mfi, NUM_SPECIES);
       auto const& extRhoY = m_extSource[lev]->const_array(mfi, FIRSTSPEC);
       auto const& extRhoH = m_extSource[lev]->const_array(mfi, RHOH);
       auto const& fY = advData->Forcing[lev].array(mfi, 0);
@@ -366,6 +366,7 @@ PeleLM::getScalarAdvForce_Aux(
           for (int n = 0; n < NUMAGE; n++) {
             if ((old_arr(i,j,k,MIXF)/rho(i,j,k)) > 1E-3) {
               fAux(i,j,k,NUMMIXF+n) += old_arr(i,j,k,MIXF+n); // += old_arr(i,j,k,MIXF+n);
+              fAux(i,j,k,NUMMIXF+n) = r(i,j,k,NUMMIXF+n);
             } else {
               fAux(i,j,k,NUMMIXF+n) = 0.0; // += old_arr(i,j,k,MIXF+n);
             }
