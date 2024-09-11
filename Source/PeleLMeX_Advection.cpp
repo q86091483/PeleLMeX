@@ -367,6 +367,7 @@ PeleLM::getScalarAdvForce_Aux(
             if ((old_arr(i,j,k,MIXF)/rho(i,j,k)) > 1E-3) {
               fAux(i,j,k,NUMMIXF+n) += old_arr(i,j,k,MIXF+n); // += old_arr(i,j,k,MIXF+n);
               fAux(i,j,k,NUMMIXF+n) = r(i,j,k,NUMMIXF+n);
+              fAux(i,j,k,n) = r(i,j,k,n);
             } else {
               fAux(i,j,k,NUMMIXF+n) = 0.0; // += old_arr(i,j,k,MIXF+n);
             }
