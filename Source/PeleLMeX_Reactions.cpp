@@ -236,13 +236,19 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
     auto const& rhoAux_n = ldataNew_p->state.const_array(mfi, FIRSTAUX);
     auto const& extF_rhoAux = a_extForcing.const_array(mfi, NUM_SPECIES + 1);
     auto const& rhoAuxdot = ldataR_p->I_R.array(mfi, NUM_SPECIES);
+
     ParallelFor(
-      bx, NUMAUX,
-      [rhoAux_o, rhoAux_n, extF_rhoAux, rhoAuxdot,
-       dt_inv] AMREX_GPU_DEVICE(int i, int j, int k, int n) noexcept {
-        rhoAuxdot(i, j, k, n) =
-          -(rhoAux_o(i, j, k, n) - rhoAux_n(i, j, k, n)) * dt_inv -
-          extF_rhoAux(i, j, k, n);
+      bx, [rhoAux_o, rhoAux_n, extF_rhoAux, rhoAuxdot, dt_inv]
+        AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+        for (int n = MIXF_IN_AUX; n < (MIXF_IN_AUX + NUMMIXF); n++) {
+          rhoAuxdot(i, j, k, n) =
+            -(rhoAux_o(i, j, k, n) - rhoAux_n(i, j, k, n)) * dt_inv;
+        }
+        for (int n = AGE_IN_AUX; n < (AGE_IN_AUX + NUMAGE); n++) {
+          rhoAuxdot(i, j, k, n) =
+            -(rhoAux_o(i, j, k, n) - rhoAux_n(i, j, k, n)) * dt_inv -
+            extF_rhoAux(i, j, k, n);
+        }
       });
 #endif
 
@@ -507,7 +513,20 @@ PeleLM::advanceChemistryBAChem(
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
         for (int n = 0; n < NUMAUX; n++) {
           rhoAux_n(i, j, k, n) = state_arr(i, j, k, FIRSTAUX + n);
-          rhoAuxdot(i, j, k, n) = (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv -
+          //rhoAuxdot(i, j, k, n) = (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv -
+          //  extF_rhoAux(i, j, k, n);
+        }
+      });
+    ParallelFor(
+      bx, [rhoAux_o, rhoAux_n, extF_rhoAux, rhoAuxdot, dt_inv]
+        AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+        for (int n = MIXF_IN_AUX; n < (MIXF_IN_AUX + NUMMIXF); n++) {
+          rhoAuxdot(i, j, k, n) =
+            (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv;
+        }
+        for (int n = AGE_IN_AUX; n < (AGE_IN_AUX + NUMAGE); n++) {
+          rhoAuxdot(i, j, k, n) =
+            (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv -
             extF_rhoAux(i, j, k, n);
         }
       });
