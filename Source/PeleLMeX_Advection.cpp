@@ -364,7 +364,7 @@ PeleLM::getScalarAdvForce_Aux(
   #endif
           // Reaction
           for (int n = 0; n < NUMAGE; n++) {
-            fAux(i,j,k,NUMMIXF+n) = 0.0; // += old_arr(i,j,k,MIXF+n);
+            fAux(i,j,k,NUMMIXF+n) = old_arr(i,j,k,MIXF+n); // += old_arr(i,j,k,MIXF+n);
           }
   #if(NUMAGEPV > 0)
           if (old_arr(i, j, k, TEMP) > 1750) {
