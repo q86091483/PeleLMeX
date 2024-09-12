@@ -333,45 +333,45 @@ PeleLM::getScalarAdvForce_Aux(
           //  is_closed_ch, do_react, fY, fT, fAux);
 
           // Diffusion force
-          amrex::Real rhs_mixf = 0.0;
-          amrex::Real rhs_age = 0.0;
-          for (int m = 0; m < NUM_SPECIES; m++) {
-            rhs_mixf += dn(i, j, k, m) * fact_Bilger[m];
-          }
+          //amrex::Real rhs_mixf = 0.0;
+          //amrex::Real rhs_age = 0.0;
+          //for (int m = 0; m < NUM_SPECIES; m++) {
+          //  rhs_mixf += dn(i, j, k, m) * fact_Bilger[m];
+          //}
   #if (NUMMIXF > 0)
-          fAux(i,j,k,0) = 1.0 * rhs_mixf;
+          //fAux(i,j,k,0) = 1.0 * rhs_mixf;
+          fAux(i, j, k, MIXF_IN_AUX + 0) = r(i, j, k, MIXF_IN_AUX + 0);
   #endif
   #if (NUMMIXF > 1)
-          fAux(i,j,k,1) = -1.0 * rhs_mixf;
+          //fAux(i,j,k,1) = -1.0 * rhs_mixf;
+          fAux(i, j, k, MIXF_IN_AUX + 1) = r(i, j, k, MIXF_IN_AUX + 1);
   #endif
   #if (NUMAGE > 0)
-          rhs_age = old_arr(i,j,k,AGE) / old_arr(i,j,k,MIXF);
-          rhs_age *= rhs_mixf;
-          //rhs_age = 0.0;
-          fAux(i,j,k,NUMMIXF) = rhs_age;
-    #if (NUMAGEPV > 0)
-          fAux(i,j,k,NUMMIXF+NUMAGE) = rhs_age;
-    #endif
+          //rhs_age = old_arr(i,j,k,AGE) / old_arr(i,j,k,MIXF);
+          //rhs_age *= rhs_mixf;
+          //fAux(i,j,k,NUMMIXF) = rhs_age;
+          if ((old_arr(i, j, k, MIXF + 0) / rho(i, j, k)) > 1E-3) {
+            fAux(i, j, k, AGE_IN_AUX + 0) = r(i, j, k, AGE_IN_AUX + 0);
+          }
   #endif
   #if (NUMAGE > 1)
-          rhs_age = old_arr(i,j,k,AGE+1) / old_arr(i,j,k,MIXF+1);
-          rhs_age *= -rhs_mixf;
-          //rhs_age = 0.0;
-          fAux(i,j,k,NUMMIXF+1) = rhs_age;
-    #if (NUMAGEPV > 1)
-          fAux(i,j,k,NUMMIXF+NUMAGE+1) = rhs_age;
-    #endif
+          //rhs_age = old_arr(i,j,k,AGE+1) / old_arr(i,j,k,MIXF+1);
+          //rhs_age *= -rhs_mixf;
+          //fAux(i,j,k,NUMMIXF+1) = rhs_age;
+          if ((old_arr(i, j, k, MIXF + 1) / rho(i, j, k)) > 1E-3) {
+            fAux(i, j, k, AGE_IN_AUX + 1) = r(i, j, k, AGE_IN_AUX + 1);
+          }
   #endif
           // Reaction
-          for (int n = 0; n < NUMAGE; n++) {
-            if ((old_arr(i,j,k,MIXF)/rho(i,j,k)) > 1E-3) {
-              fAux(i,j,k,NUMMIXF+n) += old_arr(i,j,k,MIXF+n); // += old_arr(i,j,k,MIXF+n);
-              fAux(i,j,k,NUMMIXF+n) = r(i,j,k,NUMMIXF+n);
-              fAux(i,j,k,n) = r(i,j,k,n);
-            } else {
-              fAux(i,j,k,NUMMIXF+n) = 0.0; // += old_arr(i,j,k,MIXF+n);
-            }
-          }
+          //for (int n = 0; n < NUMAGE; n++) {
+          //  if ((old_arr(i,j,k,MIXF)/rho(i,j,k)) > 1E-3) {
+          //    fAux(i,j,k,NUMMIXF+n) += old_arr(i,j,k,MIXF+n); // += old_arr(i,j,k,MIXF+n);
+          //    fAux(i,j,k,NUMMIXF+n) = r(i,j,k,NUMMIXF+n);
+          //    fAux(i,j,k,n) = r(i,j,k,n);
+          //  } else {
+          //    fAux(i,j,k,NUMMIXF+n) = 0.0; // += old_arr(i,j,k,MIXF+n);
+          //  }
+          //}
   #if(NUMAGEPV > 0)
           if (old_arr(i, j, k, TEMP) > 1750) {
             for (int n = 0; n < NUMAGEPV; n++) {
