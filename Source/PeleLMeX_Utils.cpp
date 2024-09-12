@@ -1809,6 +1809,7 @@ PeleLM::initMixtureFraction()
     pele::physics::PhysicsType::eos_type>(ecompCHON);
   amrex::Real mwt[NUM_SPECIES];
   eos.molecular_weight(mwt);
+
   Zfu = 0.0;
   Zox = 0.0;
   for (int i = 0; i < NUM_SPECIES; ++i) {
@@ -1819,6 +1820,10 @@ PeleLM::initMixtureFraction()
     }
     Zfu += spec_Bilger_fact[i] * YF[i];
     Zox += spec_Bilger_fact[i] * YO[i];
+  }
+
+  for (int i = 0; i < NUM_SPECIES; ++i) {
+    fact_Y_to_mixf[i] = spec_Bilger_fact[i] / (Zfu - Zox);
   }
 }
 

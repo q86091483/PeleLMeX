@@ -1969,6 +1969,7 @@ public:
   // Mixture fraction
   amrex::Array<amrex::Real, 4> Beta_mix;
   amrex::Array<amrex::Real, NUM_SPECIES> spec_Bilger_fact;
+  amrex::Array<amrex::Real, NUM_SPECIES> fact_Y_to_mixf;
   amrex::Real Zfu = -1.0;
   amrex::Real Zox = -1.0;
 

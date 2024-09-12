@@ -288,11 +288,11 @@ PeleLM::getScalarAdvForce_Aux(
   std::unique_ptr<AdvanceAdvData>& advData,
   std::unique_ptr<AdvanceDiffData>& diffData)
 {
-  amrex::Real Zox_lcl = Zox;
-  amrex::Real Zfu_lcl = Zfu;
+  //amrex::Real Zox_lcl = Zox;
+  //amrex::Real Zfu_lcl = Zfu;
   amrex::GpuArray<amrex::Real, NUM_SPECIES> fact_Bilger;
   for (int n = 0; n < NUM_SPECIES; ++n) {
-    fact_Bilger[n] = spec_Bilger_fact[n];
+    fact_Bilger[n] = fact_Y_to_mixf[n];
   }
 
   for (int lev = 0; lev <= finest_level; ++lev) {
@@ -323,20 +323,20 @@ PeleLM::getScalarAdvForce_Aux(
       amrex::ParallelFor(
         bx,
         [old_arr, rho, rhoY, T, dn, ddn, r, fY, fT, fAux, extRhoY, extRhoH,
-            fact_Bilger, Zox_lcl, Zfu_lcl,
+            fact_Bilger,
             dp0dt = m_dp0dt,
             is_closed_ch = m_closed_chamber,do_react = m_do_react]
           AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
 
-          buildAdvectionForcing_Aux(
-            i, j, k, rho, rhoY, T, dn, ddn, r, extRhoY, extRhoH, dp0dt,
-            is_closed_ch, do_react, fY, fT, fAux);
+          //buildAdvectionForcing_Aux(
+          //  i, j, k, rho, rhoY, T, dn, ddn, r, extRhoY, extRhoH, dp0dt,
+          //  is_closed_ch, do_react, fY, fT, fAux);
 
           // Diffusion force
           amrex::Real rhs_mixf = 0.0;
           amrex::Real rhs_age = 0.0;
           for (int m = 0; m < NUM_SPECIES; m++) {
-            rhs_mixf += dn(i, j, k, m) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
+            rhs_mixf += dn(i, j, k, m) * fact_Bilger[m];
           }
   #if (NUMMIXF > 0)
           fAux(i,j,k,0) = 1.0 * rhs_mixf;
