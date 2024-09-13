@@ -1554,7 +1554,7 @@ public:
 #ifdef PELE_USE_EFIELD
     return NUM_SPECIES + 1;
 #else
-    return NUM_SPECIES;
+    return NUM_SPECIES + NUMAUX;
 #endif
   }
 
