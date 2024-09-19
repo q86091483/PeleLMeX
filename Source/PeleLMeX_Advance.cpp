@@ -96,6 +96,9 @@ PeleLM::Advance(int is_initIter)
   // fillpatch the t^{n} data
   averageDownState(AmrOldTime);
   fillPatchState(AmrOldTime);
+//------- zs - debug -------------------------
+    WritePlotFile();
+//------- End of zs - debug ------------------
 
   // compute t^{n} data
   calcViscosity(AmrOldTime);
