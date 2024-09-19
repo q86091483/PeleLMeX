@@ -458,7 +458,7 @@ void PeleLM::WriteDebugStateFile(int istep, int isdc) {
     // Field MF
     amrex::Vector<amrex::MultiFab> res_MF;
     for (int lev = 0; lev <= finest_level; lev++) {
-      auto* ldata_p = getLevelDataPtr(lev, AmrNewTime);
+      auto* ldata_p = getLevelDataPtr(lev, AmrOldTime);
       res_MF.emplace_back(ldata_p->state, amrex::make_alias, 0, ldata_p->state.nComp());
       //res_geom.emplace_back(linop.m_geom[alev][0]);
     }
