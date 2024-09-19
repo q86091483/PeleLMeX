@@ -48,6 +48,10 @@ PeleLM::Evolve()
       SprayPostRegrid();
     }
 #endif
+    // zs - debug
+    WritePlotFile();
+    Abort("Zisen debug");
+    // zs - debug
     int is_init = 0;
     Advance(is_init);
     m_nstep++;
