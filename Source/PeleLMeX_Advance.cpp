@@ -179,7 +179,12 @@ PeleLM::Advance(int is_initIter)
       oneSDC(sdc_iter, advData, diffData);
     }
 //------- zs - debug -------------------------
-    WritePlotFile();
+    bool dump_and_stop = checkMessage("dump_and_stop");
+    bool plt_and_continue = checkMessage("plt_and_continue");
+    bool chk_and_continue = checkMessage("chk_and_continue");
+    if (writePlotNow() || dump_and_stop || plt_and_continue) {
+      WritePlotFile();
+    }
 //------- End of zs - debug ------------------
 
     // Post SDC
