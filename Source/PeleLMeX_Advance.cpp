@@ -272,7 +272,7 @@ PeleLM::oneSDC(
   if (m_verbose > 0) {
     amrex::Print() << "   SDC iter [" << sdcIter << "] \n";
   }
-//WriteDebugStateFile(m_nstep, sdcIter);
+  WriteDebugStateFile(m_nstep, sdcIter);
   //----------------------------------------------------------------
   // Update t^{n+1,k} transport/Dnp1/divU
   //----------------------------------------------------------------
