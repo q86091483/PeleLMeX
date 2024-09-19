@@ -498,6 +498,8 @@ PeleLM::initialIterations()
 
     // Copy back old state
     copyStateOldToNew();
+WriteDebugStateFile(m_nstep, iter);
+
   }
 }
 
