@@ -50,7 +50,7 @@ PeleLM::Evolve()
 #endif
     // zs - debug
     WritePlotFile();
-    //Abort("Zisen debug");
+    Finalize();
     // zs - debug
     int is_init = 0;
     Advance(is_init);
