@@ -178,26 +178,6 @@ PeleLM::Advance(int is_initIter)
     for (int sdc_iter = 1; sdc_iter <= m_nSDCmax; ++sdc_iter) {
       oneSDC(sdc_iter, advData, diffData);
     }
-//------- zs - debug -------------------------
-    //bool dump_and_stop = checkMessage("dump_and_stop");
-    //bool plt_and_continue = checkMessage("plt_and_continue");
-    //bool chk_and_continue = checkMessage("chk_and_continue");
-    //if (writePlotNow() || dump_and_stop || plt_and_continue) {
-    //  WritePlotFile();
-    //}
-
-    std::string suffix = "_step"+std::to_string(m_nstep); //+"_sdcIter"+std::to_string(m_sdcIter)+"_deltaTiter"+std::to_string(dTiter);
-    amrex::Vector<amrex::MultiFab> res_MF;
-    amrex::Vector<amrex::Geometry> res_geom;
-    for (int lev = 0; lev <= finest_level; lev++) {
-      auto* ldata_p = getLevelDataPtr(lev, AmrNewTime);
-      res_MF.emplace_back(ldata_p->state, amrex::make_alias, 0, ldata_p->state.nComp());
-      //res_geom.emplace_back(linop.m_geom[alev][0]);
-    }
-    WriteDebugPlotFile(GetVecOfConstPtrs(res_MF) , "pltDebug_" + suffix);
-
-
-//------- End of zs - debug ------------------
 
     // Post SDC
     averageDownScalars(AmrNewTime);
@@ -292,7 +272,7 @@ PeleLM::oneSDC(
   if (m_verbose > 0) {
     amrex::Print() << "   SDC iter [" << sdcIter << "] \n";
   }
-
+WriteDebugStateFile(m_nstep, sdcIter);
   //----------------------------------------------------------------
   // Update t^{n+1,k} transport/Dnp1/divU
   //----------------------------------------------------------------
@@ -471,4 +451,72 @@ PeleLM::oneSDC(
   setTemperature(AmrNewTime);
   floorSpecies(AmrNewTime);
   setThermoPress(AmrNewTime);
+}
+
+void PeleLM::WriteDebugStateFile(int istep, int isdc) {
+
+    // Field MF
+    amrex::Vector<amrex::MultiFab> res_MF;
+    for (int lev = 0; lev <= finest_level; lev++) {
+      auto* ldata_p = getLevelDataPtr(lev, AmrNewTime);
+      res_MF.emplace_back(ldata_p->state, amrex::make_alias, 0, ldata_p->state.nComp());
+      //res_geom.emplace_back(linop.m_geom[alev][0]);
+    }
+
+    // Output file name
+    const std::string& pltn =
+      amrex::Concatenate(m_plot_file, m_nstep, m_ioDigits);
+    std::string suffix = "_sdcIter"+std::to_string(isdc);
+
+    // Which step
+    Vector<int> isteps(finest_level + 1, m_nstep);
+
+    // Components names
+    Vector<std::string> names;
+    pele::physics::eos::speciesNames<pele::physics::PhysicsType::eos_type>(names);
+    Vector<std::string> plt_VarsName;
+    AMREX_D_TERM(plt_VarsName.push_back("x_velocity");
+               , plt_VarsName.push_back("y_velocity");
+               , plt_VarsName.push_back("z_velocity"));
+    if (m_incompressible == 0) {
+      plt_VarsName.push_back("density");
+      if (m_plotStateSpec != 0) {
+        for (int n = 0; n < NUM_SPECIES; n++) {
+          plt_VarsName.push_back("rho.Y(" + names[n] + ")");
+        }
+      }
+      plt_VarsName.push_back("rhoh");
+      plt_VarsName.push_back("temp");
+      plt_VarsName.push_back("RhoRT");
+#ifdef PELE_USE_AUX
+  #ifdef PELE_USE_MIXF
+      for (int i = 0; i < NUMMIXF; i++) {
+        plt_VarsName.push_back("mixture_fraction_userdef_" + std::to_string(i));
+      }
+  #endif
+  #ifdef PELE_USE_AGE
+      for (int i = 0; i < NUMAGE; i++) {
+        plt_VarsName.push_back("age_" + std::to_string(i));
+      }
+  #endif
+  #ifdef PELE_USE_AGEPV
+      for (int i = 0; i < NUMAGEPV; i++) {
+        plt_VarsName.push_back("agepv_" + std::to_string(i));
+      }
+  #endif
+#endif
+    }
+    // Write
+    {
+      amrex::WriteMultiLevelPlotfile(
+      pltn + suffix, finest_level + 1,
+      GetVecOfConstPtrs(res_MF),
+      plt_VarsName,
+      Geom(),
+      m_cur_time,
+      isteps,
+      refRatio());
+    }
+
+    //WriteDebugPlotFile(GetVecOfConstPtrs(res_MF) , "pltDebug_" + suffix);
 }
