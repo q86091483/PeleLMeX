@@ -179,12 +179,24 @@ PeleLM::Advance(int is_initIter)
       oneSDC(sdc_iter, advData, diffData);
     }
 //------- zs - debug -------------------------
-    bool dump_and_stop = checkMessage("dump_and_stop");
-    bool plt_and_continue = checkMessage("plt_and_continue");
-    bool chk_and_continue = checkMessage("chk_and_continue");
-    if (writePlotNow() || dump_and_stop || plt_and_continue) {
-      WritePlotFile();
+    //bool dump_and_stop = checkMessage("dump_and_stop");
+    //bool plt_and_continue = checkMessage("plt_and_continue");
+    //bool chk_and_continue = checkMessage("chk_and_continue");
+    //if (writePlotNow() || dump_and_stop || plt_and_continue) {
+    //  WritePlotFile();
+    //}
+
+    std::string suffix = "_step"+std::to_string(m_nstep); //+"_sdcIter"+std::to_string(m_sdcIter)+"_deltaTiter"+std::to_string(dTiter);
+    amrex::Vector<amrex::MultiFab> res_MF;
+    amrex::Vector<amrex::Geometry> res_geom;
+    for (int lev = 0; lev <= finest_level; lev++) {
+      auto* ldata_p = getLevelDataPtr(lev, AmrNewTime);
+      res_MF.emplace_back(ldata_p->state, amrex::make_alias, 0, ldata_p->state.nComp());
+      //res_geom.emplace_back(linop.m_geom[alev][0]);
     }
+    WriteDebugPlotFile(GetVecOfConstPtrs(res_MF) , "pltDebug_" + suffix);
+
+
 //------- End of zs - debug ------------------
 
     // Post SDC
