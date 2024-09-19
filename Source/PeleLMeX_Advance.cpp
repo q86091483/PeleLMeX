@@ -96,9 +96,6 @@ PeleLM::Advance(int is_initIter)
   // fillpatch the t^{n} data
   averageDownState(AmrOldTime);
   fillPatchState(AmrOldTime);
-//------- zs - debug -------------------------
-    WritePlotFile();
-//------- End of zs - debug ------------------
 
   // compute t^{n} data
   calcViscosity(AmrOldTime);
@@ -181,6 +178,9 @@ PeleLM::Advance(int is_initIter)
     for (int sdc_iter = 1; sdc_iter <= m_nSDCmax; ++sdc_iter) {
       oneSDC(sdc_iter, advData, diffData);
     }
+//------- zs - debug -------------------------
+    WritePlotFile();
+//------- End of zs - debug ------------------
 
     // Post SDC
     averageDownScalars(AmrNewTime);
