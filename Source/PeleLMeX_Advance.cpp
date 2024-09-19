@@ -272,7 +272,7 @@ PeleLM::oneSDC(
   if (m_verbose > 0) {
     amrex::Print() << "   SDC iter [" << sdcIter << "] \n";
   }
-  WriteDebugStateFile(m_nstep, sdcIter);
+
   //----------------------------------------------------------------
   // Update t^{n+1,k} transport/Dnp1/divU
   //----------------------------------------------------------------
@@ -361,7 +361,7 @@ PeleLM::oneSDC(
 #if (defined PELE_USE_AUX) && (NUMAUX > 0)
   getScalarAdvForce_Aux(advData, diffData);
 #endif
-
+  WriteDebugStateFile(m_nstep, sdcIter);
   // Get AofS: (\nabla \cdot (\rho Y Umac))^{n+1/2,k}
   // and for density = \sum_k AofS_k
   computeScalarAdvTerms(advData);
