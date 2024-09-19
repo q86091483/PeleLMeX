@@ -361,7 +361,7 @@ PeleLM::oneSDC(
 #if (defined PELE_USE_AUX) && (NUMAUX > 0)
   getScalarAdvForce_Aux(advData, diffData);
 #endif
-  WriteDebugStateFile(m_nstep, sdcIter);
+
   // Get AofS: (\nabla \cdot (\rho Y Umac))^{n+1/2,k}
   // and for density = \sum_k AofS_k
   computeScalarAdvTerms(advData);
@@ -435,6 +435,7 @@ PeleLM::oneSDC(
                    << ScalReacEnd << "\n";
   }
 
+  WriteDebugStateFile(m_nstep, sdcIter);
   // Update auxiliary variables with advection fluxes.
 #if (NUMAUX > 0)
   updateAdvAux(advData, diffData);
