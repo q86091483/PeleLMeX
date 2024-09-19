@@ -15,12 +15,15 @@ PeleLM::advanceChemistry(std::unique_ptr<AdvanceAdvData>& advData)
   for (int lev = finest_level; lev >= 0; --lev) {
     if (lev != finest_level) {
       advanceChemistryBAChem(lev, m_dt, advData->Forcing[lev]);
+      amrex::Print() << "lev = " << lev << ", BAChem" << std::endl;
     } else {
       // If we defined a new BA for chem on finest level, use that instead of
       // the default one
       if (m_max_grid_size_chem.min() > 0) {
         advanceChemistryBAChem(lev, m_dt, advData->Forcing[lev]);
+        amrex::Print() << "lev = " << lev << ", BAChem" << std::endl;
       } else {
+        amrex::Print() << "lev = " << lev << ", Chem" << std::endl;
         advanceChemistry(lev, m_dt, advData->Forcing[lev]);
       }
     }
