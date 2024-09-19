@@ -481,7 +481,7 @@ void PeleLM::WriteDebugStateFile(int istep, int isdc) {
     if (m_incompressible == 0) {
       plt_VarsName.push_back("density");
       for (int n = 0; n < NUM_SPECIES; n++) {
-        plt_VarsName.push_back("rho.Y(" + names[n] + ")");
+        plt_VarsName.push_back("Y(" + names[n] + ")");
       }
       plt_VarsName.push_back("rhoh");
       plt_VarsName.push_back("temp");
