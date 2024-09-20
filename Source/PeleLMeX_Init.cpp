@@ -421,7 +421,7 @@ PeleLM::projectInitSolution()
             if (m_max_grid_size_chem.min() > 0) {
               advanceChemistryBAChem(lev, dtInit / 2.0, Forcing);
             } else {
-              advanceChemistry(lev, dtInit / 2.0, Forcing);
+              // advanceChemistry(lev, dtInit / 2.0, Forcing);
             }
           }
           if (m_doLoadBalance != 0) {
