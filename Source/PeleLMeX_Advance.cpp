@@ -426,7 +426,7 @@ PeleLM::oneSDC(
   getScalarReactForce(advData, diffData);
 
 
-  WriteDebugStateFile(m_nstep, sdcIter);
+  WriteDebugStateFile(m_nstep, 0);
   // Integrate chemistry
   advanceChemistry(advData);
   if (m_verbose > 1) {
@@ -436,6 +436,7 @@ PeleLM::oneSDC(
     amrex::Print() << "   - oneSDC()::ScalarReaction()  --> Time: "
                    << ScalReacEnd << "\n";
   }
+   WriteDebugStateFile(m_nstep, 10);
 
   // Update auxiliary variables with advection fluxes.
 #if (NUMAUX > 0)
