@@ -345,7 +345,7 @@ PeleLM::fillPatchReact(int lev, Real a_time, int nGrow)
 {
   BL_PROFILE("PeleLMeX::fillPatchReact()");
 
-  int IRsize = NUM_SPECIES + NUMAUX;
+  int IRsize = NUM_SPECIES;
 #ifdef PELE_USE_EFIELD
   IRsize += 1;
 #endif
