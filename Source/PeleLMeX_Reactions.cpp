@@ -371,7 +371,7 @@ PeleLM::advanceChemistryBAChem(
     // Do reaction only on uncovered box
     int do_reactionBox = m_baChemFlag[lev][mfi.index()];
 
-    if (do_reactionBox != 0 and false) {
+    if (do_reactionBox != 0) {
       // Do reaction as usual using PelePhysics chemistry integrator
       Real dt_incr = a_dt;
       Real time_chem = 0;
@@ -415,14 +415,14 @@ PeleLM::advanceChemistryBAChem(
         }
 #if (NUMAGE > 0)
         for (int n = 0; n < NUMAGE; n++) {
-          rhoAux_o(i, j, k, AGE_IN_AUX+n) *= 0.0; //1.0e3;
-          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 0.0; //1.0e3;
+          rhoAux_o(i, j, k, AGE_IN_AUX+n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 1.0e3;
         }
 #endif // #if (NUMAGE > 0)
 #if (NUMAGEPV > 0)
         for (int n = 0; n < NUMAGEPV; n++) {
-          rhoAux_o(i, j, k, AGEPV_IN_AUX+n) *= 0.0; //1.0e3;
-          extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 0.0; //1.0e3;
+          rhoAux_o(i, j, k, AGEPV_IN_AUX+n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 1.0e3;
         }
 #endif // #if (NUMAGEPV > 0)
 #endif // #if (NUMMIX > 0)
