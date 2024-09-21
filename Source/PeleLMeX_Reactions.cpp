@@ -24,7 +24,7 @@ PeleLM::advanceChemistry(std::unique_ptr<AdvanceAdvData>& advData)
         amrex::Print() << "lev = " << lev << ", BAChem" << std::endl;
       } else {
         amrex::Print() << "lev = " << lev << ", Chem" << std::endl;
-        //advanceChemistry(lev, m_dt, advData->Forcing[lev]);
+        advanceChemistry(lev, m_dt, advData->Forcing[lev]);
       }
     }
   }
