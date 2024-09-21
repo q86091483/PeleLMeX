@@ -958,8 +958,7 @@ public:
   void WriteDebugPlotFile(
     const amrex::Vector<const amrex::MultiFab*>& a_MF,
     const std::string& pltname);
-  void WriteDebugStateFile(int istep, int isdc);
-
+  void WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int istep, int isdc);
   //-----------------------------------------------------------------------------
 
   //-----------------------------------------------------------------------------

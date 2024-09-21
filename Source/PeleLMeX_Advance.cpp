@@ -426,7 +426,7 @@ PeleLM::oneSDC(
   getScalarReactForce(advData, diffData);
 
 
-  WriteDebugStateFile(m_nstep, 0);
+  WriteDebugStateFile(advData, m_nstep, 0);
   // Integrate chemistry
   advanceChemistry(advData);
   if (m_verbose > 1) {
@@ -436,7 +436,7 @@ PeleLM::oneSDC(
     amrex::Print() << "   - oneSDC()::ScalarReaction()  --> Time: "
                    << ScalReacEnd << "\n";
   }
-   WriteDebugStateFile(m_nstep, 10);
+  WriteDebugStateFile(advData, m_nstep, 10);
 
   // Update auxiliary variables with advection fluxes.
 #if (NUMAUX > 0)
@@ -456,15 +456,69 @@ PeleLM::oneSDC(
   setThermoPress(AmrNewTime);
 }
 
-void PeleLM::WriteDebugStateFile(int istep, int isdc) {
+void PeleLM::WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int istep, int isdc) {
+
+    // Name for output
+    int ncomp = 0;
+
+    // Species names
+    Vector<std::string> names;
+    pele::physics::eos::speciesNames<pele::physics::PhysicsType::eos_type>(names);
+
+    // Output names
+    Vector<std::string> plt_VarsName;
+    // Velocity
+    AMREX_D_TERM(plt_VarsName.push_back("x_velocity");
+               , plt_VarsName.push_back("y_velocity");
+               , plt_VarsName.push_back("z_velocity"));
+    AMREX_D_TERM(ncomp = ncomp + 1;
+               , ncomp = ncomp + 1;
+               , ncomp = ncomp + 1;);
+    plt_VarsName.push_back("density"); ncomp++;
+    for (int n = 0; n < NUM_SPECIES; n++) {
+      plt_VarsName.push_back("Y(" + names[n] + ")"); ncomp++;
+    }
+    plt_VarsName.push_back("rhoh"); ncomp++;
+    plt_VarsName.push_back("temp"); ncomp++;
+    plt_VarsName.push_back("RhoRT"); ncomp++;
+#ifdef PELE_USE_AUX
+  #ifdef PELE_USE_MIXF
+    for (int i = 0; i < NUMMIXF; i++) {
+      plt_VarsName.push_back("mixture_fraction_userdef_" + std::to_string(i));
+      ncomp++;
+    }
+  #endif
+  #ifdef PELE_USE_AGE
+    for (int i = 0; i < NUMAGE; i++) {
+      plt_VarsName.push_back("age_" + std::to_string(i));
+      ncomp++;
+    }
+  #endif
+  #ifdef PELE_USE_AGEPV
+    for (int i = 0; i < NUMAGEPV; i++) {
+      plt_VarsName.push_back("agepv_" + std::to_string(i));
+      ncomp++;
+    }
+  #endif
+#endif
+
+    // Define MultiFab for output
+    Vector<MultiFab> res_MF(finest_level + 1);
+    for (int lev = 0; lev <= finest_level; ++lev) {
+      res_MF[lev].define(grids[lev], dmap[lev], ncomp, 0, MFInfo(), Factory(lev));
+    }
+
+    for (int lev = 0; lev <= finest_level; ++lev) {
+      auto* ldata_p = getLevelDataPtr(lev, AmrNewTime);
+      MultiFab::Copy(res_MF[lev], ldata_p->state, 0, 0, ldata_p->state.nComp(), 0);
+    }
 
     // Field MF
-    amrex::Vector<amrex::MultiFab> res_MF;
-    for (int lev = 0; lev <= finest_level; lev++) {
-      auto* ldata_p = getLevelDataPtr(lev, AmrNewTime);
-      res_MF.emplace_back(ldata_p->state, amrex::make_alias, 0, ldata_p->state.nComp());
+    //amrex::Vector<amrex::MultiFab> res_MF;
+    //for (int lev = 0; lev <= finest_level; lev++) {
+    //  res_MF.emplace_back(ldata_p->state, amrex::make_alias, 0, ldata_p->state.nComp());
       //res_geom.emplace_back(linop.m_geom[alev][0]);
-    }
+    //}
 
     // Output file name
     const std::string& pltn =
@@ -474,39 +528,7 @@ void PeleLM::WriteDebugStateFile(int istep, int isdc) {
     // Which step
     Vector<int> isteps(finest_level + 1, m_nstep);
 
-    // Components names
-    Vector<std::string> names;
-    pele::physics::eos::speciesNames<pele::physics::PhysicsType::eos_type>(names);
-    Vector<std::string> plt_VarsName;
-    AMREX_D_TERM(plt_VarsName.push_back("x_velocity");
-               , plt_VarsName.push_back("y_velocity");
-               , plt_VarsName.push_back("z_velocity"));
-    if (m_incompressible == 0) {
-      plt_VarsName.push_back("density");
-      for (int n = 0; n < NUM_SPECIES; n++) {
-        plt_VarsName.push_back("Y(" + names[n] + ")");
-      }
-      plt_VarsName.push_back("rhoh");
-      plt_VarsName.push_back("temp");
-      plt_VarsName.push_back("RhoRT");
-#ifdef PELE_USE_AUX
-  #ifdef PELE_USE_MIXF
-      for (int i = 0; i < NUMMIXF; i++) {
-        plt_VarsName.push_back("mixture_fraction_userdef_" + std::to_string(i));
-      }
-  #endif
-  #ifdef PELE_USE_AGE
-      for (int i = 0; i < NUMAGE; i++) {
-        plt_VarsName.push_back("age_" + std::to_string(i));
-      }
-  #endif
-  #ifdef PELE_USE_AGEPV
-      for (int i = 0; i < NUMAGEPV; i++) {
-        plt_VarsName.push_back("agepv_" + std::to_string(i));
-      }
-  #endif
-#endif
-    }
+
     // Write
     {
       amrex::WriteMultiLevelPlotfile(
