@@ -458,6 +458,9 @@ PeleLM::oneSDC(
 
 void PeleLM::WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int istep, int isdc) {
 
+    // If output other fields
+    int write_forcing = 1;
+
     // Name for output
     int ncomp = 0;
 
@@ -502,6 +505,33 @@ void PeleLM::WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int i
   #endif
 #endif
 
+    if (write_forcing) {
+      for (int n = 0; n < NUM_SPECIES; n++) {
+        plt_VarsName.push_back("forcing_Y(" + names[n] + ")"); ncomp++;
+      }
+      plt_VarsName.push_back("forcing_rhoh"); ncomp++;
+#ifdef PELE_USE_AUX
+  #ifdef PELE_USE_MIXF
+      for (int i = 0; i < NUMMIXF; i++) {
+        plt_VarsName.push_back("forcing_mixture_fraction_userdef_" + std::to_string(i));
+        ncomp++;
+      }
+  #endif
+  #ifdef PELE_USE_AGE
+      for (int i = 0; i < NUMAGE; i++) {
+        plt_VarsName.push_back("forcing_age_" + std::to_string(i));
+        ncomp++;
+      }
+  #endif
+  #ifdef PELE_USE_AGEPV
+      for (int i = 0; i < NUMAGEPV; i++) {
+        plt_VarsName.push_back("forcing_agepv_" + std::to_string(i));
+        ncomp++;
+      }
+  #endif
+#endif
+    } // end if write_forcing
+
     // Define MultiFab for output
     Vector<MultiFab> res_MF(finest_level + 1);
     for (int lev = 0; lev <= finest_level; ++lev) {
@@ -511,6 +541,7 @@ void PeleLM::WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int i
     for (int lev = 0; lev <= finest_level; ++lev) {
       auto* ldata_p = getLevelDataPtr(lev, AmrNewTime);
       MultiFab::Copy(res_MF[lev], ldata_p->state, 0, 0, ldata_p->state.nComp(), 0);
+      MultiFab::Copy(res_MF[lev], advData->Forcing[lev], 0, ldata_p->state.nComp(), advData->Forcing[lev].nComp(), 0);
     }
 
     // Field MF
