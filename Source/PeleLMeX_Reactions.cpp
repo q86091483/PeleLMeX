@@ -14,7 +14,7 @@ PeleLM::advanceChemistry(std::unique_ptr<AdvanceAdvData>& advData)
 
   for (int lev = finest_level; lev >= 0; --lev) {
     if (lev != finest_level) {
-      //advanceChemistryBAChem(lev, m_dt, advData->Forcing[lev]);
+      advanceChemistryBAChem(lev, m_dt, advData->Forcing[lev]);
       amrex::Print() << "lev = " << lev << ", BAChem" << std::endl;
     } else {
       // If we defined a new BA for chem on finest level, use that instead of
