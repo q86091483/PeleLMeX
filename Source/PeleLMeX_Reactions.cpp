@@ -371,7 +371,7 @@ PeleLM::advanceChemistryBAChem(
     // Do reaction only on uncovered box
     int do_reactionBox = m_baChemFlag[lev][mfi.index()];
 
-    if (do_reactionBox != 0) {
+    if (do_reactionBox != 0 and false) {
       // Do reaction as usual using PelePhysics chemistry integrator
       Real dt_incr = a_dt;
       Real time_chem = 0;

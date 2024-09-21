@@ -505,7 +505,7 @@ void PeleLM::WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int i
   #endif
 #endif
 
-    if (write_forcing) {
+    if (write_forcing == 1) {
       for (int n = 0; n < NUM_SPECIES; n++) {
         plt_VarsName.push_back("forcing_Y(" + names[n] + ")"); ncomp++;
       }
