@@ -508,7 +508,7 @@ PeleLM::advanceChemistryBAChem(
 
 #if (NUMAUX > 0)
     auto const& rhoAux_n = ldataNew_p->state.array(mfi, FIRSTAUX);
-    auto const& rhoAux_o = ldataOld_p->state.array(mfi, FIRSTAUX);
+    auto const& rhoAux_o = ldataOld_p->state.const_array(mfi, FIRSTAUX);
     auto const& extF_rhoAux = a_extForcing.const_array(mfi, NUM_SPECIES + 1);
     auto const& rhoAuxdot = ldataR_p->I_R.array(mfi, NUM_SPECIES);
     ParallelFor(
