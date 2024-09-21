@@ -294,6 +294,9 @@ PeleLM::averageDownScalars(const PeleLM::TimeStamp& a_time)
 #ifdef PELE_USE_EFIELD
   nScal += 2; // rhoRT, nE
 #endif
+#if (NUMAUX > 0)
+  nScal += NUMAUX;
+#endif
   for (int lev = finest_level; lev > 0; --lev) {
     auto* ldataFine_p = getLevelDataPtr(lev, a_time);
     auto* ldataCrse_p = getLevelDataPtr(lev - 1, a_time);
@@ -306,9 +309,9 @@ PeleLM::averageDownScalars(const PeleLM::TimeStamp& a_time)
       ldataFine_p->state, ldataCrse_p->state, DENSITY, nScal,
       refRatio(lev - 1));
 #if (NUMAUX > 0)
-    average_down(
-      ldataFine_p->state, ldataCrse_p->state, FIRSTAUX, NUMAUX,
-      refRatio(lev - 1));
+    //average_down(
+    //  ldataFine_p->state, ldataCrse_p->state, FIRSTAUX, NUMAUX,
+    //  refRatio(lev - 1));
 #endif
 #endif
   }
