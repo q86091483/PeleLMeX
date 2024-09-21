@@ -515,7 +515,7 @@ PeleLM::advanceChemistryBAChem(
       bx, [state_arr, rhoAux_n, rhoAux_o, extF_rhoAux, rhoAuxdot, dt_inv]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
         for (int n = 0; n < NUMAUX; n++) {
-          rhoAux_n(i, j, k, n) = state_arr(i, j, k, FIRSTAUX + n);
+          rhoAux_n(i, j, k, n) = state_arr(i, j, k, NUM_SPECIES + 3 + n);
           //rhoAuxdot(i, j, k, n) = (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv -
           //  extF_rhoAux(i, j, k, n);
         }
