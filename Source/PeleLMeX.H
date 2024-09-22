@@ -958,7 +958,6 @@ public:
   void WriteDebugPlotFile(
     const amrex::Vector<const amrex::MultiFab*>& a_MF,
     const std::string& pltname);
-  void WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int istep, int isdc);
   //-----------------------------------------------------------------------------
 
   //-----------------------------------------------------------------------------
@@ -1555,7 +1554,7 @@ public:
 #ifdef PELE_USE_EFIELD
     return NUM_SPECIES + 1;
 #else
-    return NUM_SPECIES + NUMAUX;
+    return NUM_SPECIES;
 #endif
   }
 

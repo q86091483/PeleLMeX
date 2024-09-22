@@ -498,7 +498,6 @@ PeleLM::initialIterations()
 
     // Copy back old state
     copyStateOldToNew();
-
   }
 }
 
