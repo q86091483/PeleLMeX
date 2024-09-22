@@ -425,6 +425,7 @@ PeleLM::oneSDC(
   // Get external forcing for chemistry
   getScalarReactForce(advData, diffData);
 
+  //WriteDebugStateFile(advData, m_nstep, 0);
   // Integrate chemistry
   advanceChemistry(advData);
   if (m_verbose > 1) {
@@ -434,6 +435,7 @@ PeleLM::oneSDC(
     amrex::Print() << "   - oneSDC()::ScalarReaction()  --> Time: "
                    << ScalReacEnd << "\n";
   }
+  //WriteDebugStateFile(advData, m_nstep, 10);
 
   // Update auxiliary variables with advection fluxes.
 #if (NUMAUX > 0)
@@ -451,4 +453,123 @@ PeleLM::oneSDC(
   setTemperature(AmrNewTime);
   floorSpecies(AmrNewTime);
   setThermoPress(AmrNewTime);
+}
+
+void PeleLM::WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int istep, int isdc) {
+
+    // If output other fields
+    int write_forcing = 1;
+
+    // Name for output
+    int ncomp = 0;
+
+    // Species names
+    Vector<std::string> names;
+    pele::physics::eos::speciesNames<pele::physics::PhysicsType::eos_type>(names);
+
+    // Output names
+    Vector<std::string> plt_VarsName;
+    // Velocity
+    AMREX_D_TERM(plt_VarsName.push_back("x_velocity");
+               , plt_VarsName.push_back("y_velocity");
+               , plt_VarsName.push_back("z_velocity"));
+    AMREX_D_TERM(ncomp = ncomp + 1;
+               , ncomp = ncomp + 1;
+               , ncomp = ncomp + 1;);
+    plt_VarsName.push_back("density"); ncomp++;
+    for (int n = 0; n < NUM_SPECIES; n++) {
+      plt_VarsName.push_back("Y(" + names[n] + ")"); ncomp++;
+    }
+    plt_VarsName.push_back("rhoh"); ncomp++;
+    plt_VarsName.push_back("temp"); ncomp++;
+    plt_VarsName.push_back("RhoRT"); ncomp++;
+#ifdef PELE_USE_AUX
+  #ifdef PELE_USE_MIXF
+    for (int i = 0; i < NUMMIXF; i++) {
+      plt_VarsName.push_back("mixture_fraction_userdef_" + std::to_string(i));
+      ncomp++;
+    }
+  #endif
+  #ifdef PELE_USE_AGE
+    for (int i = 0; i < NUMAGE; i++) {
+      plt_VarsName.push_back("age_" + std::to_string(i));
+      ncomp++;
+    }
+  #endif
+  #ifdef PELE_USE_AGEPV
+    for (int i = 0; i < NUMAGEPV; i++) {
+      plt_VarsName.push_back("agepv_" + std::to_string(i));
+      ncomp++;
+    }
+  #endif
+#endif
+
+    if (write_forcing == 1) {
+      for (int n = 0; n < NUM_SPECIES; n++) {
+        plt_VarsName.push_back("forcing_Y(" + names[n] + ")"); ncomp++;
+      }
+      plt_VarsName.push_back("forcing_rhoh"); ncomp++;
+#ifdef PELE_USE_AUX
+  #ifdef PELE_USE_MIXF
+      for (int i = 0; i < NUMMIXF; i++) {
+        plt_VarsName.push_back("forcing_mixture_fraction_userdef_" + std::to_string(i));
+        ncomp++;
+      }
+  #endif
+  #ifdef PELE_USE_AGE
+      for (int i = 0; i < NUMAGE; i++) {
+        plt_VarsName.push_back("forcing_age_" + std::to_string(i));
+        ncomp++;
+      }
+  #endif
+  #ifdef PELE_USE_AGEPV
+      for (int i = 0; i < NUMAGEPV; i++) {
+        plt_VarsName.push_back("forcing_agepv_" + std::to_string(i));
+        ncomp++;
+      }
+  #endif
+#endif
+    } // end if write_forcing
+
+    // Define MultiFab for output
+    Vector<MultiFab> res_MF(finest_level + 1);
+    for (int lev = 0; lev <= finest_level; ++lev) {
+      res_MF[lev].define(grids[lev], dmap[lev], ncomp, 0, MFInfo(), Factory(lev));
+    }
+
+    for (int lev = 0; lev <= finest_level; ++lev) {
+      auto* ldata_p = getLevelDataPtr(lev, AmrNewTime);
+      MultiFab::Copy(res_MF[lev], ldata_p->state, 0, 0, ldata_p->state.nComp(), 0);
+      MultiFab::Copy(res_MF[lev], advData->Forcing[lev], 0, ldata_p->state.nComp(), advData->Forcing[lev].nComp(), 0);
+    }
+
+    // Field MF
+    //amrex::Vector<amrex::MultiFab> res_MF;
+    //for (int lev = 0; lev <= finest_level; lev++) {
+    //  res_MF.emplace_back(ldata_p->state, amrex::make_alias, 0, ldata_p->state.nComp());
+      //res_geom.emplace_back(linop.m_geom[alev][0]);
+    //}
+
+    // Output file name
+    const std::string& pltn =
+      amrex::Concatenate(m_plot_file, m_nstep, m_ioDigits);
+    std::string suffix = "_sdcIter"+std::to_string(isdc);
+
+    // Which step
+    Vector<int> isteps(finest_level + 1, m_nstep);
+
+
+    // Write
+    {
+      amrex::WriteMultiLevelPlotfile(
+      pltn + suffix, finest_level + 1,
+      GetVecOfConstPtrs(res_MF),
+      plt_VarsName,
+      Geom(),
+      m_cur_time,
+      isteps,
+      refRatio());
+    }
+
+    //WriteDebugPlotFile(GetVecOfConstPtrs(res_MF) , "pltDebug_" + suffix);
 }

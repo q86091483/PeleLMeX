@@ -15,13 +15,16 @@ PeleLM::advanceChemistry(std::unique_ptr<AdvanceAdvData>& advData)
   for (int lev = finest_level; lev >= 0; --lev) {
     if (lev != finest_level) {
       advanceChemistryBAChem(lev, m_dt, advData->Forcing[lev]);
+      amrex::Print() << "lev = " << lev << ", BAChem" << std::endl;
     } else {
       // If we defined a new BA for chem on finest level, use that instead of
       // the default one
       if (m_max_grid_size_chem.min() > 0) {
         advanceChemistryBAChem(lev, m_dt, advData->Forcing[lev]);
+        amrex::Print() << "lev = " << lev << ", BAChem" << std::endl;
       } else {
         advanceChemistry(lev, m_dt, advData->Forcing[lev]);
+        amrex::Print() << "lev = " << lev << ", Chem" << std::endl;
       }
     }
   }
@@ -505,14 +508,14 @@ PeleLM::advanceChemistryBAChem(
 
 #if (NUMAUX > 0)
     auto const& rhoAux_n = ldataNew_p->state.array(mfi, FIRSTAUX);
-    auto const& rhoAux_o = ldataOld_p->state.array(mfi, FIRSTAUX);
+    auto const& rhoAux_o = ldataOld_p->state.const_array(mfi, FIRSTAUX);
     auto const& extF_rhoAux = a_extForcing.const_array(mfi, NUM_SPECIES + 1);
     auto const& rhoAuxdot = ldataR_p->I_R.array(mfi, NUM_SPECIES);
     ParallelFor(
       bx, [state_arr, rhoAux_n, rhoAux_o, extF_rhoAux, rhoAuxdot, dt_inv]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
         for (int n = 0; n < NUMAUX; n++) {
-          rhoAux_n(i, j, k, n) = state_arr(i, j, k, FIRSTAUX + n);
+          rhoAux_n(i, j, k, n) = state_arr(i, j, k, NUM_SPECIES + 3 + n);
           //rhoAuxdot(i, j, k, n) = (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv -
           //  extF_rhoAux(i, j, k, n);
         }
@@ -690,6 +693,12 @@ PeleLM::getScalarReactForce(
         }); // ParallelFor
     }
   }
+
+  // Fill forcing ghost cells - ZS: original not included
+  //if (advData->Forcing[0].nGrow() > 0) {
+  //  fillpatch_forces(
+  //    m_cur_time, GetVecOfPtrs(advData->Forcing), advData->Forcing[0].nGrow());
+  //}
 }
 
 void

@@ -213,6 +213,23 @@ PeleLM::WritePlotFile()
 #ifdef PELE_USE_EFIELD
     plt_VarsName.push_back("I_R(nE)");
 #endif
+#ifdef PELE_USE_AUX
+  #ifdef PELE_USE_MIXF
+    for (int i = 0; i < NUMMIXF; i++) {
+      plt_VarsName.push_back("I_R(mixture_fraction_userdef_" + std::to_string(i) + ")");
+    }
+  #endif
+  #ifdef PELE_USE_AGE
+    for (int i = 0; i < NUMAGE; i++) {
+      plt_VarsName.push_back("I_R(age_" + std::to_string(i) + ")");
+    }
+  #endif
+  #ifdef PELE_USE_AGEPV
+    for (int i = 0; i < NUMAGEPV; i++) {
+      plt_VarsName.push_back("I_R(agepv_" + std::to_string(i) + ")");
+    }
+  #endif
+#endif
     plt_VarsName.push_back("FunctCall");
     // Extras:
     if (m_plotHeatRelease != 0) {

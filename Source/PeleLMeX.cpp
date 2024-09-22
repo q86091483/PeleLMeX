@@ -1,4 +1,5 @@
 #include <PeleLMeX.H>
+#include <PeleLMeX_Index.H>
 #include <memory>
 
 #ifdef PELELM_USE_SPRAY
@@ -289,9 +290,9 @@ PeleLM::averageDownState(const PeleLM::TimeStamp& a_time)
 void
 PeleLM::averageDownScalars(const PeleLM::TimeStamp& a_time)
 {
-  int nScal = NUM_SPECIES + 3 + NUMAUX; // rho, rhoYs, rhoH, Temp
-#ifdef PELE_USE_EFIELD
-  nScal += 2; // rhoRT, nE
+  int nScal = NUM_SPECIES + 3; // rho, rhoYs, rhoH, Temp
+#if (NUMAUX > 0)
+  nScal += (1 + NUMAUX); // rhoRT, aux (nE, mixf, age ...)
 #endif
   for (int lev = finest_level; lev > 0; --lev) {
     auto* ldataFine_p = getLevelDataPtr(lev, a_time);
