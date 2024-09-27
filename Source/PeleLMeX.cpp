@@ -291,7 +291,7 @@ void
 PeleLM::averageDownScalars(const PeleLM::TimeStamp& a_time)
 {
   int nScal = NUM_SPECIES + 3; // rho, rhoYs, rhoH, Temp
-#if (NUMAUX > 0)
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
   nScal += (1 + NUMAUX); // rhoRT, aux (nE, mixf, age ...)
 #endif
   for (int lev = finest_level; lev > 0; --lev) {

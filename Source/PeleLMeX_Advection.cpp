@@ -309,17 +309,17 @@ PeleLM::getScalarAdvForce_Aux(
          ++mfi) {
       const Box& bx = mfi.tilebox();
       auto const& old_arr = ldata_p->state.const_array(mfi, 0);
-      auto const& rho = ldata_p->state.const_array(mfi, DENSITY);
-      auto const& rhoY = ldata_p->state.const_array(mfi, FIRSTSPEC);
-      auto const& T = ldata_p->state.const_array(mfi, TEMP);
-      auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
-      auto const& ddn = diffData->Dn[lev].const_array(mfi, NUM_SPECIES + 1);
-      auto const& r = ldataR_p->I_R.const_array(mfi, NUM_SPECIES);
+      auto const& rho     = ldata_p->state.const_array(mfi, DENSITY);
+      auto const& rhoY    = ldata_p->state.const_array(mfi, FIRSTSPEC);
+      auto const& T       = ldata_p->state.const_array(mfi, TEMP);
+      auto const& dn      = diffData->Dn[lev].const_array(mfi, 0);
+      auto const& ddn     = diffData->Dn[lev].const_array(mfi, NUM_SPECIES + 1);
+      auto const& r       = ldataR_p->I_R.const_array(mfi, NUM_SPECIES);
       auto const& extRhoY = m_extSource[lev]->const_array(mfi, FIRSTSPEC);
       auto const& extRhoH = m_extSource[lev]->const_array(mfi, RHOH);
-      auto const& fY = advData->Forcing[lev].array(mfi, 0);
-      auto const& fT = advData->Forcing[lev].array(mfi, NUM_SPECIES);
-      auto const& fAux = advData->Forcing[lev].array(mfi, NUM_SPECIES+1);
+      auto const& fY    = advData->Forcing[lev].array(mfi, 0);
+      auto const& fT    = advData->Forcing[lev].array(mfi, NUM_SPECIES);
+      auto const& fAux  = advData->Forcing[lev].array(mfi, NUM_SPECIES+1);
       amrex::ParallelFor(
         bx,
         [old_arr, rho, rhoY, T, dn, ddn, r, fY, fT, fAux, extRhoY, extRhoH,
@@ -362,26 +362,20 @@ PeleLM::getScalarAdvForce_Aux(
             fAux(i, j, k, AGE_IN_AUX + 1) = r(i, j, k, AGE_IN_AUX + 1);
           }
   #endif
-          // Reaction
-          //for (int n = 0; n < NUMAGE; n++) {
-          //  if ((old_arr(i,j,k,MIXF)/rho(i,j,k)) > 1E-3) {
-          //    fAux(i,j,k,NUMMIXF+n) += old_arr(i,j,k,MIXF+n); // += old_arr(i,j,k,MIXF+n);
-          //    fAux(i,j,k,NUMMIXF+n) = r(i,j,k,NUMMIXF+n);
-          //    fAux(i,j,k,n) = r(i,j,k,n);
-          //  } else {
-          //    fAux(i,j,k,NUMMIXF+n) = 0.0; // += old_arr(i,j,k,MIXF+n);
-          //  }
-          //}
-  #if(NUMAGEPV > 0)
-          if (old_arr(i, j, k, TEMP) > 1750) {
-            for (int n = 0; n < NUMAGEPV; n++) {
-              fAux(i,j,k,NUMMIXF+NUMAGE+n) += old_arr(i,j,k,MIXF+n);
-            }
+  #if (NUMAGEPV > 0)
+          if ((old_arr(i, j, k, MIXF + 0) / rho(i, j, k)) > 1E-3) {
+            fAux(i, j, k, AGEPV_IN_AUX + 0) = r(i, j, k, AGEPV_IN_AUX + 0);
           }
   #endif
-        });
-    }
-  }
+  #if (NUMAGEPV > 1)
+          if ((old_arr(i, j, k, MIXF + 1) / rho(i, j, k)) > 1E-3) {
+            fAux(i, j, k, AGEPV_IN_AUX + 1) = r(i, j, k, AGEPV_IN_AUX + 1);
+          }
+  #endif
+
+        }); // bx
+    } // mfi
+  } // lev
 
   // Fill forcing ghost cells
   if (advData->Forcing[0].nGrow() > 0) {
@@ -1255,17 +1249,10 @@ PeleLM::updateAdvAux(
         bx, [old_arr, new_arr, a_of_s,
                     dt = m_dt]
           AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-          // Advection
+          // Advection for aux
           for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
-            new_arr(i, j, k, n) = new_arr(i, j, k, n)
-              + dt * a_of_s(i, j, k, n);
+            new_arr(i, j, k, n) = new_arr(i, j, k, n) + dt * a_of_s(i, j, k, n);
           }
-          // Diffusion
-          //amrex::Real rhs_mixf = 0.0;
-          //amrex::Real rhs_age = 0.0;
-          //for (int m = 0; m < NUM_SPECIES; m++) {
-          //  rhs_mixf += 0.5*(dn(i, j, k, m)+dnp1(i,j,k,m)) * fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
-          //}
 #if (NUMMIXF > 0)
           //new_arr(i,j,k,MIXF+0) += dt * rhs_mixf;
 #endif

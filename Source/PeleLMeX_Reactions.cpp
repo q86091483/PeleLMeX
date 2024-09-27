@@ -82,33 +82,34 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
         extF_rhoH(i, j, k) *= 10.0;
       });
 
-    // Reset new to old for auxiliary variables and convert MKS -> CGS
-#if (NUMAUX > 0)
-    auto const& rhoAux_o = ldataOld_p->state.array(mfi, FIRSTAUX);
-    auto const& rhoAux_n = ldataNew_p->state.array(mfi, FIRSTAUX);
-    auto const& extF_rhoAux = a_extForcing.array(mfi, NUM_SPECIES+1);
+    // Auxiliary variables: reset new to old and convert MKS -> CGS for U and g (dU/dt=f(U)+g)
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+    auto const& rhoAux_o    = ldataOld_p->state.array(mfi, FIRSTAUX);
+    auto const& rhoAux_n    = ldataNew_p->state.array(mfi, FIRSTAUX);
+    auto const& extF_rhoAux = a_extForcing.array(mfi, NUM_SPECIES + 1);
+
     ParallelFor(
       bx, [rhoAux_o, rhoAux_n, extF_rhoAux]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-#if (NUMMIXF > 0)
+  #if (NUMMIXF > 0)
         for (int n = 0; n < NUMMIXF; n++) {
-          rhoAux_n(i,j,k,MIXF_IN_AUX+n) = rhoAux_o(i,j,k,MIXF_IN_AUX+n) * 1.0e-3;
-          extF_rhoAux(i, j, k, MIXF_IN_AUX+n) *= 1.0e-3;
+          rhoAux_n(i, j, k, MIXF_IN_AUX + n) = rhoAux_o(i, j, k, MIXF_IN_AUX + n) * 1.0e-3;
+          extF_rhoAux(i, j, k, MIXF_IN_AUX + n) *= 1.0e-3;
         }
-#if (NUMAGE > 0)
+  #if (NUMAGE > 0)
         for (int n = 0; n < NUMAGE; n++) {
-          rhoAux_n(i,j,k,AGE_IN_AUX+n) = rhoAux_o(i,j,k,AGE_IN_AUX+n) * 1.0e-3;
-          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 1.0e-3;
+          rhoAux_n(i, j, k, AGE_IN_AUX + n) = rhoAux_o(i, j, k, AGE_IN_AUX + n) * 1.0e-3;
+          extF_rhoAux(i, j, k, AGE_IN_AUX + n) *= 1.0e-3;
         }
-#endif // #if (NUMAGE > 0)
-#if (NUMAGEPV > 0)
+  #endif // #if (NUMAGE > 0)
+  #if (NUMAGEPV > 0)
         for (int n = 0; n < NUMAGEPV; n++) {
-          rhoAux_n(i,j,k,AGEPV_IN_AUX+n) = rhoAux_o(i,j,k,AGEPV_IN_AUX+n) * 1.0e-3;
-          extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 1.0e-3;
+          rhoAux_n(i, j, k,AGEPV_IN_AUX + n) = rhoAux_o(i,j,k,AGEPV_IN_AUX + n) * 1.0e-3;
+          extF_rhoAux(i, j, k, AGEPV_IN_AUX + n) *= 1.0e-3;
         }
-#endif // #if (NUMAGEPV > 0)
-#endif // #if (NUMMIX > 0)
-      }); // ParallelFor
+  #endif // #if (NUMAGEPV > 0)
+  #endif // #if (NUMMIXF > 0)
+      });
 #endif // if (NUMAUX > 0)
 
 #ifdef PELE_USE_EFIELD
@@ -155,30 +156,30 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
         extF_rhoH(i, j, k) *= 0.1;
       });
 
-    // Convert CGS -> MKS for auxiliary variables
-#if (NUMAUX > 0)
+    // Auxiliary variables: convert back CGS -> MKS for U and g (dU/dt=f(U)+g)
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
     ParallelFor(
       bx, [rhoAux_n, extF_rhoAux]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-#if (NUMMIXF > 0)
+  #if (NUMMIXF > 0)
         for (int n = 0; n < NUMMIXF; n++) {
-          rhoAux_n(i,j,k,MIXF_IN_AUX+n) *= 1.0e3;
-          extF_rhoAux(i, j, k, MIXF_IN_AUX+n) *= 1.0e3;
+          rhoAux_n(i, j, k, MIXF_IN_AUX + n) *= 1.0e3;
+          extF_rhoAux(i, j, k, MIXF_IN_AUX + n) *= 1.0e3;
         }
-#if (NUMAGE > 0)
+  #if (NUMAGE > 0)
         for (int n = 0; n < NUMAGE; n++) {
-          rhoAux_n(i,j,k,AGE_IN_AUX+n) *= 1.0e3;
-          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 1.0e3;
+          rhoAux_n(i, j, k, AGE_IN_AUX + n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGE_IN_AUX + n) *= 1.0e3;
         }
-#endif // #if (NUMAGE > 0)
-#if (NUMAGEPV > 0)
+  #endif // #if (NUMAGE > 0)
+  #if (NUMAGEPV > 0)
         for (int n = 0; n < NUMAGEPV; n++) {
-          rhoAux_n(i,j,k,AGEPV_IN_AUX+n) *= 1.0e3;
-          extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 1.0e3;
+          rhoAux_n(i, j, k, AGEPV_IN_AUX + n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGEPV_IN_AUX + n) *= 1.0e3;
         }
-#endif // #if (NUMAGEPV > 0)
-#endif // #if (NUMMIX > 0)
-      }); // ParallelFor
+  #endif // #if (NUMAGEPV > 0)
+  #endif // #if (NUMMIXF > 0)
+      });
 #endif // if (NUMAUX > 0)
 
 #ifdef PELE_USE_EFIELD
@@ -234,28 +235,40 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
       });
 #endif
 
-#if (NUMAUX > 0)
-    auto const& rhoAux_o = ldataOld_p->state.const_array(mfi, FIRSTAUX);
-    auto const& rhoAux_n = ldataNew_p->state.const_array(mfi, FIRSTAUX);
+    // Auxiliary variables: set reaction term
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+    auto const& rhoAux_o    = ldataOld_p->state.const_array(mfi, FIRSTAUX);
+    auto const& rhoAux_n    = ldataNew_p->state.const_array(mfi, FIRSTAUX);
     auto const& extF_rhoAux = a_extForcing.const_array(mfi, NUM_SPECIES + 1);
-    auto const& rhoAuxdot = ldataR_p->I_R.array(mfi, NUM_SPECIES);
+    auto const& rhoAuxdot   = ldataR_p->I_R.array(mfi, NUM_SPECIES);
 
     ParallelFor(
       bx, [rhoAux_o, rhoAux_n, extF_rhoAux, rhoAuxdot, dt_inv]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+  #if (NUMMIXF > 0)
         for (int n = MIXF_IN_AUX; n < (MIXF_IN_AUX + NUMMIXF); n++) {
           rhoAuxdot(i, j, k, n) =
             -(rhoAux_o(i, j, k, n) - rhoAux_n(i, j, k, n)) * dt_inv;
         }
+  #if (NUMAGE > 0)
         for (int n = AGE_IN_AUX; n < (AGE_IN_AUX + NUMAGE); n++) {
           rhoAuxdot(i, j, k, n) =
             -(rhoAux_o(i, j, k, n) - rhoAux_n(i, j, k, n)) * dt_inv -
             extF_rhoAux(i, j, k, n);
         }
+  #endif // #if (NUMAGE > 0)
+  #if (NUMAGEPV > 0)
+        for (int n = AGEPV_IN_AUX; n < (AGEPV_IN_AUX + NUMAGEPV); n++) {
+          rhoAuxdot(i, j, k, n) =
+            -(rhoAux_o(i, j, k, n) - rhoAux_n(i, j, k, n)) * dt_inv -
+            extF_rhoAux(i, j, k, n);
+        }
+  #endif // #if (NUMAGEPV > 0)
+  #endif // #if (NUMMIXF > 0)
       });
-#endif
+#endif // #if (NUMAUX > 0)
 
-  }
+  } // lev
 }
 
 // This advanceChemistry works with BoxArrays built such that each box
@@ -323,32 +336,33 @@ PeleLM::advanceChemistryBAChem(
         extF_rhoH(i, j, k) *= 10.0;
       });
 
-    // Convert MKS -> CGS for auxiliary variables
-#if (NUMAUX > 0)
-    auto const& rhoAux_o = chemState.array(mfi, NUM_SPECIES + 3);
+    // Auxiliaray variables: convert MKS -> CGS for U and g (dU/dt=f(U)+g)
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+    auto const& rhoAux_o    = chemState.array(mfi, NUM_SPECIES + 3);
     auto const& extF_rhoAux = chemForcing.array(mfi, NUM_SPECIES + 1);
+
     ParallelFor(
       bx, [rhoAux_o, extF_rhoAux]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-#if (NUMMIXF > 0)
+  #if (NUMMIXF > 0)
         for (int n = 0; n < NUMMIXF; n++) {
-          rhoAux_o(i, j, k, MIXF_IN_AUX+n) *= 1.0e-3;
-          extF_rhoAux(i, j, k, MIXF_IN_AUX+n) *= 1.0e-3;
+          rhoAux_o(i, j, k, MIXF_IN_AUX + n) *= 1.0e-3;
+          extF_rhoAux(i, j, k, MIXF_IN_AUX + n) *= 1.0e-3;
         }
-#if (NUMAGE > 0)
+  #if (NUMAGE > 0)
         for (int n = 0; n < NUMAGE; n++) {
-          rhoAux_o(i, j, k, AGE_IN_AUX+n) *= 1.0e-3;
-          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 1.0e-3;
+          rhoAux_o(i, j, k, AGE_IN_AUX + n) *= 1.0e-3;
+          extF_rhoAux(i, j, k, AGE_IN_AUX + n) *= 1.0e-3;
         }
-#endif // #if (NUMAGE > 0)
-#if (NUMAGEPV > 0)
+  #endif // #if (NUMAGE > 0)
+  #if (NUMAGEPV > 0)
         for (int n = 0; n < NUMAGEPV; n++) {
           rhoAux_o(i, j, k, AGEPV_IN_AUX+n) *= 1.0e-3;
           extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 1.0e-3;
         }
-#endif // #if (NUMAGEPV > 0)
-#endif // #if (NUMMIX > 0)
-      }); // ParallelFor
+  #endif // #if (NUMAGEPV > 0)
+  #endif // #if (NUMMIXF > 0)
+      });
 #endif // #if (NUM_AUX > 0)
 
 #ifdef PELE_USE_EFIELD
@@ -403,30 +417,30 @@ PeleLM::advanceChemistryBAChem(
         rhoH_o(i, j, k) *= 0.1;
       });
 
-    // Convert CGS -> MKS for auxiliary variables
-#if (NUMAUX > 0)
+    // Auxiliary variables: convert back CGS -> MKS for U and g (dU/dt=f(U)+g)
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
     ParallelFor(
       bx, [rhoAux_o, extF_rhoAux]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-#if (NUMMIXF > 0)
+  #if (NUMMIXF > 0)
         for (int n = 0; n < NUMMIXF; n++) {
-          rhoAux_o(i, j, k, MIXF_IN_AUX+n) *= 1.0e3;
-          extF_rhoAux(i, j, k, MIXF_IN_AUX+n) *= 1.0e3;
+          rhoAux_o(i, j, k, MIXF_IN_AUX + n) *= 1.0e3;
+          extF_rhoAux(i, j, k, MIXF_IN_AUX + n) *= 1.0e3;
         }
-#if (NUMAGE > 0)
+  #if (NUMAGE > 0)
         for (int n = 0; n < NUMAGE; n++) {
-          rhoAux_o(i, j, k, AGE_IN_AUX+n) *= 1.0e3;
-          extF_rhoAux(i, j, k, AGE_IN_AUX+n) *= 1.0e3;
+          rhoAux_o(i, j, k, AGE_IN_AUX + n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGE_IN_AUX + n) *= 1.0e3;
         }
-#endif // #if (NUMAGE > 0)
-#if (NUMAGEPV > 0)
+  #endif // #if (NUMAGE > 0)
+  #if (NUMAGEPV > 0)
         for (int n = 0; n < NUMAGEPV; n++) {
-          rhoAux_o(i, j, k, AGEPV_IN_AUX+n) *= 1.0e3;
-          extF_rhoAux(i, j, k, AGEPV_IN_AUX+n) *= 1.0e3;
+          rhoAux_o(i, j, k, AGEPV_IN_AUX + n) *= 1.0e3;
+          extF_rhoAux(i, j, k, AGEPV_IN_AUX + n) *= 1.0e3;
         }
-#endif // #if (NUMAGEPV > 0)
-#endif // #if (NUMMIX > 0)
-      }); // ParallelFor
+  #endif // #if (NUMAGEPV > 0)
+  #endif // #if (NUMMIXF > 0)
+      });
 #endif // #if (NUM_AUX > 0)
 
 
@@ -506,35 +520,46 @@ PeleLM::advanceChemistryBAChem(
       });
 #endif
 
-#if (NUMAUX > 0)
-    auto const& rhoAux_n = ldataNew_p->state.array(mfi, FIRSTAUX);
-    auto const& rhoAux_o = ldataOld_p->state.const_array(mfi, FIRSTAUX);
+    // Auxiliary variables: pass from temp state MF to leveldata and set reaction term
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+    auto const& rhoAux_n    = ldataNew_p->state.array(mfi, FIRSTAUX);
+    auto const& rhoAux_o    = ldataOld_p->state.const_array(mfi, FIRSTAUX);
     auto const& extF_rhoAux = a_extForcing.const_array(mfi, NUM_SPECIES + 1);
-    auto const& rhoAuxdot = ldataR_p->I_R.array(mfi, NUM_SPECIES);
+    auto const& rhoAuxdot   = ldataR_p->I_R.array(mfi, NUM_SPECIES);
     ParallelFor(
       bx, [state_arr, rhoAux_n, rhoAux_o, extF_rhoAux, rhoAuxdot, dt_inv]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
         for (int n = 0; n < NUMAUX; n++) {
           rhoAux_n(i, j, k, n) = state_arr(i, j, k, NUM_SPECIES + 3 + n);
-          //rhoAuxdot(i, j, k, n) = (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv -
-          //  extF_rhoAux(i, j, k, n);
         }
       });
     ParallelFor(
       bx, [rhoAux_o, rhoAux_n, extF_rhoAux, rhoAuxdot, dt_inv]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+  #if (NUMMIXF > 0)
         for (int n = MIXF_IN_AUX; n < (MIXF_IN_AUX + NUMMIXF); n++) {
           rhoAuxdot(i, j, k, n) =
             (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv;
         }
+  #if (NUMAGE > 0)
         for (int n = AGE_IN_AUX; n < (AGE_IN_AUX + NUMAGE); n++) {
           rhoAuxdot(i, j, k, n) =
             (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv -
             extF_rhoAux(i, j, k, n);
         }
+  #endif // #if (NUMAGE > 0)
+  #if (NUMAGEPV > 0)
+        for (int n = AGEPV_IN_AUX; n < (AGEPV_IN_AUX + NUMAGEPV); n++) {
+          rhoAuxdot(i, j, k, n) =
+            (rhoAux_n(i, j, k, n) - rhoAux_o(i, j, k, n)) * dt_inv -
+            extF_rhoAux(i, j, k, n);
+        }
+  #endif // #if (NUMAGEPV > 0)
+  #endif // #if (NUMMIXF > 0)
       });
-#endif
-  }
+#endif // #if (NUMAUX > 0)
+
+  } // lev
 }
 
 void
@@ -683,12 +708,19 @@ PeleLM::getScalarReactForce(
           fAux(i, j, k, AGE_IN_AUX) = 0.0; //a_of_s(i, j, k, AGE)
             // + (rhoAux_n(i,j,k,AGE_IN_AUX)/rhoAux_n(i,j,k,MIXF_IN_AUX)) * 1.0 * rhs_mixf;
             // + rhoAux_n(i, j, k, MIXF_IN_AUX);
+#endif // #if (NUMAGE > 0)
 #if (NUMAGE > 1)
-          fAux(i, j, k, AGE_IN_AUX+1) = 0.0; //a_of_s(i, j, k, AGE+1)
+          fAux(i, j, k, AGE_IN_AUX + 1) = 0.0; //a_of_s(i, j, k, AGE+1)
             // + (rhoAux_n(i,j,k,AGE_IN_AUX+1)/rhoAux_n(i,j,k,MIXF_IN_AUX+1)) * -1.0 * rhs_mixf;
             //+ rhoAux_n(i, j, k, MIXF_IN_AUX+1);
 #endif // #if (NUMAGE > 1)
-#endif // #if (NUMAGE > 0)
+#if (NUMAGEPV > 0)
+          fAux(i, j, k, AGEPV_IN_AUX) = 0.0;
+#endif // #if (NUMAGEPV > 0)
+#if (NUMAGEPV > 1)
+          fAux(i, j, k, AGEPV_IN_AUX + 1) = 0.0;
+#endif // #if (NUMAGEPV > 0)
+
 #endif // #if (NUMAUX > 0)
         }); // ParallelFor
     }
