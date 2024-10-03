@@ -291,9 +291,7 @@ void
 PeleLM::averageDownScalars(const PeleLM::TimeStamp& a_time)
 {
   int nScal = NUM_SPECIES + 3; // rho, rhoYs, rhoH, Temp
-#if (defined PELE_USE_AUX) && (NUMAUX > 0)
-  nScal += (1 + NUMAUX); // rhoRT, aux (nE, mixf, age ...)
-#endif
+
   for (int lev = finest_level; lev > 0; --lev) {
     auto* ldataFine_p = getLevelDataPtr(lev, a_time);
     auto* ldataCrse_p = getLevelDataPtr(lev - 1, a_time);
@@ -305,6 +303,13 @@ PeleLM::averageDownScalars(const PeleLM::TimeStamp& a_time)
     average_down(
       ldataFine_p->state, ldataCrse_p->state, DENSITY, nScal,
       refRatio(lev - 1));
+
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+    average_down(
+      ldataFine_p->state, ldataCrse_p->state, FIRSTAUX, NUMAUX,
+      refRatio(lev - 1));
+#endif
+
 #endif
   }
 }
