@@ -30,7 +30,7 @@
   #ifdef PELE_USE_MIXF
     #define MIXF FIRSTAUX
     #define MIXF_IN_AUX (MIXF - FIRSTAUX)
-    #define NUMMIXF 2
+    #define NUMMIXF 0
   #else
     #define MIXF -1
     #define MIXF_IN_AUX -1
