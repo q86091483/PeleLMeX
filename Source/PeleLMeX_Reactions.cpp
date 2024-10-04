@@ -685,6 +685,7 @@ PeleLM::getScalarReactForce(
           }
           extF_rhoH(i, j, k) = (rhoH_n(i, j, k) - rhoH_o(i, j, k)) * dtinv;
 
+/* STAR
 #if (defined PELE_USE_AUX) && (NUMAUX > 0)
 #if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
           amrex::Real rhs_mixf = 0.0;
@@ -722,6 +723,7 @@ PeleLM::getScalarReactForce(
 #endif // #if (NUMAGEPV > 0)
 
 #endif // #if (NUMAUX > 0)
+STAR */
         }); // ParallelFor
     }
   }
