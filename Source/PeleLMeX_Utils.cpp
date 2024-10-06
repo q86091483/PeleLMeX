@@ -1402,12 +1402,12 @@ PeleLM::setTypicalValues(const TimeStamp& a_time, int is_init)
                      std::max(0, static_cast<int>(8 - spec_names[n].length())))
                 << std::left << ":" << typical_values[FIRSTSPEC + n] << '\n';
       }
-      Print() << "FIRSTAUX" << std::endl;
-      for (int n = 0; n < NUMAUX; n++) {
-        Print() << std::setw(
-                     std::max(0, static_cast<int>(8 - spec_names[n].length())))
-                << std::left << ":" << typical_values[FIRSTAUX + n] << '\n';
-      }
+      //Print() << "FIRSTAUX" << std::endl;
+      //for (int n = 0; n < NUMAUX; n++) {
+      //  Print() << std::setw(
+      //               std::max(0, static_cast<int>(8 - spec_names[n].length())))
+      //          << std::left << ":" << typical_values[FIRSTAUX + n] << '\n';
+      //}
 
 #ifdef PELE_USE_EFIELD
       Print() << "\tnE:       " << typical_values[NE] << '\n';

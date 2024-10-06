@@ -87,7 +87,9 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
     auto const& rhoAux_o    = ldataOld_p->state.array(mfi, FIRSTAUX);
     auto const& rhoAux_n    = ldataNew_p->state.array(mfi, FIRSTAUX);
     auto const& extF_rhoAux = a_extForcing.array(mfi, NUM_SPECIES + 1);
+#endif
 
+#if (defined PELE_USE_AUX) && (NUMFOO > 0)
     ParallelFor(
       bx, [rhoAux_o, rhoAux_n, extF_rhoAux]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
@@ -157,7 +159,7 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
       });
 
     // Auxiliary variables: convert back CGS -> MKS for U and g (dU/dt=f(U)+g)
-#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+#if (defined PELE_USE_AUX) && (NUMFOO > 0)
     ParallelFor(
       bx, [rhoAux_n, extF_rhoAux]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
@@ -236,7 +238,7 @@ PeleLM::advanceChemistry(int lev, const Real& a_dt, MultiFab& a_extForcing)
 #endif
 
     // Auxiliary variables: set reaction term
-#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+#if (defined PELE_USE_AUX) && (NUMFOO > 0)
     auto const& rhoAux_o    = ldataOld_p->state.const_array(mfi, FIRSTAUX);
     auto const& rhoAux_n    = ldataNew_p->state.const_array(mfi, FIRSTAUX);
     auto const& extF_rhoAux = a_extForcing.const_array(mfi, NUM_SPECIES + 1);
@@ -340,7 +342,9 @@ PeleLM::advanceChemistryBAChem(
 #if (defined PELE_USE_AUX) && (NUMAUX > 0)
     auto const& rhoAux_o    = chemState.array(mfi, NUM_SPECIES + 3);
     auto const& extF_rhoAux = chemForcing.array(mfi, NUM_SPECIES + 1);
+#endif
 
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
     ParallelFor(
       bx, [rhoAux_o, extF_rhoAux]
         AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
@@ -685,7 +689,7 @@ PeleLM::getScalarReactForce(
           }
           extF_rhoH(i, j, k) = (rhoH_n(i, j, k) - rhoH_o(i, j, k)) * dtinv;
 
-#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+#if (defined PELE_USE_AUX) && (NUMFOO > 0)
 #if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
           amrex::Real rhs_mixf = 0.0;
           amrex::Real rhs_age = 0.0;
