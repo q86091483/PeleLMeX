@@ -438,7 +438,7 @@ PeleLM::oneSDC(
   //WriteDebugStateFile(advData, m_nstep, 10);
 
   // Update auxiliary variables with advection fluxes.
-#if (NUMAUX > 0)
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
   //updateAdvAux(advData, diffData);
 #endif
 

@@ -1001,7 +1001,7 @@ PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
   // TODO Zisen: This assumes passive variables have no diffusive fluxes
   //updateScalarComp(advData, FIRSTAUX, NUMAUX);
 }
-#endif
+#endif // computeScalarAdvTerms_Aux
 
 void
 PeleLM::updateDensity(std::unique_ptr<AdvanceAdvData>& advData)
@@ -1302,4 +1302,4 @@ PeleLM::updateAdvAux(
   }
   averageDown(AmrNewTime, FIRSTAUX, NUMAUX);
 }
-#endif
+#endif // updateAdvAux
