@@ -282,7 +282,7 @@ PeleLM::getScalarAdvForce(
   }
 }
 
-#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+#if (defined PELE_USE_AUX) && (NUMFOO > 0)
 void
 PeleLM::getScalarAdvForce_Aux(
   std::unique_ptr<AdvanceAdvData>& advData,
@@ -848,7 +848,7 @@ PeleLM::computeScalarAdvTerms(std::unique_ptr<AdvanceAdvData>& advData)
   Gpu::streamSynchronize();
 }
 
-#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+#if (defined PELE_USE_AUX) && (NUMFOO > 0)
 void
 PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
 {
@@ -1212,7 +1212,7 @@ PeleLM::updateScalarComp(
   averageDown(AmrNewTime, state_comp, ncomp);
 }
 
-#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+#if (defined PELE_USE_AUX) && (NUMFOO > 0)
 void
 PeleLM::updateAdvAux(
   std::unique_ptr<AdvanceAdvData>& advData,

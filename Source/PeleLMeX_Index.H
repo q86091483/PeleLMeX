@@ -63,5 +63,6 @@
 
 #define NVAR (FIRSTAUX + NUMAUX)
 #define NUMFOO 0
+#define NUMUDA 0
 
 #endif
