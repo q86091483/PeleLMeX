@@ -65,5 +65,6 @@
 #define NUMFOO 0
 #define NUMUDA 0
 #define NUMODE 0
+#define NUMNEW 2
 
 #endif
