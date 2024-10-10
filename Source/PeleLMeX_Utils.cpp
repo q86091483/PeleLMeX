@@ -1429,7 +1429,7 @@ PeleLM::updateTypicalValuesChem()
 #endif
     {
       Vector<Real> typical_values_chem;
-      typical_values_chem.resize(NUM_SPECIES + 1 + NUMODE);
+      typical_values_chem.resize(NUM_SPECIES + 1);
       for (int i = 0; i < NUM_SPECIES; ++i) {
         typical_values_chem[i] = amrex::max(
           m_typicalYvalMin * typical_values[DENSITY] * 1.E-3,
@@ -1444,12 +1444,17 @@ PeleLM::updateTypicalValuesChem()
       typical_values_chem[E_ID] =
         typical_values[NE] / Na * mwt[E_ID] * 1.0e-6 * 1.0e-2;
 #endif
-#if (NUMODE > 0)
-      for (int i = 0; i < NUMODE; i++) {
-        typical_values_chem[NUM_SPECIES + 1 + i] = typical_values[FIRSTAUX + i];
-      }
-#endif
       m_reactor->set_typ_vals_ode(typical_values_chem);
+
+#if defined (PELE_USE_AUX) && (NUMNEW > 0)
+      Vector<Real> typical_values_chem_aux;
+      typical_values_chem_aux.resize(NUMNEW);
+      for (int i = 0; i < NUMNEW; i++) {
+        typical_values_chem_aux[i] = typical_values[FIRSTAUX + i];
+      }
+      m_reactor->set_typ_vals_ode_aux(typical_values_chem_aux);
+#endif
+
     }
   }
 }
