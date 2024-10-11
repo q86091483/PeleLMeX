@@ -702,10 +702,10 @@ PeleLM::getScalarReactForce(
             rho_n += rhoY_n(i, j, k, m);
           }
           //fAux(i, j, k, MIXF_IN_AUX) = a_of_s(i, j, k, MIXF) + 1.0 * rhs_mixf;
-          fAux(i, j, k, MIXF_IN_AUX) = 0.0; // STAR+1.0 * rhs_mixf;
+          fAux(i, j, k, MIXF_IN_AUX) = +1.0 * rhs_mixf;
 #if (NUMMIXF > 1)
           //fAux(i, j, k, MIXF_IN_AUX + 1) = a_of_s(i, j, k, MIXF+1) - 1.0 * rhs_mixf;
-          fAux(i, j, k, MIXF_IN_AUX+1) = 0.0; // STAR-1.0 * rhs_mixf;
+          fAux(i, j, k, MIXF_IN_AUX+1) = -1.0 * rhs_mixf;
 #endif // # if (NUMMIXF > 1)
 #endif // #if (NUMMIXF > 0)
 #if (NUMAGE > 0)
