@@ -304,7 +304,7 @@ PeleLM::averageDownScalars(const PeleLM::TimeStamp& a_time)
       ldataFine_p->state, ldataCrse_p->state, DENSITY, nScal,
       refRatio(lev - 1));
 
-#if (defined PELE_USE_AUX) && (NUMFOO > 0)
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
     average_down(
       ldataFine_p->state, ldataCrse_p->state, FIRSTAUX, NUMAUX,
       refRatio(lev - 1));
