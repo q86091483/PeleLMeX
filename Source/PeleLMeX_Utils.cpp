@@ -1446,10 +1446,10 @@ PeleLM::updateTypicalValuesChem()
 #endif
       m_reactor->set_typ_vals_ode(typical_values_chem);
 
-#if defined (PELE_USE_AUX) && (NUMNEW > 0)
+#if defined (PELE_USE_AUX) && (NUMAUX > 0)
       Vector<Real> typical_values_chem_aux;
-      typical_values_chem_aux.resize(NUMNEW);
-      for (int i = 0; i < NUMNEW; i++) {
+      typical_values_chem_aux.resize(NUMAUX);
+      for (int i = 0; i < NUMAUX; i++) {
         typical_values_chem_aux[i] = typical_values[FIRSTAUX + i];
       }
       m_reactor->set_typ_vals_ode_aux(typical_values_chem_aux);
