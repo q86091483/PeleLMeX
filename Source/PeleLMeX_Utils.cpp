@@ -1373,7 +1373,7 @@ PeleLM::setTypicalValues(const TimeStamp& a_time, int is_init)
 #endif
 #if (NUMAUX > 0)
     for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
-      typical_values[n] = 0.5 * (stateMax[n] + stateMin[n]);
+      typical_values[n] = 0.5 * (stateMax[n] + stateMin[n]) + 1E-6;
     }
 #endif
 
