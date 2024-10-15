@@ -709,20 +709,20 @@ PeleLM::getScalarReactForce(
 #endif // # if (NUMMIXF > 1)
 #endif // #if (NUMMIXF > 0)
 #if (NUMAGE > 0)
-          fAux(i, j, k, AGE_IN_AUX) = 0.0; //a_of_s(i, j, k, AGE)
+          fAux(i, j, k, AGE_IN_AUX) = a_of_s(i, j, k, AGE);
             // + (rhoAux_n(i,j,k,AGE_IN_AUX)/rhoAux_n(i,j,k,MIXF_IN_AUX)) * 1.0 * rhs_mixf;
             // + rhoAux_n(i, j, k, MIXF_IN_AUX);
 #endif // #if (NUMAGE > 0)
 #if (NUMAGE > 1)
-          fAux(i, j, k, AGE_IN_AUX + 1) = 0.0; //a_of_s(i, j, k, AGE+1)
+          fAux(i, j, k, AGE_IN_AUX + 1) = a_of_s(i, j, k, AGE + 1);
             // + (rhoAux_n(i,j,k,AGE_IN_AUX+1)/rhoAux_n(i,j,k,MIXF_IN_AUX+1)) * -1.0 * rhs_mixf;
             //+ rhoAux_n(i, j, k, MIXF_IN_AUX+1);
 #endif // #if (NUMAGE > 1)
 #if (NUMAGEPV > 0)
-          fAux(i, j, k, AGEPV_IN_AUX) = 0.0;
+          fAux(i, j, k, AGEPV_IN_AUX) = a_of_s(i, j, k, AGEPV);
 #endif // #if (NUMAGEPV > 0)
 #if (NUMAGEPV > 1)
-          fAux(i, j, k, AGEPV_IN_AUX + 1) = 0.0;
+          fAux(i, j, k, AGEPV_IN_AUX + 1) = a_of_s(i, j, k, AGEPV + 1);
 #endif // #if (NUMAGEPV > 0)
 
 #endif // #if (NUMAUX > 0)
