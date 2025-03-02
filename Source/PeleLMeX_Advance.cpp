@@ -439,7 +439,7 @@ PeleLM::oneSDC(
 
   // Update auxiliary variables with advection fluxes.
 #if (defined PELE_USE_AUX) && (NUMAUX > 0)
-  //updateAdvAux(advData, diffData);
+  updateAdvAux(advData, diffData);
 #endif
 
   checkMemory("ScalReact");
