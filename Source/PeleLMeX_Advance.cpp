@@ -277,7 +277,7 @@ PeleLM::oneSDC(
   // Update t^{n+1,k} transport/Dnp1/divU
   //----------------------------------------------------------------
   // At the first SDC, we already copied old -> new
-  if (sdcIter > 1) {
+  if (sdcIter > 0) {
 
     Real UpdateStart = 0.0;
     if (m_verbose > 1) {
