@@ -379,8 +379,8 @@ PeleLM::getScalarAdvForce_Aux(
 
   // Fill forcing ghost cells
   if (advData->Forcing[0].nGrow() > 0) {
-    //fillpatch_forces(
-    //  m_cur_time, GetVecOfPtrs(advData->Forcing), advData->Forcing[0].nGrow());
+    fillpatch_forces(
+      m_cur_time, GetVecOfPtrs(advData->Forcing), advData->Forcing[0].nGrow());
   }
 }
 #endif // getScalarAdvForce_Aux
