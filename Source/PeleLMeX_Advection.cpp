@@ -359,7 +359,7 @@ PeleLM::getScalarAdvForce_Aux(
           //rhs_age *= -rhs_mixf;
           //fAux(i,j,k,NUMMIXF+1) = rhs_age;
           if ((old_arr(i, j, k, MIXF + 1) / rho(i, j, k)) > 1E-3) {
-            fAux(i, j, k, AGE_IN_AUX + 1) = r(i, j, k, AGE_IN_AUX + 1);
+            fAux(i, j, k, AGE_IN_AUX + 1) = 0.0; //r(i, j, k, AGE_IN_AUX + 1);
           }
   #endif
   #if (NUMAGEPV > 0)
@@ -379,8 +379,8 @@ PeleLM::getScalarAdvForce_Aux(
 
   // Fill forcing ghost cells
   if (advData->Forcing[0].nGrow() > 0) {
-    fillpatch_forces(
-      m_cur_time, GetVecOfPtrs(advData->Forcing), advData->Forcing[0].nGrow());
+    //fillpatch_forces(
+    //  m_cur_time, GetVecOfPtrs(advData->Forcing), advData->Forcing[0].nGrow());
   }
 }
 #endif // getScalarAdvForce_Aux
