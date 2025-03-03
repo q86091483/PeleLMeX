@@ -293,7 +293,7 @@ PeleLM::copyDiffusionOldToNew(std::unique_ptr<AdvanceDiffData>& diffData)
 {
   for (int lev = 0; lev <= finest_level; lev++) {
     MultiFab::Copy(
-      diffData->Dnp1[lev], diffData->Dn[lev], 0, 0, NUM_SPECIES + 2 + NUMAUX,
+      diffData->Dnp1[lev], diffData->Dn[lev], 0, 0, NUM_SPECIES + 2,
       m_nGrowAdv);
   }
 }

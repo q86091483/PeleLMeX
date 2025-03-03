@@ -696,7 +696,6 @@ PeleLM::getScalarReactForce(
           amrex::Real rho_n = 0.0;
           for (int m = 0; m < NUM_SPECIES; m++) {
             rhs_mixf += 0.5 * (dn(i, j, k, m) + dnp1(i, j, k, m)) *
-            //rhs_mixf += dn(i, j, k, m) *
               fact_Bilger[m] / (Zfu_lcl - Zox_lcl);
           }
           for (int m = 0; m < NUM_SPECIES; m++) {
