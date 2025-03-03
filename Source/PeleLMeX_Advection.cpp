@@ -340,18 +340,18 @@ PeleLM::getScalarAdvForce_Aux(
           //}
   #if (NUMMIXF > 0)
           //fAux(i,j,k,0) = 1.0 * rhs_mixf;
-          fAux(i, j, k, MIXF_IN_AUX + 0) = 0.0; //r(i, j, k, MIXF_IN_AUX + 0);
+          fAux(i, j, k, MIXF_IN_AUX + 0) = r(i, j, k, MIXF_IN_AUX + 0);
   #endif
   #if (NUMMIXF > 1)
           //fAux(i,j,k,1) = -1.0 * rhs_mixf;
-          fAux(i, j, k, MIXF_IN_AUX + 1) = 0.0; //r(i, j, k, MIXF_IN_AUX + 1);
+          fAux(i, j, k, MIXF_IN_AUX + 1) = r(i, j, k, MIXF_IN_AUX + 1);
   #endif
   #if (NUMAGE > 0)
           //rhs_age = old_arr(i,j,k,AGE) / old_arr(i,j,k,MIXF);
           //rhs_age *= rhs_mixf;
           //fAux(i,j,k,NUMMIXF) = rhs_age;
           //if ((old_arr(i, j, k, MIXF + 0) / rho(i, j, k)) > 1E-3) {
-            fAux(i, j, k, AGE_IN_AUX + 0) = 0.0; //r(i, j, k, AGE_IN_AUX + 0);
+            fAux(i, j, k, AGE_IN_AUX + 0) = r(i, j, k, AGE_IN_AUX + 0);
           //}
   #endif
   #if (NUMAGE > 1)
@@ -359,7 +359,7 @@ PeleLM::getScalarAdvForce_Aux(
           //rhs_age *= -rhs_mixf;
           //fAux(i,j,k,NUMMIXF+1) = rhs_age;
           //if ((old_arr(i, j, k, MIXF + 1) / rho(i, j, k)) > 1E-3) {
-            fAux(i, j, k, AGE_IN_AUX + 1) = 0.0; //r(i, j, k, AGE_IN_AUX + 1);
+            fAux(i, j, k, AGE_IN_AUX + 1) = r(i, j, k, AGE_IN_AUX + 1);
           //}
   #endif
   #if (NUMAGEPV > 0)
