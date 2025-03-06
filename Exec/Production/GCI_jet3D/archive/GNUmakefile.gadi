@@ -15,9 +15,9 @@ USE_EB = FALSE
 USE_HYPRE = FALSE
 
 # Augxiliary fields
-USE_AUX = FALSE
-USE_MIXF = FALSE
-USE_AGE = FALSE
+USE_AUX = TRUE
+USE_MIXF = TRUE
+USE_AGE = TRUE
 USE_AGEPV = FALSE
 
 # Profiling
@@ -41,7 +41,7 @@ FSANITIZER = FALSE
 THREAD_SANITIZER = FALSE
 
 # PelePhysics
-Chemistry_Model = prf_sk66
+Chemistry_Model = prf_rd53 # prf_rd53, heptane_4sp
 Eos_Model = Fuego
 Transport_Model = Simple
 

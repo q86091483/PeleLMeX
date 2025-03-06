@@ -1,8 +1,8 @@
 #--------------------DOMAIN GEOMETRY------------------------------------------
 geometry.is_periodic = 0 0 0               	# For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                   	# 0 => cart, 1 => RZ
-geometry.prob_lo = -4E-3  -4E-3   0.000E-3  # x_lo y_lo (z_lo)
-geometry.prob_hi = +4E-3  +4E-3  +8.000E-3  # x_hi y_hi (z_hi)
+geometry.prob_lo = -3.2E-3  -3.2E-3   0.000E-3  # x_lo y_lo (z_lo)
+geometry.prob_hi = +3.2E-3  +3.2E-3  +6.400E-3  # x_hi y_hi (z_hi)
 
 #--------------------BNDY CONDITIONS-------------------------------------------
 # Interior, Inflow, Outflow, Symmetry,
@@ -11,7 +11,7 @@ peleLM.lo_bc = Outflow Outflow Inflow
 peleLM.hi_bc = Outflow Outflow Outflow
 
 #--------------------AMR CONTROL-----------------------------------------------
-amr.n_cell          = 160 160 160         # Level 0 number of cells in each direction
+amr.n_cell          = 320 320 320         # Level 0 number of cells in each direction
 amr.v               = 1                # AMR verbose
 amr.max_level       = 1                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
@@ -23,9 +23,9 @@ amr.max_grid_size   = 32               # max box size
 
 #--------------------PROBLEM PARAMETERS----------------------------------------
 prob.P_mean 	= 6079500.
-prob.V_j 			= 35
+prob.V_j 			= 30
 prob.V_cf 		= 0.3
-prob.jet_rad 	= 1.7E-4
+prob.jet_rad 	= 8.75E-5
 prob.Zc 			= 0.3
 prob.prf 			= 70
 prob.jet_temp = 403.
@@ -35,8 +35,8 @@ prob.XN2 			= 7.9e-1
 prob.jet_dir 	= 2
 prob.cf_dir 	= 0
 prob.other_dir 	= 1
-pmf.datafile 	= "GCI.dat" 		# Initial condition
-prob.bl_thickness = 8.5e-6      # Width of tanh of jet/air mixing
+pmf.datafile 	= "GCI.dat"   		# Initial condition
+prob.bl_thickness = 8.75e-6     # Width of tanh of jet/air mixing
 prob.init_time 		= 5E-6				# Not used
 
 prob.h0 				= 0.5E-3
@@ -49,6 +49,20 @@ prob.global_eq_ratio 	= 0.6   	# Not used
 prob.pertmag_cf 	= 0.0 				# Not used
 prob.pertmag_jet 	= 0.0 				# Not used
 prob.double_jet 	= 0 					# Not used
+
+prob.do_turbInlet = 2     # 0=No turbulence input; 1=periodic frozen flow; 2=time dependent
+prob.nxin = 64
+prob.nyin = 64
+#prob.nzin = 1498
+#prob.file_x = "turbin/0.0E+00_7.5E-04/channel.x"
+#prob.file_y = "turbin/0.0E+00_7.5E-04/channel.y"
+#prob.file_z = "turbin/0.0E+00_7.5E-04/channel.z"
+#prob.file_uvw = "turbin/0.0E+00_7.5E-04/channel.uvw"
+prob.nzin = 1100
+prob.file_x = "turbin/7.0E-04_1.5E-03/channel.x"
+prob.file_y = "turbin/7.0E-04_1.5E-03/channel.y"
+prob.file_z = "turbin/7.0E-04_1.5E-03/channel.z"
+prob.file_uvw = "turbin/7.0E-04_1.5E-03/channel.uvw"
 
 #--------------------PeleLMeX CONTROL-----------------------------------------
 peleLM.v = 3
@@ -68,8 +82,8 @@ peleLM.rho = 4.0
 peleLM.mu = 3.0E-5
 
 #--------------------TIME STEPPING---------------------------------------------
-amr.restart = chk_03500
-amr.max_step = 10000
+amr.restart = chk_07200
+amr.max_step = 7500
 peleLM.sdc_iterMax = 2
 nodal_proj.verbose = 2
 mac_proj.verbose   = 2
@@ -79,17 +93,18 @@ diffusion.rtol  = 5e-10
 #peleLM.deltaT_tol = 1E-11
 #ode.clean_init_massfrac = 1
 
-amr.plot_int = 100
-amr.check_int = 100
-amr.cfl = 0.2
+amr.plot_int = 25
+amr.check_int = 25
+amr.cfl = 0.5
 amr.check_file	= "chk_"
 amr.plot_file 	= "plt_"
 amr.derive_plot_vars 	= avg_pressure mag_vort mass_fractions mixture_fraction
 amr.dt_shrink 		= 1e-1
 amr.dt_change_max = 1.1                # [OPT, DEF=1.1] maximum dt change between consecutive steps
 imr.stop_time 		= 10.0
+amr.min_dt        = 1e-11
 #amr.init_dt = 1e-1
-#amr.fixed_dt = 1e-3
+#amr.fixed_dt = 1.5e-7
 
 #--------------------CHEMISTRY INTEGRATOR---------------------------------------
 peleLM.chem_integrator = "ReactorCvode"
@@ -128,7 +143,7 @@ peleLM.mixtureFraction.oxidTank = O2:0.21 N2:0.79
 peleLM.mixtureFraction.fuelTank = NC7H16:0.3 IC8H18:0.7
 
 #--------------------REFINEMENT CONTROL----------------------------------------
-amr.refinement_indicators = overZ #bottomWall
+amr.refinement_indicators = overZ #overHRR overMag #bottomWall
 
 #amr.inner.max_level = 1
 #amr.inner.value_less = 10E-3
@@ -136,18 +151,22 @@ amr.refinement_indicators = overZ #bottomWall
 
 amr.overZ.max_level = 1
 amr.overZ.field_name = mixture_fraction
-#amr.overZ.value_greater = 1E-2
-amr.overZ.in_box_lo = -1.6E-3   -1.6E-3   0.0
-amr.overZ.in_box_hi = +1.6E-3   +1.6E-3   6.4E-3
+amr.overZ.value_greater = 1E-2
+#amr.overZ.in_box_lo = -1.6E-3   -1.6E-3   0.0
+#amr.overZ.in_box_hi = +1.6E-3   +1.6E-3   6.4E-3
 
 #amr.bottomWall.max_level = 2
 #amr.bottomWall.field_name = HeatRelease
 #amr.bottomWall.in_box_lo = -0.3E-3    -1      -1
 #amr.bottomWall.in_box_hi = +10.0E-3   +4.5E-3   +1
 
-#amr.overHRR.max_level = 2
-#amr.overHRR.value_greater = 1E10
-#amr.overHRR.field_name = HeatRelease
+amr.overHRR.max_level = 2
+amr.overHRR.value_greater = 1E10
+amr.overHRR.field_name = HeatRelease
+
+amr.overMag.max_level = 2
+amr.overMag.value_greater = 1E4
+amr.overMag.field_name = mag_vort
 
 #amr.overYH2.max_level = 3
 #amr.overYH2.value_greater = 1E-3
