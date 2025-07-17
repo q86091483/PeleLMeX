@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -5,21 +7,17 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rising light bubble &mdash; PeleLMeX 22.12 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/theme.css?v=df66b05f" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=d09052ea"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d09052ea"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -115,7 +113,7 @@
 <span id="sec-tuto-hb-intro"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>At the core of <cite>PeleLMeX</cite> algorithm is a variable-density, low Mach number Navier-Stokes solver based
 on a fractional step approach. This short <code class="docutils literal notranslate"><span class="pre">HotBubble</span></code> tutorial presents the case of a rising light bubble under
-the influence of a gravity field, which exercice this algorithm without the added complexity
+the influence of a gravity field, which exercise this algorithm without the added complexity
 of chemical reactions or embedded boundaries.</p>
 </section>
 <section id="setting-up-your-environment">
@@ -226,14 +224,14 @@ amr.max_grid_size   = 128            # max box size
 </section>
 <section id="problem-specifications">
 <h3>Problem specifications<a class="headerlink" href="#problem-specifications" title="Link to this heading"></a></h3>
-<p id="sec-tuto-hb-problem">The problem setup is mostly contained in the three C++ source/header files described in <a class="reference internal" href="Tutorials_FlameSheet.html"><span class="doc">Premixed flame sheet with harmonic perturbations</span></a>.
-The user parameters are gathered in the struct defined in  <code class="docutils literal notranslate"><span class="pre">pelelmex_prob_parm.H</span></code>:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>struct ProbParm
+<p id="sec-tuto-hb-problem">The problem setup is mostly contained in the two C++ source/header files described in <a class="reference internal" href="Tutorials_FlameSheet.html"><span class="doc">Premixed flame sheet with harmonic perturbations</span></a>.
+The user parameters are gathered in the struct defined in  <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>struct ProbParm : public ProbParmDefault
 {
-    amrex::Real P_mean        = 101325.0_rt;
-    amrex::Real T_mean        = 300.0_rt;
-    amrex::Real T_bubble      = 600.0_rt;
-    amrex::Real bubble_rad    = 0.005_rt;
+    amrex::Real P_mean        = 101325.0;
+    amrex::Real T_mean        = 300.0;
+    amrex::Real T_bubble      = 600.0;
+    amrex::Real bubble_rad    = 0.005;
     amrex::Real bubble_y0     = 0.01;
     int         bubble_is_mix = 0;
     int           is_sym      = 0;
@@ -254,8 +252,8 @@ of a different temperature/mixture intended to be lighter such that the bubble w
 influence of gravity. Note that the user can easily reverse the problem with a heavier bubble.
 The default parameters provided above are overwritten using AMReX ParmParse in <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.cpp</span></code>
 and the initial/boundary conditions implemented in <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>. Because this case does not feature
-any dirichlet BC on the state variables, the <code class="docutils literal notranslate"><span class="pre">bcnormal</span></code> function in <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code> will not be called
-and can thus be left empty (but its definition is still required).</p>
+any dirichlet BC on the state variables, the default <code class="docutils literal notranslate"><span class="pre">bcnormal</span></code> function is not overridden in
+the <cite>MyProblemSpecificFunctions</cite> struct defined in <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>.</p>
 <p>The interesting aspect of this case is the inclusion of buoyancy effects in the presence of gravity.
 To trigger gravity the following input key is required:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>peleLM.gravity = 0.0 -9.81 0.0
@@ -360,11 +358,11 @@ listed in the input file. To do so, use:</p>
 <li><p>Saving the initial solution to <cite>plt00000</cite> file.</p></li>
 </ol>
 <p>Use Amrvis, Paraview or yt to visualize the plot file. Using Amrvis, the solution should look
-similar to <a class="reference internal" href="#hb-initsol"><span class="std std-numref">Fig. 6</span></a>.</p>
+similar to <a class="reference internal" href="#hb-initsol"><span class="std std-numref">Fig. 8</span></a>.</p>
 <figure class="align-center" id="hb-initsol" style="width: 95%">
 <img alt="_images/HB_InitSol.png" src="_images/HB_InitSol.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 6 </span><span class="caption-text">: Contour plots of density, temperature, cell-averaged pressure after initialization.</span><a class="headerlink" href="#hb-initsol" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 8 </span><span class="caption-text">: Contour plots of density, temperature, cell-averaged pressure after initialization.</span><a class="headerlink" href="#hb-initsol" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>The cell-averaged pressure (the perturbational pressure in node-centered in the projection-based scheme
@@ -404,7 +402,7 @@ is induced by the numerical scheme diffusion, but appearances of local extrema a
 <figure class="align-center" id="hb-400steps2lvl" style="width: 95%">
 <img alt="_images/HB_400steps2lvl.png" src="_images/HB_400steps2lvl.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 7 </span><span class="caption-text">: Contour plots of density, both velocity components and vorticity after 400 steps.</span><a class="headerlink" href="#hb-400steps2lvl" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 9 </span><span class="caption-text">: Contour plots of density, both velocity components and vorticity after 400 steps.</span><a class="headerlink" href="#hb-400steps2lvl" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>In order to compare 2D-cartesian and 2D-RZ, you can now start another simulation using <cite>input.2d-regt_symRZ</cite>. To insure

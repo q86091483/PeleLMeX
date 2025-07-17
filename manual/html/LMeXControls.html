@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -5,21 +7,17 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PeleLMeX controls &mdash; PeleLMeX 22.12 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/theme.css?v=df66b05f" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=d09052ea"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d09052ea"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -65,10 +63,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#refinement-controls">Refinement controls</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pelelmex-derived-variables">PeleLMeX derived variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pelelmex-algorithm">PeleLMeX algorithm</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#transport-coeffs-and-les">Transport coeffs and LES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transport-coefficients-and-les">Transport coefficients and LES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#turbulent-forcing-and-velocity-plotfile">Turbulent Forcing and Velocity Plotfile</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chemistry-integrator">Chemistry integrator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#embedded-geometry">Embedded Geometry</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#linear-solvers">Linear solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#linear-solvers">Linear solvers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hypre-support">Hypre support</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#active-control">Active control</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#run-time-diagnostics">Run-time diagnostics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#run-time-control">Run-time control</a></li>
@@ -133,6 +135,18 @@ This file needs to specified along with the executable as an <cite>argv</cite> o
 <span class="n">peleLM</span><span class="o">.</span><span class="n">hi_bc</span> <span class="o">=</span> <span class="n">Interior</span> <span class="n">Interior</span> <span class="n">Inflow</span>
 </pre></div>
 </div>
+<p>If specifying boundaries as <code class="docutils literal notranslate"><span class="pre">Inflow</span></code>, the <cite>MyProblemSpecificFunctions::bcnormal</cite> function must be defined
+in the <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code> file for the case to define the inflow conditions.
+Note that the <code class="docutils literal notranslate"><span class="pre">bcnormal</span></code> function is also called for wall boundaries but should
+not modify them (except setting temperature on isothermal walls). Therefore, if
+there are a mixture of inflows with other boundary types, the bcnormal function
+should check which face is being set when applying the inflow boundary condition.
+<code class="docutils literal notranslate"><span class="pre">Inflow</span></code> boundaries may also be augmented with spatially and temporally
+varying turbulent fluctuations using the <code class="docutils literal notranslate"><span class="pre">TurbInflow</span></code> utility from
+PelePhysics. See the <code class="docutils literal notranslate"><span class="pre">Exec/RegTests/TurbInflow</span></code> test for an example of how
+to use this capability and the
+<a class="reference external" href="https://amrex-combustion.github.io/PelePhysics/Utility.html#turbulent-inflows">PelePhysics  documentation</a>
+for the relevant input file flags.</p>
 </section>
 <section id="grid-amr-parameters">
 <h2>Grid/AMR parameters<a class="headerlink" href="#grid-amr-parameters" title="Link to this heading"></a></h2>
@@ -191,19 +205,26 @@ the first stopping criterion encountered will lead to termination of the simulat
 <h2>IO parameters<a class="headerlink" href="#io-parameters" title="Link to this heading"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#--------------------------IO CONTROL--------------------------</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">plot_int</span>         <span class="o">=</span> <span class="mi">20</span>              <span class="c1"># [OPT, DEF=-1] Frequency (as step #) for writing plot file</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">plot_overwrite</span>   <span class="o">=</span> <span class="n">false</span>           <span class="c1"># [OPT, DEF=false] Overwrite plot files with same name if present</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">plot_init_state</span>  <span class="o">=</span> <span class="n">false</span>           <span class="c1"># [OPT, DEF=false] Create a plot file during initialization before the initial projections</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">plot_per</span>         <span class="o">=</span> <span class="mf">0.002</span>           <span class="c1"># [OPT, DEF=-1] Period (time in s) for writing plot file</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">plot_per_exact</span>   <span class="o">=</span> <span class="mi">1</span>               <span class="c1"># [OPT, DEF=0] Flag to enforce exactly plt_per by shortening dt</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">plot_file</span>        <span class="o">=</span> <span class="s2">&quot;plt_&quot;</span>          <span class="c1"># [OPT, DEF=&quot;plt_&quot;] Plot file prefix</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">check_int</span>        <span class="o">=</span> <span class="mi">100</span>             <span class="c1"># [OPT, DEF=-1] Frequency (as step #) for writing checkpoint file</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">check_overwrite</span>  <span class="o">=</span> <span class="n">false</span>           <span class="c1"># [OPT, DEF=false] Overwrite checkpoint files with same name if present</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">check_per</span>        <span class="o">=</span> <span class="mf">0.05</span>            <span class="c1"># [OPT, DEF=-1] Period (time in s) for writing checkpoint file</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">check_file</span>       <span class="o">=</span> <span class="s2">&quot;chk&quot;</span>           <span class="c1"># [OPT, DEF=&quot;chk&quot;] Checkpoint file prefix</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">file_stepDigits</span>  <span class="o">=</span> <span class="mi">6</span>               <span class="c1"># [OPT, DEF=5] Number of digits when adding nsteps to plt and chk names</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">derive_plot_vars</span> <span class="o">=</span> <span class="n">avg_pressure</span> <span class="o">...</span><span class="c1"># [OPT, DEF=&quot;&quot;] List of derived variable included in the plot files</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">plot_speciesState</span> <span class="o">=</span> <span class="mi">0</span>              <span class="c1"># [OPT, DEF=0] Force adding state rhoYs to the plot files</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">plot_extSource</span> <span class="o">=</span> <span class="n">false</span>          <span class="c1"># [OPT, DEF=false] Force adding state external sources to the plot files</span>
 
 <span class="n">amr</span><span class="o">.</span><span class="n">restart</span>          <span class="o">=</span> <span class="n">chk00100</span>        <span class="c1"># [OPT, DEF=&quot;&quot;] Checkpoint from which to restart the simulation</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">initDataPlt</span>      <span class="o">=</span> <span class="n">plt01000</span>        <span class="c1"># [OPT, DEF=&quot;&quot;] Provide a plotfile from which to extract initial data</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">initDataPlt_reset_time</span> <span class="o">=</span> <span class="mi">1</span>               <span class="c1"># [OPT, DEF=1] Resets time and nsteps to 0 after restarting from a plot file. (Warning: plot file will be rewritten if not renamed and argument value = 0)</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">initDataPlt_patch_flow_variables</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># [OPT, DEF=false] Enable user-defined flow variable patching after reading a plot solution file</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">regrid_on_restart</span> <span class="o">=</span> <span class="mi">1</span>              <span class="c1"># [OPT, DEF=&quot;0&quot;] Trigger a regrid after the data from checkpoint are loaded</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">n_files</span>          <span class="o">=</span> <span class="mi">64</span>              <span class="c1"># [OPT, DEF=&quot;min(256,NProcs)&quot;] Number of files to write per level</span>
 </pre></div>
 </div>
 </section>
@@ -329,8 +350,9 @@ to embedded boundaries are discussed below.</p>
 </table>
 <p>Note that <cite>mixture_fraction</cite> and <cite>progress_variable</cite> requires additional inputs from the users as described below.
 The <cite>derUserDefined</cite> allow the user to define its own derived variable which can comprise several components. To do
-so, the user need to copy the Source/DeriveUserDefined.cpp file into his run folder and update the file. The number of
-components is defined based on the size of the vector returned by pelelmex_setuserderives().</p>
+so, the user need to copy the Source/DeriveUserDefined.cpp file into their run folder and update the file. The number of
+components is defined based on the size of the vector returned by <cite>pelelmex_setuserderives()</cite>.  Be sure to add the
+user derived variables to the input file via <cite>amr.derive_plot_vars</cite>.</p>
 </section>
 <section id="pelelmex-algorithm">
 <h2>PeleLMeX algorithm<a class="headerlink" href="#pelelmex-algorithm" title="Link to this heading"></a></h2>
@@ -343,32 +365,86 @@ components is defined based on the size of the vector returned by pelelmex_setus
 <span class="n">peleLM</span><span class="o">.</span><span class="n">num_divu_iter</span> <span class="o">=</span> <span class="mi">1</span>               <span class="c1"># [OPT, DEF=1] Number of divU iterations to get initial dt estimate</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">do_init_proj</span> <span class="o">=</span> <span class="mi">1</span>                <span class="c1"># [OPT, DEF=1] Control over initial projection</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">advection_scheme</span> <span class="o">=</span> <span class="n">Godunov_BDS</span>  <span class="c1"># [OPT, DEF=Godunov_PLM] Advection scheme: Godunov_PLM, Godunov_PPM or Godunov_BDS</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">chi_correction_type</span> <span class="o">=</span> <span class="n">DivuFirstIter</span>  <span class="c1"># [OPT, DEF=DivuEveryIter] When to compute divu for MAC proj divu constraint [DivuEveryIter, DivuFirstIter, NoDivu]</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">print_chi_convergence</span> <span class="o">=</span> <span class="mi">1</span>            <span class="c1"># [OPT, DEF=(peleLM.v &gt; 1)] Boolean flag on whether to print size of chi correction on each SDC iter</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">incompressible</span> <span class="o">=</span> <span class="mi">0</span>              <span class="c1"># [OPT, DEF=0] Enable to run fully incompressible, scalar advance is bypassed</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">m_rho</span> <span class="o">=</span> <span class="mf">1.17</span>                    <span class="c1"># [OPT, DEF=-1] If incompressible, density value [MKS]</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">m_mu</span> <span class="o">=</span> <span class="mf">1.8e-5</span>                   <span class="c1"># [OPT, DEF=-1] If incompressible, kinematic visc. value [MKS]</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="mf">1.17</span>                      <span class="c1"># [OPT, DEF=-1] If incompressible, density value [MKS]</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">mu</span> <span class="o">=</span> <span class="mf">1.8e-5</span>                     <span class="c1"># [OPT, DEF=-1] If incompressible, dynamic visc. value [MKS]</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">gravity</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="o">-</span><span class="mf">9.81</span>         <span class="c1"># [OPT, DEF=Vec{0.0}] Gravity vector [MKS]</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">gradP0</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">10.0</span>           <span class="c1"># [OPT, DEF=Vec{0.0}] Average background pressure gradient [Pa/m]</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">do_periodic_channel</span> <span class="o">=</span> <span class="mi">0</span>         <span class="c1"># [OPT, DEF= 0] Add an automatic pressure gradient to maintain initial condition mass flow rate in periodic channel</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">periodic_channel_dir</span> <span class="o">=</span> <span class="mi">2</span>        <span class="c1"># [OPT, DEF= -1] Required if do_periodic_channel != 0. Direction to apply pressure gradient.</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">closed_chamber</span> <span class="o">=</span> <span class="mi">0</span>              <span class="c1"># [OPT] Override the automatic detection of closed chamber (based on Outflow(s))</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">floor_species</span> <span class="o">=</span> <span class="mi">0</span>               <span class="c1"># [OPT, DEF=0] Crudely enforce mass fraction positivity</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">deltaT_verbose</span> <span class="o">=</span> <span class="mi">0</span>              <span class="c1"># [OPT, DEF=0] Verbose of the deltaT iterative solve algorithm</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">deltaT_iterMax</span> <span class="o">=</span> <span class="mi">5</span>              <span class="c1"># [OPT, DEF=10] Maximum number of deltaT iterations</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">deltaT_tol</span> <span class="o">=</span> <span class="mf">1e-10</span>              <span class="c1"># [OPT, DEF=1.e-10] Tolerance of the deltaT solve</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">evaluate_vars</span> <span class="o">=...</span>              <span class="c1"># [OPT, DEF=&quot;&quot;] In evaluate mode, list unitTest: diffTerm, divU, instRR, transportCC</span>
+
+<span class="n">peleLM</span><span class="o">.</span><span class="n">spark_verbose</span> <span class="o">=</span> <span class="mi">0</span>               <span class="c1"># [OPT, DEF=0] Verbosity of spark ignition</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">sparks</span> <span class="o">=</span> <span class="n">spark1</span> <span class="n">spark2</span> <span class="o">...</span>      <span class="c1"># [OPT] List of spark names - multiple can be given</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">spark1</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>   <span class="c1"># [OPT] Spark location (in x,y,z coordinates) [m]</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">spark1</span><span class="o">.</span><span class="n">temp</span> <span class="o">=</span> <span class="mf">2000.0</span>            <span class="c1"># [OPT] Temperature of the spark [K]</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">spark1</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="mf">1e-3</span>            <span class="c1"># [OPT] Radius of the spark [m]</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">spark1</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="mf">1e-3</span>          <span class="c1"># [OPT] Duration of the spark [s]</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">spark1</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="mf">1e-2</span>              <span class="c1"># [OPT] Time when spark starts [s]</span>
+
+<span class="n">peleLM</span><span class="o">.</span><span class="n">aux_vars</span> <span class="o">=</span> <span class="n">a</span> <span class="n">b</span> <span class="o">...</span>              <span class="c1"># [OPT] Names of auxiliary variables</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">advect</span> <span class="o">=</span> <span class="mi">1</span>                    <span class="c1"># [OPT, DEF = 1] Flag whether this variable is advected</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">conservative</span> <span class="o">=</span> <span class="mi">1</span>              <span class="c1"># [OPT, DEF = 1] Flag whether this variable is conservative</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">diffuse</span> <span class="o">=</span> <span class="mi">0</span>                   <span class="c1"># [OPT, DEF = 1] Flag whether this variable is diffused</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">Schmidt</span> <span class="o">=</span> <span class="mf">0.7</span>                 <span class="c1"># [OPT, DEF = -1] Schmidt number for auxiliary variable. If unspecified or negative, assumed to diffuse with unity Lewis number.</span>
+
+<span class="n">peleLM</span><span class="o">.</span><span class="n">user_defined_ext_sources</span> <span class="o">=</span> <span class="mi">0</span>    <span class="c1"># [OPT, DEF=0] Enable user defined source terms. Requires local ProblemSpecificFunctions.cpp.</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">add_variance_sources</span> <span class="o">=</span> <span class="mi">1</span>        <span class="c1"># [OPT, DEF=1] (only relevant for Manifold EOS) include production/dissipation for variances if present in model</span>
 </pre></div>
 </div>
 </section>
-<section id="transport-coeffs-and-les">
-<h2>Transport coeffs and LES<a class="headerlink" href="#transport-coeffs-and-les" title="Link to this heading"></a></h2>
+<section id="transport-coefficients-and-les">
+<h2>Transport coefficients and LES<a class="headerlink" href="#transport-coefficients-and-les" title="Link to this heading"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#-----------------------DIFFUSION AND LES MODEL CONTROL-----------------------</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">unity_Le</span> <span class="o">=</span> <span class="mi">0</span>                    <span class="c1"># [OPT, DEF=0] Use the unity Lewis number approximation for diffusivities</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">Prandtl</span> <span class="o">=</span> <span class="mf">0.7</span>                   <span class="c1"># [OPT, DEF=0.7] If unity_Le or doing LES, specifies the Prandtl number</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">fixed_Le</span> <span class="o">=</span> <span class="mi">0</span>                    <span class="c1"># [OPT, DEF=0] Use a fixed Lewis number approximation for species diffusivities</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">fixed_Pr</span> <span class="o">=</span> <span class="mi">0</span>                    <span class="c1"># [OPT, DEF=0] Use a fixed Prandtl number approximation for thermal diffusivity</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">Prandtl</span> <span class="o">=</span> <span class="mf">0.7</span>                   <span class="c1"># [OPT, DEF=0.7] If fixed_Pr or doing LES, specifies the Prandtl number</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">Schmidt</span> <span class="o">=</span> <span class="mf">0.7</span>                   <span class="c1"># [OPT, DEF=0.7] If doing LES, specifies the Schmidt number</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">Lewis</span> <span class="o">=</span> <span class="mf">1.0</span>                     <span class="c1"># [OPT, DEF=1.0] If fixed_Le, specifies the Lewis number</span>
+
 <span class="n">peleLM</span><span class="o">.</span><span class="n">les_model</span> <span class="o">=</span> <span class="s2">&quot;None&quot;</span>              <span class="c1"># [OPT, DEF=&quot;None&quot;] Model to compute turbulent viscosity: None, Smagorinsky, WALE, Sigma</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">les_cs_smag</span> <span class="o">=</span> <span class="mf">0.18</span>              <span class="c1"># [OPT, DEF=0.18] If using Smagorinsky LES model, provides model coefficient</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">les_cm_wale</span> <span class="o">=</span> <span class="mf">0.60</span>              <span class="c1"># [OPT, DEF=0.60] If using WALE LES model, provides model coefficient</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">les_cs_sigma</span> <span class="o">=</span> <span class="mf">1.35</span>             <span class="c1"># [OPT, DEF=1.35] If using Sigma LES model, provides model coefficient</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">les_v</span> <span class="o">=</span> <span class="mi">0</span>                       <span class="c1"># [OPT, DEF=0] Verbosity level for LES model</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">plot_les</span> <span class="o">=</span> <span class="mi">0</span>                    <span class="c1"># [OPT, DEF=0] If doing LES, whether to plot the turbulent viscosity</span>
+<span class="n">transport</span><span class="o">.</span><span class="n">use_soret</span> <span class="o">=</span> <span class="mi">0</span>                <span class="c1"># [OPT, DEF=0] Compute diffusion including the Soret effect (note, this option is inherited from PelePhysics)</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using the Soret effect, boundary condition corrections are needed at isothermal boundaries,
+which are not fully supported. Currently a correction for all terms except the wbar term
+is applied at isothermal domain boundaries (this is likely sufficient), while no corrections are applied
+at isothermal embedded boundaries (so use caution for isothermal EBs with Soret diffusion active).</p>
+</div>
+</section>
+<section id="turbulent-forcing-and-velocity-plotfile">
+<h2>Turbulent Forcing and Velocity Plotfile<a class="headerlink" href="#turbulent-forcing-and-velocity-plotfile" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#-----------------------Turbulent Forcing-----------------------
+peleLM.do_turbulent_forcing    = 0           # [OPT, DEF=0] Use turbulent forcing (note, all turbforce. options are inherited from PelePhysics).
+turbforce.v                    = 0         # [OPT, DEF=0] Verbosity level for turbulent forcing.
+turbforce.urms                 = 1.0       # [OPT, DEF=1.0] Target urms.
+turbforce.time_offset          = 0.0       # [OPT, DEF=0] Offset of the forcing function.
+turbforce.hack_lz              = 0         # [OPT, DEF=0] Allow periodic reproduction in z.
+turbforce.force_scale_fudge    = 1.0       # [OPT, DEF=1.0] Used for fine scale tuning of the forcing function.
+turbforce.rho_incompressible   = -1.0      # [OPT, DEF=-1.0] Density if running in incompressible mode (otherwise this is not used).
+
+peleLM.velocity_plotfile       = plt?????  # [OPT, DEF=&quot;&quot;] Name of a plotfile that you want to provide velocities to add to the initial conditions (must match base grid and domain size exactly).
+peleLM.velocity_plotfile_scale = 1.0       # [OPT, DEF=1.0] Scaling of the velocities provided from the velocity_plotfile
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For ff_factor, nmodes, forcing_epsilon, spectrum_type and moderate_zero_modes, it is best to leave
+these as defaults unless you are confident on the consiquences.</p>
 </div>
 </section>
 <section id="chemistry-integrator">
@@ -381,9 +457,14 @@ components is defined based on the size of the vector returned by pelelmex_setus
 <span class="n">ode</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="mf">1.0e-6</span>                           <span class="c1"># [OPT, DEF=1e-10] Absolute tolerance of the chem. reactor, or pre-factor of the typical values when used</span>
 <span class="n">cvode</span><span class="o">.</span><span class="n">solve_type</span> <span class="o">=</span> <span class="n">denseAJ_direct</span>           <span class="c1"># [OPT, DEF=GMRES] Linear solver employed for CVODE Newton direction</span>
 <span class="n">cvode</span><span class="o">.</span><span class="n">max_order</span>  <span class="o">=</span> <span class="mi">4</span>                        <span class="c1"># [OPT, DEF=2] Maximum order of the BDF method in CVODE</span>
+<span class="n">cvode</span><span class="o">.</span><span class="n">max_substeps</span> <span class="o">=</span> <span class="mi">10000</span>                  <span class="c1"># [OPT, DEF=10000] Maximum number of substeps for the linear solver in CVODE</span>
 </pre></div>
 </div>
-<p>Note that the last four parameters belong to the Reactor class of PelePhysics but are specified here for completeness. In particular, CVODE is the adequate choice of integrator to tackle PeleLMeX large time step sizes. Several linear solvers are available depending on whether or not GPU are employed: on CPU, <cite>dense_direct</cite> is a finite-difference direct solver, <cite>denseAJ_direct</cite> is an analytical-jacobian direct solver (preferred choice), <cite>sparse_direct</cite> is an analytical-jacobian sparse direct solver based on the KLU library and <cite>GMRES</cite> is a matrix-free iterative solver; on GPU <cite>GMRES</cite> is a matrix-free iterative solver (available on all the platforms), <cite>sparse_direct</cite> is a batched block-sparse direct solve based on NVIDIA’s cuSparse (only with CUDA), <cite>magma_direct</cite> is a batched block-dense direct solve based on the MAGMA library (available with CUDA and HIP.</p>
+<p>Note that the last five parameters belong to the Reactor class of PelePhysics but are specified here for completeness. In particular, CVODE is the adequate choice of integrator to tackle PeleLMeX large time step sizes. Several linear solvers are available depending on whether or not GPU are employed: on CPU, <cite>dense_direct</cite> is a finite-difference direct solver, <cite>denseAJ_direct</cite> is an analytical-jacobian direct solver (preferred choice), <cite>sparse_direct</cite> is an analytical-jacobian sparse direct solver based on the KLU library and <cite>GMRES</cite> is a matrix-free iterative solver; on GPU <cite>GMRES</cite> is a matrix-free iterative solver (available on all the platforms), <cite>sparse_direct</cite> is a batched block-sparse direct solve based on NVIDIA’s cuSparse (only with CUDA), <cite>magma_direct</cite> is a batched block-dense direct solve based on the MAGMA library (available with CUDA and HIP. Different <cite>cvode.solve_type</cite> should be tried before increasing the <cite>cvode.max_substeps</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The default chemistry integrator is ‘ReactorNull’ which do not include the chemical source terms.</p>
+</div>
 </section>
 <section id="embedded-geometry">
 <h2>Embedded Geometry<a class="headerlink" href="#embedded-geometry" title="Link to this heading"></a></h2>
@@ -407,8 +488,8 @@ must set:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">eb2</span><span class="o">.</span><span class="n">geom_type</span> <span class="o">=</span> <span class="n">UserDefined</span>
 </pre></div>
 </div>
-<p>and then implement the actual geometry definition in a <cite>EBUserDefined.H</cite> file located in the run folder (and add
-to the GNUmakefile using <cite>CEXE_headers += EBUserDefined.H</cite>). An example of such implementation is available in the
+<p>and then implement the actual geometry definition in the <cite>EBUserDefined</cite> member function of the <cite>ProblemSpecificFunctions</cite> struct in
+<code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>. An example of such implementation is available in the
 <code class="docutils literal notranslate"><span class="pre">Exec/Case/ChallengeProblem</span></code> folder. Example of more generic EB problems are also found in the <code class="docutils literal notranslate"><span class="pre">Exec/RegTest/EB_*</span></code>
 folders.</p>
 <p>In addition to the input keys presented above, a set of <cite>PeleLMeX</cite>-specific keys are available in order to control refinement at the EB:</p>
@@ -423,43 +504,120 @@ EB-level to level 1 (must be below <cite>amr.max_level</cite>) and a derefinemen
 that fine-grid patches do not cross the EB boundary. The last parameter set a safety margin to increase
 how far the derefinement is applied in order to account for grid-patches diagonals and proper nesting constrains.
 Note that the parameter do not ensure explicitly coarse-fine/EB crossings are avoided and the code will fail when this happens.</p>
+<p>AMReX generates the EB at the finest level (specified by <cite>amr.max_level</cite>) and subsequently coarsen the resulting
+EB data to coarser AMR levels (as well as multigrid levels) in order to ensure consistency across levels. As a consequence,
+increasing <cite>amr.max_level</cite> during the course of a simulation can lead in small changes to the EB, potentially uncovering
+previously covered regions for which the solver cannot provide initial conditions upon restart. It is thus advised to
+set <cite>amr.max_level</cite> to the desired maximum level you ever plan to use in the simulation, and limit the level at which
+the EB is refined (with <cite>peleLM.refine_EB_max_level</cite>) and refinement criteria are applied (with <cite>amr.*****.max_level</cite>)
+to a lower value while starting the simulation. A side effect of this process is that the generation of the EB can
+be excessively long if <cite>amr.max_level</cite> is large. To speed up the EB generation, one can use the following keys:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">eb2</span><span class="o">.</span><span class="n">num_coarsen_opt</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">eb2</span><span class="o">.</span><span class="n">max_grid_size</span> <span class="o">=</span> <span class="mi">64</span>
+</pre></div>
+</div>
+<p>Setting <cite>eb2.num_coarsen_opt = 3</cite> effectively speed the EB generation by coarsening the level at which the recursive EB intersection
+algorithm starts by a factor 2^3. A large value of this parameter can lead to an erroneous EB representation, missing small features,
+and should thus be kept at or below 4. The EB intersection algorithm relies on chopping the domain into boxes and finding those
+fully or partially covered. The size of these boxes can be controlled with <cite>eb2.max_grid_size</cite>, and can be adjusted to better
+match the number of MPI ranks used in the simulation.</p>
 <p>It is also possible to change the default adiabatic EB wall condition to an isothermal EB. To do so, one need to switch the following
 flag:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">peleLM</span><span class="o">.</span><span class="n">isothermal_EB</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
 </div>
 <p>The user is now responsible for providing the wall temperature <em>on all the EB walls</em>, but adiabtic wall can still be specified.
-Control over the local EB thermal boundary condition is provided through the <cite>setEBState</cite> and <cite>setEBType</cite> functions, also
-defined in the <cite>EBUserDefined.H</cite> already used above to provide a user-defined EB geometry. Example of isothermal EBs are provided
+Control over the local EB thermal boundary condition is provided through the <cite>bcnormal_eb</cite> and <cite>bctype_eb</cite> functions, also
+defined in the <cite>ProblemSpecificFunctions</cite> struct in <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code> already used above to provide a user-defined EB geometry.
+Examples of isothermal EBs are provided
 in <code class="docutils literal notranslate"><span class="pre">Exec/RegTest/EB_BackwardStepFlame</span></code> and <code class="docutils literal notranslate"><span class="pre">Exec/RegTest/EB_FlowPastCylinder</span></code> tests.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Note that when using isothermal EB in combination with LES, the thermal diffusion coefficient employed to compute the EB boundary thermal flux only uses the molecular contribution.</p>
+</div>
+<p>Inflow boundaries on EB surfaces may also be specified through experimental capability by setting the following flag:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">peleLM</span><span class="o">.</span><span class="n">EBinflow</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>Similarly to isothermal boundaries, the user is responsible for specifying the inflow conditions using the <cite>bcnormal_eb</cite> function,
+but this function must not specify all state variables in the region of the inflow. Again, an example is provided in the
+<code class="docutils literal notranslate"><span class="pre">Exec/RegTest/EB_BackwardStepFlame</span></code> test case.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>EB inflow capability is still experimental. Scalar diffusion at these boundaries is not yet supported. This capability and the user interface
+are subject to potential change in the future and bugs/unanticipated behavior are more likely with this capability for now. Potential changes
+may also impact the isothermal EB capability.</p>
+</div>
+<p>Lastly, it is possible to change the default redistribution scheme described in the <a class="reference internal" href="Model.html#ssec-geoeb"><span class="std std-ref">geometry with embedded boundaries section:</span></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">peleLM</span><span class="o">.</span><span class="n">adv_redist_type</span> <span class="o">=</span> <span class="n">StateRedist</span>  <span class="c1"># [OPT, DEF=StateRedist] Redistribution scheme for advection [StateRedist, FluxRedist, NoRedist]</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">diff_redist_type</span> <span class="o">=</span> <span class="n">FluxRedist</span>  <span class="c1"># [OPT, DEF=FluxRedist]  Redistribution scheme for diffusion [StateRedist, FluxRedist, NoRedist]</span>
+</pre></div>
 </div>
 </section>
 <section id="linear-solvers">
 <h2>Linear solvers<a class="headerlink" href="#linear-solvers" title="Link to this heading"></a></h2>
 <p>Linear solvers are a key component of PeleLMeX algorithm, separate controls are dedicated to the various solver (MAC projection, nodal projection, diffusion, …)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#-------------------------LINEAR SOLVERS-----------------------</span>
-<span class="n">nodal_proj</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>                      <span class="c1"># [OPT, DEF=0] Verbose of the nodal projector</span>
-<span class="n">nodal_proj</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="mf">1.0e-11</span>                   <span class="c1"># [OPT, DEF=1e-11] Relative tolerance of the nodal projection</span>
-<span class="n">nodal_proj</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="mf">1.0e-12</span>                   <span class="c1"># [OPT, DEF=1e-14] Absolute tolerance of the nodal projection</span>
-<span class="n">nodal_proj</span><span class="o">.</span><span class="n">mg_max_coarsening_level</span> <span class="o">=</span> <span class="mi">5</span>      <span class="c1"># [OPT, DEF=100] Maximum number of MG levels (useful when using EB)</span>
+<span class="n">nodal_proj</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>                    <span class="c1"># [OPT, DEF=0] Verbose of the nodal projector</span>
+<span class="n">nodal_proj</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="mf">1.0e-11</span>                 <span class="c1"># [OPT, DEF=1e-11] Relative tolerance of the nodal projection</span>
+<span class="n">nodal_proj</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="mf">1.0e-12</span>                 <span class="c1"># [OPT, DEF=1e-14] Absolute tolerance of the nodal projection</span>
+<span class="n">nodal_proj</span><span class="o">.</span><span class="n">maxiter</span> <span class="o">=</span> <span class="mi">50</span>                   <span class="c1"># [OPT, DEF=] Maximum number of iterations of the nodal projection</span>
+<span class="n">nodal_proj</span><span class="o">.</span><span class="n">mg_max_coarsening_level</span> <span class="o">=</span> <span class="mi">5</span>    <span class="c1"># [OPT, DEF=100] Maximum number of MG levels (useful when using EB)</span>
+<span class="n">nodal_proj</span><span class="o">.</span><span class="n">bottom_verbose</span> <span class="o">=</span> <span class="mi">1</span>             <span class="c1"># [OPT, DEF=0] Verbose of the bottom solve for nodal projector</span>
+<span class="n">nodal_proj</span><span class="o">.</span><span class="n">bottom_rtol</span> <span class="o">=</span> <span class="mf">1e-3</span>             <span class="c1"># [OPT, DEF=1e-4] Relative tolerance of the bottom solve for nodal projection</span>
+<span class="n">nodal_proj</span><span class="o">.</span><span class="n">bottom_atol</span> <span class="o">=</span> <span class="mf">1e-10</span>            <span class="c1"># [OPT, DEF=0] Absolute tolerance of the bottom solve for nodal projection</span>
+<span class="n">nodal_proj</span><span class="o">.</span><span class="n">bottom_maxiter</span> <span class="o">=</span> <span class="mi">200</span>           <span class="c1"># [OPT, DEF=100] Maximum number of iterations of the bottom solve for nodal projection</span>
 
-<span class="n">mac_proj</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>                        <span class="c1"># [OPT, DEF=0] Verbose of the MAC projector</span>
-<span class="n">mac_proj</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="mf">1.0e-11</span>                     <span class="c1"># [OPT, DEF=1e-11] Relative tolerance of the MAC projection</span>
-<span class="n">mac_proj</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="mf">1.0e-12</span>                     <span class="c1"># [OPT, DEF=1e-14] Absolute tolerance of the MAC projection</span>
-<span class="n">mac_proj</span><span class="o">.</span><span class="n">mg_max_coarsening_level</span> <span class="o">=</span> <span class="mi">5</span>        <span class="c1"># [OPT, DEF=100] Maximum number of MG levels (useful when using EB)</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>                      <span class="c1"># [OPT, DEF=0] Verbose of the MAC projector</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="mf">1.0e-11</span>                   <span class="c1"># [OPT, DEF=1e-11] Relative tolerance of the MAC projection</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="mf">1.0e-12</span>                   <span class="c1"># [OPT, DEF=1e-14] Absolute tolerance of the MAC projection</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">mg_max_coarsening_level</span> <span class="o">=</span> <span class="mi">5</span>      <span class="c1"># [OPT, DEF=100] Maximum number of MG levels (useful when using EB)</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">bottom_verbose</span> <span class="o">=</span> <span class="mi">1</span>               <span class="c1"># [OPT, DEF=0] Verbose of the bottom solve for MAC projector</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">bottom_rtol</span> <span class="o">=</span> <span class="mf">1e-3</span>               <span class="c1"># [OPT, DEF=1e-4] Relative tolerance of the bottom solve for MAC projection</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">bottom_atol</span> <span class="o">=</span> <span class="mf">1e-10</span>              <span class="c1"># [OPT, DEF=0] Absolute tolerance of the bottom solve for MAC projection</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">bottom_maxiter</span> <span class="o">=</span> <span class="mi">200</span>             <span class="c1"># [OPT, DEF=100] Maximum number of iterations of the bottom solve for MAC projection</span>
 
-<span class="n">diffusion</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>                       <span class="c1"># [OPT, DEF=0] Verbose of the scalar diffusion solve</span>
-<span class="n">diffusion</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="mf">1.0e-11</span>                    <span class="c1"># [OPT, DEF=1e-11] Relative tolerance of the scalar diffusion solve</span>
-<span class="n">diffusion</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="mf">1.0e-12</span>                    <span class="c1"># [OPT, DEF=1e-14] Absolute tolerance of the scalar diffusion solve</span>
+<span class="n">diffusion</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>                     <span class="c1"># [OPT, DEF=0] Verbose of the scalar diffusion solve</span>
+<span class="n">diffusion</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="mf">1.0e-11</span>                  <span class="c1"># [OPT, DEF=1e-11] Relative tolerance of the scalar diffusion solve</span>
+<span class="n">diffusion</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="mf">1.0e-12</span>                  <span class="c1"># [OPT, DEF=1e-14] Absolute tolerance of the scalar diffusion solve</span>
 
-<span class="n">tensor_diffusion</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>                <span class="c1"># [OPT, DEF=0] Verbose of the velocity tensor diffusion solve</span>
-<span class="n">tensor_diffusion</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="mf">1.0e-11</span>             <span class="c1"># [OPT, DEF=1e-11] Relative tolerance of the velocity tensor diffusion solve</span>
-<span class="n">tensor_diffusion</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="mf">1.0e-12</span>             <span class="c1"># [OPT, DEF=1e-14] Absolute tolerance of the velocity tensor diffusion solve</span>
+<span class="n">tensor_diffusion</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>              <span class="c1"># [OPT, DEF=0] Verbose of the velocity tensor diffusion solve</span>
+<span class="n">tensor_diffusion</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="mf">1.0e-11</span>           <span class="c1"># [OPT, DEF=1e-11] Relative tolerance of the velocity tensor diffusion solve</span>
+<span class="n">tensor_diffusion</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="mf">1.0e-12</span>           <span class="c1"># [OPT, DEF=1e-14] Absolute tolerance of the velocity tensor diffusion solve</span>
 </pre></div>
 </div>
+<section id="hypre-support">
+<h3>Hypre support<a class="headerlink" href="#hypre-support" title="Link to this heading"></a></h3>
+<p>Through AMReX, PeleLMeX provides interfaces to the <a class="reference external" href="https://github.com/hypre-space/hypre">Hypre</a>
+preconditioners and solvers. These can be called as bottom solvers for the MLMG linear
+solvers, for both cell-centered and node-based problems.  The Hypre solvers are particularly
+useful if the geometry includes thin elements (such as tube or plate) or narrow channels,
+as coarsening of the geometry is rapidly limited by the occurrence of multi-cut cells
+(not supported by AMReX) and the linear solvers are no longer able to robustly
+tackle projections and implicit diffusion solves.</p>
+<p>To build Hypre, follow the steps outlined in the
+<a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/LinearSolvers.html#external-solvers">AMReX documentation</a>.</p>
+<p>Next, in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>, enable Hypre and define the path to the Hypre directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_HYPRE</span> <span class="o">=</span> <span class="n">TRUE</span>
+<span class="n">HYPRE_HOME</span> <span class="o">=</span> <span class="o">/</span><span class="n">path_to_hypre_dir</span><span class="o">/</span><span class="n">hypre</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">hypre</span>
+</pre></div>
+</div>
+<p>Select input file controls are provided below for the <code class="docutils literal notranslate"><span class="pre">mac_proj</span></code> bottom solver, which
+can be applied similarly for the <code class="docutils literal notranslate"><span class="pre">nodal_proj</span></code>. Additional information on the Hypre
+solvers and parameters can be found in the <a class="reference external" href="https://hypre.readthedocs.io/en/latest/">Hypre documentation</a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#----------------------HYPRE LINEAR SOLVERS--------------------</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">bottom_solver</span> <span class="o">=</span> <span class="s2">&quot;hypre&quot;</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">hypre_namespace</span> <span class="o">=</span> <span class="n">mac_proj</span><span class="o">.</span><span class="n">hypre</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">hypre</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">hypre</span><span class="o">.</span><span class="n">hypre_solver</span> <span class="o">=</span> <span class="n">GMRES</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">hypre</span><span class="o">.</span><span class="n">hypre_preconditioner</span> <span class="o">=</span> <span class="n">BoomerAMG</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">hypre</span><span class="o">.</span><span class="n">bamg_verbose</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">hypre</span><span class="o">.</span><span class="n">bamg_coarsen_type</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">hypre</span><span class="o">.</span><span class="n">bamg_interp_type</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">mac_proj</span><span class="o">.</span><span class="n">hypre</span><span class="o">.</span><span class="n">bamg_relax_type</span> <span class="o">=</span> <span class="mi">7</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="active-control">
 <h2>Active control<a class="headerlink" href="#active-control" title="Link to this heading"></a></h2>
@@ -502,6 +660,44 @@ to activate <cite>temporal</cite> diagnostics performing these reductions at giv
 <span class="n">peleLM</span><span class="o">.</span><span class="n">do_extremas</span> <span class="o">=</span> <span class="mi">1</span>                      <span class="c1"># [OPT, DEF=0] Trigger extremas, if temporals activated</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">do_mass_balance</span> <span class="o">=</span> <span class="mi">1</span>                  <span class="c1"># [OPT, DEF=0] Compute mass balance, if temporals activated</span>
 <span class="n">peleLM</span><span class="o">.</span><span class="n">do_species_balance</span> <span class="o">=</span> <span class="mi">1</span>               <span class="c1"># [OPT, DEF=0] Compute species mass balance, if temporals activated</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">do_patch_mfr</span><span class="o">=</span><span class="mi">1</span>                       <span class="c1"># [OPT, DEF=0] Activate patch based species flux diagbostics</span>
+<span class="n">peleLM</span><span class="o">.</span><span class="n">bpatch</span><span class="o">.</span><span class="n">patchnames</span><span class="o">=</span> <span class="o">&lt;</span><span class="n">patch_name1</span> <span class="n">patch_name2</span> <span class="o">..&gt;</span> <span class="c1"># List of patchnames</span>
+
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name1</span><span class="o">.</span><span class="n">patchtype</span><span class="o">=</span><span class="n">full</span><span class="o">-</span><span class="n">boundary</span>             <span class="c1"># patchtype one of &quot;full-boundary&quot;, &quot;circle, &quot;rectangle&quot;, &quot;circle-annular&quot; or &quot;rectangle-annular&quot;</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name1</span><span class="o">.</span><span class="n">boundary_direction</span><span class="o">=</span><span class="mi">2</span>                <span class="c1"># patch normal direction</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name1</span><span class="o">.</span><span class="n">boundary_lo_or_hi</span><span class="o">=</span><span class="mi">0</span>                 <span class="c1"># patch in low or high side of boundary</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name1</span><span class="o">.</span><span class="n">species</span><span class="o">=</span> <span class="n">O2</span> <span class="n">N2</span>                      <span class="c1"># list of species names</span>
+
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name2</span><span class="o">.</span><span class="n">patchtype</span><span class="o">=</span><span class="n">circle</span>                    <span class="c1"># patchtype one of &quot;full-boundary&quot;, &quot;circle, &quot;rectangle&quot;, &quot;circle-annular&quot; or &quot;rectangle-annular&quot;</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name2</span><span class="o">.</span><span class="n">boundary_direction</span><span class="o">=</span><span class="mi">2</span>                <span class="c1"># patch normal direction</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name2</span><span class="o">.</span><span class="n">boundary_lo_or_hi</span><span class="o">=</span><span class="mi">0</span>                 <span class="c1"># patch in low or high side of boundary</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name2</span><span class="o">.</span><span class="n">patch_circle_radius</span><span class="o">=</span><span class="mf">0.1</span>             <span class="c1"># radius of the patch</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name2</span><span class="o">.</span><span class="n">patch_circle_center</span><span class="o">=</span><span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>     <span class="c1"># coordinates of patch center</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name2</span><span class="o">.</span><span class="n">species</span><span class="o">=</span> <span class="n">O2</span> <span class="n">N2</span>                      <span class="c1"># list of species names</span>
+
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name3</span><span class="o">.</span><span class="n">patchtype</span><span class="o">=</span><span class="n">rectangle</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name3</span><span class="o">.</span><span class="n">boundary_direction</span><span class="o">=</span><span class="mi">2</span>                <span class="c1"># patch normal direction</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name3</span><span class="o">.</span><span class="n">boundary_lo_or_hi</span><span class="o">=</span><span class="mi">0</span>                 <span class="c1"># patch in low or high side of boundary</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name3</span><span class="o">.</span><span class="n">patch_rectangle_lo</span><span class="o">=</span><span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>      <span class="c1"># coordinates of low corner of rectangle</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name3</span><span class="o">.</span><span class="n">patch_rectangle_hi</span><span class="o">=</span><span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span>      <span class="c1"># coordinates of high corner of rectangle</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name3</span><span class="o">.</span><span class="n">species</span><span class="o">=</span> <span class="n">O2</span> <span class="n">N2</span>                      <span class="c1"># list of species names</span>
+
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name4</span><span class="o">.</span><span class="n">patchtype</span><span class="o">=</span><span class="n">circle</span><span class="o">-</span><span class="n">annular</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name4</span><span class="o">.</span><span class="n">boundary_direction</span><span class="o">=</span><span class="mi">2</span>                <span class="c1"># patch normal direction</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name4</span><span class="o">.</span><span class="n">boundary_lo_or_hi</span><span class="o">=</span><span class="mi">0</span>                 <span class="c1"># patch in low or high side of boundary</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name4</span><span class="o">.</span><span class="n">patch_circ_ann_center</span><span class="o">=</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>  <span class="c1"># center of annular circle</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name4</span><span class="o">.</span><span class="n">patch_circ_ann_inner_radius</span><span class="o">=</span><span class="mf">0.1</span>     <span class="c1"># coordinates of patch center</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name4</span><span class="o">.</span><span class="n">patch_circ_ann_outer_radius</span><span class="o">=</span><span class="mf">0.2</span>     <span class="c1"># coordinates of patch center</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name4</span><span class="o">.</span><span class="n">species</span><span class="o">=</span> <span class="n">O2</span> <span class="n">N2</span>                      <span class="c1"># list of species names</span>
+
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name5</span><span class="o">.</span><span class="n">patchtype</span><span class="o">=</span><span class="n">rectangle</span><span class="o">-</span><span class="n">annular</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name5</span><span class="o">.</span><span class="n">boundary_direction</span><span class="o">=</span><span class="mi">2</span>                     <span class="c1"># patch normal direction</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name5</span><span class="o">.</span><span class="n">boundary_lo_or_hi</span><span class="o">=</span><span class="mi">0</span>                      <span class="c1"># patch in low or high side of boundary</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name5</span><span class="o">.</span><span class="n">patch_rect_ann_outer_lo</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">-</span><span class="mf">1.0</span> <span class="c1"># coordinates of low corner of outer rectangle</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name5</span><span class="o">.</span><span class="n">patch_rect_ann_outer_hi</span> <span class="o">=</span>  <span class="mf">1.0</span>  <span class="mf">1.0</span>  <span class="mf">1.0</span> <span class="c1"># coordinates of high corner of outer rectangle</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name5</span><span class="o">.</span><span class="n">patch_rect_ann_inner_lo</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">-</span><span class="mf">0.5</span> <span class="c1"># coordinates of low corner of inner rectangle</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name5</span><span class="o">.</span><span class="n">patch_rect_ann_inner_hi</span> <span class="o">=</span>  <span class="mf">0.5</span>  <span class="mf">0.5</span>  <span class="mf">0.5</span> <span class="c1"># coordinates of high corner of inner rectangle</span>
+<span class="n">bpatch</span><span class="o">.</span><span class="n">patch_name5</span><span class="o">.</span><span class="n">species</span><span class="o">=</span> <span class="n">O2</span> <span class="n">N2</span>                           <span class="c1"># list of species names</span>
 </pre></div>
 </div>
 <p>The <cite>do_temporal</cite> flag will trigger the creation of a <cite>temporals</cite> folder in your run directory and the following entries
@@ -510,7 +706,11 @@ will be appended to an ASCII <cite>temporals/tempState</cite> file: step, time, 
 turn on state extremas (stored in <cite>temporals/tempExtremas</cite> as min/max for each state entry), mass balance (stored in
 <cite>temporals/tempMass</cite>) computing the total mass, dMdt and advective mass fluxes across the domain boundaries as well as the error in
 the balance (dMdt - sum of fluxes), and species balance (stored in <cite>temporals/tempSpec</cite>) computing each species total mass, dM_Ydt,
-advective &amp; diffusive fluxes across the domain boundaries, consumption rate integral and the error (dMdt - sum of fluxes - reaction).</p>
+advective &amp; diffusive fluxes across the domain boundaries, consumption rate integral and the error (dMdt - sum of fluxes - reaction).
+Users can also monitor species advective fluxes through specific regions of the domain boundaries (called as boundary patches).
+Patches can be defined on the low or high sides of non-embedded boundaries through the use of pre-defined shapes such as <cite>circle</cite>,
+<cite>rectangle</cite>,`circle-annular`, <cite>rectangle-annular</cite> and <cite>full-boundary</cite>. The zero AMR level, advective fluxes of each of the user-specified species will be
+reported in the ASCII <cite>temppatchmfr</cite> file in the temporals folder.</p>
 <p>Combustion diagnostics often involve the use of a mixture fraction and/or a progress variable, both of which can be defined
 at run time and added to the derived variables included in the plotfile. If <cite>mixture_fraction</cite> or <cite>progress_variable</cite> is
 added to the <cite>amr.derive_plot_vars</cite> list, one need to provide input for defining those. The mixture fraction is based on
@@ -533,54 +733,28 @@ state:</p>
 </pre></div>
 </div>
 <p>Analysing the data a-posteriori can become extremely cumbersome when dealing with extreme datasets.
-PeleLMeX offers a set of diagnostics available at runtime and more are under development.
+PeleLMeX offers a set of diagnostics available at runtime (supported through PelePhysics) and more are under development.
 Currently, the list of diagnostic contains:</p>
 <ul class="simple">
-<li><p><cite>DiagFramePlane</cite> : extract a plane aligned in the ‘x’,’y’ or ‘z’ direction across the AMR hierarchy, writing
+<li><p><code class="docutils literal notranslate"><span class="pre">DiagFramePlane</span></code> : extract a plane aligned in the ‘x’,’y’ or ‘z’ direction across the AMR hierarchy, writing
 a 2D plotfile compatible with Amrvis, Paraview or yt. Only available for 3D simulations.</p></li>
-<li><p><cite>DiagPDF</cite> : extract the PDF of a given variable and write it to an ASCII file.</p></li>
-<li><p><cite>DiagConditional</cite> : extract statistics (average and standard deviation, integral or sum) of a
+<li><p><code class="docutils literal notranslate"><span class="pre">DiagPDF</span></code> : extract the PDF of a given variable and write it to an ASCII file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DiagConditional</span></code> : extract statistics (average and standard deviation, integral or sum) of a
 set of variables conditioned on the value of given variable and write it to an ASCII file.</p></li>
 </ul>
 <p>When using <cite>DiagPDF</cite> or <cite>DiagConditional</cite>, it is possible to narrow down the diagnostic to a region of interest
 by specifying a set of filters, defining a range of interest for a variable. Note also the for these two diagnostics,
-fine-covered regions are masked. The following provide examples for each diagnostic:</p>
+fine-covered regions are masked. An arbitrary number of these diagnostics may be specified in a list by setting
+<code class="docutils literal notranslate"><span class="pre">peleLM.diagnostics</span></code> in the input file and then specifying the diagnostic type and relevant inputs for each
+diagnostic listed. See the
+<a class="reference external" href="https://amrex-combustion.github.io/PelePhysics/Utility.html#diagnostics">PelePhysics Diagnostics documentation</a> for full
+details on the options that must be specified for each diagnostic type.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#--------------------------DIAGNOSTICS------------------------</span>
 
 <span class="n">peleLM</span><span class="o">.</span><span class="n">diagnostics</span> <span class="o">=</span> <span class="n">xnormP</span> <span class="n">condT</span> <span class="n">pdfTest</span>
 
 <span class="n">peleLM</span><span class="o">.</span><span class="n">xnormP</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">DiagFramePlane</span>                             <span class="c1"># Diagnostic type</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">xnormP</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">xNorm5mm</span>                                   <span class="c1"># Output file prefix</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">xnormP</span><span class="o">.</span><span class="n">normal</span> <span class="o">=</span> <span class="mi">0</span>                                        <span class="c1"># Plane normal (0, 1 or 2 for x, y or z)</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">xnormP</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="mf">0.005</span>                                    <span class="c1"># Coordinate in the normal direction</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">xnormP</span><span class="o">.</span><span class="n">int</span>    <span class="o">=</span> <span class="mi">5</span>                                        <span class="c1"># Frequency (as step #) for performing the diagnostic</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">xnormP</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="n">Linear</span>                            <span class="c1"># [OPT, DEF=Linear] Interpolation type : Linear or Quadratic</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">xnormP</span><span class="o">.</span><span class="n">field_names</span> <span class="o">=</span> <span class="n">x_velocity</span> <span class="n">mag_vort</span> <span class="n">density</span>         <span class="c1"># List of variables outputted to the 2D pltfile</span>
-
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">DiagConditional</span>                             <span class="c1"># Diagnostic type</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">condTest</span>                                    <span class="c1"># Output file prefix</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">int</span>  <span class="o">=</span> <span class="mi">5</span>                                           <span class="c1"># Frequency (as step #) for performing the diagnostic</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">filters</span> <span class="o">=</span> <span class="n">xHigh</span> <span class="n">stoich</span>                             <span class="c1"># [OPT, DEF=None] List of filters</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">xHigh</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">x</span>                               <span class="c1"># Filter field</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">xHigh</span><span class="o">.</span><span class="n">value_greater</span> <span class="o">=</span> <span class="mf">0.006</span>                        <span class="c1"># Filter definition : value_greater, value_less, value_inrange</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">stoich</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">mixture_fraction</span>               <span class="c1"># Filter field</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">stoich</span><span class="o">.</span><span class="n">value_inrange</span> <span class="o">=</span> <span class="mf">0.053</span> <span class="mf">0.055</span>                 <span class="c1"># Filter definition : value_greater, value_less, value_inrange</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">conditional_type</span> <span class="o">=</span> <span class="n">Average</span>                         <span class="c1"># Conditional type : Average, Integral or Sum</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">nBins</span> <span class="o">=</span> <span class="mi">50</span>                                         <span class="c1"># Number of bins for the conditioning variable</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">condition_field_name</span> <span class="o">=</span> <span class="n">temp</span>                        <span class="c1"># Conditioning variable name</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">condT</span><span class="o">.</span><span class="n">field_names</span> <span class="o">=</span> <span class="n">HeatRelease</span> <span class="n">I_R</span><span class="p">(</span><span class="n">CH4</span><span class="p">)</span> <span class="n">I_R</span><span class="p">(</span><span class="n">H2</span><span class="p">)</span>         <span class="c1"># List of variables to be treated</span>
-
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">DiagPDF</span>                                   <span class="c1"># Diagnostic type</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">PDFTest</span>                                   <span class="c1"># Output file prefix</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">int</span>  <span class="o">=</span> <span class="mi">5</span>                                         <span class="c1"># Frequency (as step #) for performing the diagnostic</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">filters</span> <span class="o">=</span> <span class="n">innerFlame</span>                             <span class="c1"># [OPT, DEF=None] List of filters</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">innerFlame</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">temp</span>                     <span class="c1"># Filter field</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">innerFlame</span><span class="o">.</span><span class="n">value_inrange</span> <span class="o">=</span> <span class="mf">450.0</span> <span class="mf">1500.0</span>          <span class="c1"># Filter definition : value_greater, value_less, value_inrange</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">nBins</span> <span class="o">=</span> <span class="mi">50</span>                                       <span class="c1"># Number of bins for the PDF</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">normalized</span> <span class="o">=</span> <span class="mi">1</span>                                   <span class="c1"># [OPT, DEF=1] PDF is normalized (i.e. integral is unity) ?</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">volume_weighted</span> <span class="o">=</span> <span class="mi">1</span>                              <span class="c1"># [OPT, DEF=1] Computation of the PDF is volume weighted ?</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">range</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="mf">2.0</span>                                  <span class="c1"># [OPT, DEF=data min/max] Specify the range of the PDF</span>
-<span class="n">peleLM</span><span class="o">.</span><span class="n">pdfTest</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">x_velocity</span>                          <span class="c1"># Variable of interest</span>
+<span class="o">...</span>
 </pre></div>
 </div>
 </section>

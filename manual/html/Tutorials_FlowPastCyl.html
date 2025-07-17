@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -5,21 +7,17 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Non-reacting flow past a cylinder &mdash; PeleLMeX 22.12 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/theme.css?v=df66b05f" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=d09052ea"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d09052ea"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -179,24 +177,24 @@ environment variables you might have previously defined when using this <cite>GN
 The base grid is decomposed into 192x64 cells and up to 3 levels of refinement (although we will start with a single level).
 The refinement ratio between each level is set to 2.
 The maximum box size is fixed at 64, and the base (level 0) grid is composed of 3 boxes,
-as shown in <a class="reference internal" href="#fpc-domain"><span class="std std-numref">Fig. 12</span></a>.</p>
+as shown in <a class="reference internal" href="#fpc-domain"><span class="std std-numref">Fig. 14</span></a>.</p>
 <p>Periodic boundary conditions are used in the transverse (<span class="math notranslate nohighlight">\(y\)</span>) direction, while <code class="docutils literal notranslate"><span class="pre">Inflow</span></code> (dirichlet) and <code class="docutils literal notranslate"><span class="pre">Outflow</span></code> (neumann) boundary conditions are used in the main flow direction (<span class="math notranslate nohighlight">\(x\)</span>). The flow goes from left to right.
 A cylinder of radius 0.0035 m is placed in the middle of the flow at (0.0:0.0).</p>
 <figure class="align-center" id="fpc-domain" style="width: 80%">
 <img alt="_images/FPC_SetupSketch.png" src="_images/FPC_SetupSketch.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 12 </span><span class="caption-text">: Sketch of the computational domain with level 0 box decomposition.</span><a class="headerlink" href="#fpc-domain" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 14 </span><span class="caption-text">: Sketch of the computational domain with level 0 box decomposition.</span><a class="headerlink" href="#fpc-domain" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>The geometry of the problem is specified in the first block of the <code class="docutils literal notranslate"><span class="pre">input.2d-Re500</span></code>:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>#----------------------DOMAIN DEFINITION------------------------
-geometry.is_periodic = 0 0             # Periodicity in each direction: 0 =&gt; no, 1 =&gt; yes
+geometry.is_periodic = 0 1             # Periodicity in each direction: 0 =&gt; no, 1 =&gt; yes
 geometry.coord_sys   = 0               # 0 =&gt; cart, 1 =&gt; RZ
 geometry.prob_lo     = -0.02 -0.02     # x_lo y_lo
 geometry.prob_hi     =  0.10  0.02     # x_hi y_hi
 </pre></div>
 </div>
-<p>The second block determines the boundary conditions. Note that <cite>Interior</cite> is used to indicate periodic boundary conditions. Refer to <a class="reference internal" href="#fpc-domain"><span class="std std-numref">Fig. 12</span></a>:</p>
+<p>The second block determines the boundary conditions. Note that <cite>Interior</cite> is used to indicate periodic boundary conditions. Refer to <a class="reference internal" href="#fpc-domain"><span class="std std-numref">Fig. 14</span></a>:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>#--------------------------BC FLAGS-----------------------------
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
@@ -233,8 +231,10 @@ amr.max_grid_size   = 64         # maximum box size
 <p id="sec-tuto-fpc-inflowspec">This very simple problem only has three user-defined problem parameters: the inflow velocity magnitude, the pressure and the temperature.
 Specifying dirichlet <code class="docutils literal notranslate"><span class="pre">Inflow</span></code> conditions in <cite>PeleLMeX</cite> can seem daunting at first. But it is actually a very flexible process. We walk the user through the details which involve the following files:</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">pelelmex_prob_parm.H</span></code>, assemble in a C++ struct <code class="docutils literal notranslate"><span class="pre">ProbParm</span></code> the input variables as well as other variables used in the initialization process.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">pelelmex_prob.cpp</span></code>, initialize and provide default values to the entries of <code class="docutils literal notranslate"><span class="pre">ProbParm</span></code> and allow the user to pass run-time value using the <cite>AMReX</cite> parser (<code class="docutils literal notranslate"><span class="pre">ParmParse</span></code>). In the present case, the parser will read the parameters in the <code class="docutils literal notranslate"><span class="pre">Problem</span></code> block:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>, contains in two C++ structs: <code class="docutils literal notranslate"><span class="pre">MyProbParm</span></code> encapsulates the input variables as well
+as other variables used in the initialization process and <code class="docutils literal notranslate"><span class="pre">MyProblemSpecificFunctions</span></code> gathers the functions
+responsible for generating the initial and boundary conditions (amongst others), <code class="docutils literal notranslate"><span class="pre">initdata</span></code> and <code class="docutils literal notranslate"><span class="pre">bcnormal</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pelelmex_prob.cpp</span></code>, initialize and provide default values to the entries of <code class="docutils literal notranslate"><span class="pre">MyProbParm</span></code> and allow the user to pass run-time value using the <cite>AMReX</cite> parser (<code class="docutils literal notranslate"><span class="pre">ParmParse</span></code>). In the present case, the parser will read the parameters in the <code class="docutils literal notranslate"><span class="pre">Problem</span></code> block:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>#--------------------------- Problem -------------------------------
 prob.T_mean = 300.0
 prob.P_mean = 101325.0
@@ -243,7 +243,6 @@ prob.meanFlowDir = 1
 </pre></div>
 </div>
 </li>
-<li><p>finally, <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code> contains the <code class="docutils literal notranslate"><span class="pre">pelelmex_initdata</span></code> and <code class="docutils literal notranslate"><span class="pre">bcnormal</span></code> functions responsible for generating the initial and boundary conditions, respectively.</p></li>
 </ul>
 <p>Finally, this test uses a constant set of transport parameters rather relying on the Simple library. These transport parameters are specified in the <code class="docutils literal notranslate"><span class="pre">CONSTANT</span> <span class="pre">TRANSPORT</span></code> block:</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>#------------  INPUTS TO CONSTANT TRANSPORT -----------------
@@ -262,7 +261,7 @@ transport.const_diffusivity      = 0.0
 <section id="initial-solution">
 <h3>Initial solution<a class="headerlink" href="#initial-solution" title="Link to this heading"></a></h3>
 <p>An initial field of the main variables is always required to start a simulation. In the present case, the computational domain is filled with air in the condition of pressure and temperature provided by the user (or the default ones). An initial constant velocity of <code class="docutils literal notranslate"><span class="pre">meanFlowMag</span></code> is used, but note that <cite>PeleLMeX</cite> performs an initial velocity projection to enforce the low Mach number constraint which overwrite this initial velocity.</p>
-<p>This initial solution is constructed via the routine <code class="docutils literal notranslate"><span class="pre">pelelmex_initdata()</span></code>, in the file <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>. Additional information is provided as comments in this file for the eager reader, but nothing is required from the user at this point.</p>
+<p>This initial solution is constructed via the routine <code class="docutils literal notranslate"><span class="pre">MyProblemSpecificFunctions::initdata()</span></code>, in the file <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>. Additional information is provided as comments in this file for the eager reader, but nothing is required from the user at this point.</p>
 </section>
 <section id="numerical-scheme">
 <h3>Numerical scheme<a class="headerlink" href="#numerical-scheme" title="Link to this heading"></a></h3>
@@ -365,12 +364,12 @@ We have specified here that a checkpoint file will be generated every 50 ms and 
 <figure class="align-center" id="fpc-coarse" style="width: 80%">
 <img alt="_images/FPC_Coarse_25ms.png" src="_images/FPC_Coarse_25ms.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 13 </span><span class="caption-text">: Contour plots of velocity components, vorticity, pressure and volume fraction at t = 25 ms on the coarse grid.</span><a class="headerlink" href="#fpc-coarse" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 15 </span><span class="caption-text">: Contour plots of velocity components, vorticity, pressure and volume fraction at t = 25 ms on the coarse grid.</span><a class="headerlink" href="#fpc-coarse" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>At this point, you have established a flow with a large recirculation zone in the wake of the cylinder, but the flow has not yet fully transitioned to periodic vortex shedding.
-The flow is depicted in <a class="reference internal" href="#fpc-coarse"><span class="std std-numref">Fig. 13</span></a> showing a few of the available contour plots at 25 ms. Note that the value of the fully covered cells is set to zero.</p>
-<p>As can be seen from <a class="reference internal" href="#fpc-coarse"><span class="std std-numref">Fig. 13</span></a>, the flow has not yet transitioned to the familiar Von-Karman alleys and two aspects of the current simulation can delay or even prevent the onset of vortex shedding:</p>
+The flow is depicted in <a class="reference internal" href="#fpc-coarse"><span class="std std-numref">Fig. 15</span></a> showing a few of the available contour plots at 25 ms. Note that the value of the fully covered cells is set to zero.</p>
+<p>As can be seen from <a class="reference internal" href="#fpc-coarse"><span class="std std-numref">Fig. 15</span></a>, the flow has not yet transitioned to the familiar Von-Karman alleys and two aspects of the current simulation can delay or even prevent the onset of vortex shedding:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>the flow is initially symmetric and the transition to the familiar periodic flow is due to the growth of infinitesimal perturbations in the shear layer of the wake. Because the flow is artificially too symmetric, this transition can be delayed until round-off errors sufficiently accumulate.</p></li>
@@ -382,7 +381,7 @@ The flow is depicted in <a class="reference internal" href="#fpc-coarse"><span c
 <span class="gh">...</span>
 amr.restart             = chk_00437 # Restart from checkpoint ?
 
-<span class="cp">...</span>
+<span class="c">...</span>
 
 <span class="gh">#----------------------TIME STEPING CONTROL----------------------</span>
 <span class="gh">...</span>
@@ -439,12 +438,12 @@ As a final step, we will add another level of refinement, only at the vicinity o
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>mpirun -n 4 ./PeleLMeX2d.gnu.MPI.ex input.2d-Re500 &gt; log3Levels.dat &amp;
 </pre></div>
 </div>
-<p>You should obtain a flow with a vorticity field similar to <a class="reference internal" href="#fpc-vortfinal"><span class="std std-numref">Fig. 14</span></a>.
+<p>You should obtain a flow with a vorticity field similar to <a class="reference internal" href="#fpc-vortfinal"><span class="std std-numref">Fig. 16</span></a>.
 For the purpose of the present tutorial, this will be our final solution but one can see that the flow has not yet return to a periodic vortex shedding and additional resolution could be added locally to obtain smoother flow features.</p>
 <figure class="align-center" id="fpc-vortfinal" style="width: 80%">
 <img alt="_images/FPC_VorticityFinal.png" src="_images/FPC_VorticityFinal.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 14 </span><span class="caption-text">: Contour plots of vorticity at t = 350 ms with 2 levels of refinements.</span><a class="headerlink" href="#fpc-vortfinal" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 16 </span><span class="caption-text">: Contour plots of vorticity at t = 350 ms with 2 levels of refinements.</span><a class="headerlink" href="#fpc-vortfinal" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>

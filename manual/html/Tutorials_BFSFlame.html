@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -5,21 +7,17 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Backward facing step anchored premixed flame &mdash; PeleLMeX 22.12 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/theme.css?v=df66b05f" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=d09052ea"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d09052ea"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -78,6 +76,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#checking-the-initial-conditions">Checking the initial conditions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#advance-the-solution-on-coarse-grid">Advance the solution on coarse grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#refine-the-simulation">Refine the simulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#partially-premixed-case-with-eb-inflow">Partially premixed case with EB-inflow</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Tutorials_TripleFlame.html">A simple triple flame</a></li>
@@ -183,14 +182,14 @@ tutorial can be found in <cite>PeleLMeX</cite> Exec folder:</p>
 with the bottom left corner located at (-0.01:-0.01) and the top right corner at (0.07:0.01). The flow
 is primarily aligned with the <span class="math notranslate nohighlight">\(x\)</span> direction with an <code class="docutils literal notranslate"><span class="pre">Inflow</span></code> (dirichlet) boundary on the <span class="math notranslate nohighlight">\(x\)</span>-low
 and <code class="docutils literal notranslate"><span class="pre">Outflow</span></code> (0-neumann) boundary on <span class="math notranslate nohighlight">\(x\)</span>-high. No-slip wall conditions are imposed the transverse direction.
-Finally a Cartesian coordinate system is used here. An overview of the computational domain is provided in <a class="reference internal" href="#bfs-setupgeom"><span class="std std-numref">Fig. 15</span></a>.</p>
+Finally a Cartesian coordinate system is used here. An overview of the computational domain is provided in <a class="reference internal" href="#bfs-setupgeom"><span class="std std-numref">Fig. 17</span></a>.</p>
 <figure class="align-center" id="bfs-setupgeom" style="width: 95%">
 <img alt="_images/BFS_SetupSketch.png" src="_images/BFS_SetupSketch.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 15 </span><span class="caption-text">: Setup of the computational domain for the backward facing step flame case.</span><a class="headerlink" href="#bfs-setupgeom" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 17 </span><span class="caption-text">: Setup of the computational domain for the backward facing step flame case.</span><a class="headerlink" href="#bfs-setupgeom" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<p>All of the geometrical information can be specified the first two blocks of the input file (<cite>input.2d</cite>):</p>
+<p>All of the geometrical information can be specified the first two blocks of the input file (<cite>eb_bfs.inp</cite>):</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>#---------------------- DOMAIN DEFINITION ------------------------
 geometry.is_periodic = 0 0                  # For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                    # 0 =&gt; cart, 1 =&gt; RZ
@@ -255,17 +254,18 @@ EB structure data in the domain ghost cells.</p>
 </section>
 <section id="problem-specifications">
 <h3>Problem specifications<a class="headerlink" href="#problem-specifications" title="Link to this heading"></a></h3>
-<p id="sec-tuto-bfs-problem">The problem setup is mostly contained in the three C++ source/header files described in <a class="reference internal" href="Tutorials_FlameSheet.html"><span class="doc">Premixed flame sheet with harmonic perturbations</span></a>.
-The user parameters are gathered in the struct defined in  <code class="docutils literal notranslate"><span class="pre">pelelmex_prob_parm.H</span></code>:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>struct ProbParm
+<p id="sec-tuto-bfs-problem">The problem setup is mostly contained in the two C++ source/header files described in <a class="reference internal" href="Tutorials_FlameSheet.html"><span class="doc">Premixed flame sheet with harmonic perturbations</span></a>.
+The user parameters are gathered in the struct defined in <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>struct MyProbParm : public ProbParmDefault
 {
-    amrex::Real T_mean = 298.0_rt;
-    amrex::Real P_mean = 101325.0_rt;
-    amrex::Real Y_fuel = 0.0445_rt;
-    amrex::Real Y_o2   = 0.223_rt;
-    amrex::Real T_hot  = 1800.0_rt;
-    amrex::Real Twall  = 300.0_rt;
+    amrex::Real T_mean = 298.0;
+    amrex::Real P_mean = 101325.0;
+    amrex::Real Y_fuel = 0.0445;
+    amrex::Real Y_o2   = 0.223;
+    amrex::Real T_hot  = 1800.0;
+    amrex::Real Twall  = 300.0;
     amrex::Real meanFlowMag = 0.0;
+
 };
 </pre></div>
 </div>
@@ -280,23 +280,25 @@ The user parameters are gathered in the struct defined in  <code class="docutils
 </ul>
 <p>The initial solution consists of a premixed methane/air mixture in the upper part of the domain
 and pure hot air in the wake of the step. The default parameters provided above are overwritten
-using AMReX ParmParse in <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.cpp</span></code> and the initial/boundary conditions implemented in
-<code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>.</p>
-<p>In addition to these three C++ files, an extra header is needed in the present case compared to
-<a class="reference internal" href="Tutorials_FlameSheet.html"><span class="doc">Premixed flame sheet with harmonic perturbations</span></a> : <code class="docutils literal notranslate"><span class="pre">EBUserDefined.H</span></code>. This file is necessary to specify more complex EB
-geometries (not the case here) and to prescribe EB isothermal wall condition. It contains three functions:</p>
+using AMReX ParmParse in <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.cpp</span></code> and the initial/boundary conditions implemented
+in the <cite>MyProblemSpecificFunctions</cite> struct of <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>. Alternatively, the user can write a custom
+function to enforce an ignition kernel through the <code class="docutils literal notranslate"><span class="pre">patchFlowVariables</span></code> function in the
+problem-specific functions struct.
+It should be kept in mind that the <code class="docutils literal notranslate"><span class="pre">patchFlowVariables</span></code> function can be used if the user wants to patch certain
+flow variables after reading an existing solution from a plot file ( <code class="docutils literal notranslate"><span class="pre">peleLM.initDataPlt_patch_flow_variables</span></code> should be set to true).</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">pelelmex_prob.H</span></code>, the <cite>MyProblemSpecificFunctions</cite> struct contains several functions in addition to
+<cite>initdata</cite> and <cite>bcnormal</cite> previously described in the <a class="reference internal" href="Tutorials_FlameSheet.html"><span class="doc">Premixed flame sheet with harmonic perturbations</span></a>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">EBUserDefined()</span></code> : can be used to provide a user-defined geometry. It is left empty in the present case.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">setEBState()</span></code> : takes in the EB face center coordinates and return a vector for the entire state vector. For
-isothermal walls, only the <code class="docutils literal notranslate"><span class="pre">TEMP</span></code> component is required.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">setEBType()</span></code> : even though <code class="docutils literal notranslate"><span class="pre">peleLM.isothermal_EB=1</span></code> is activated, the user can locally decide to use
+<li><p><code class="docutils literal notranslate"><span class="pre">bcnormal_eb()</span></code> : takes in the EB face center coordinates and return a vector
+for the entire state vector. For isothermal walls, only the <code class="docutils literal notranslate"><span class="pre">TEMP</span></code> component is required. For inflows,
+the whole state must be specified.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bctype_eb()</span></code> : even though <code class="docutils literal notranslate"><span class="pre">peleLM.isothermal_EB=1</span></code> is activated, the user can locally decide to use
 an adiabatic wall on part of the EB. To do so, this function takes in the EB face center coordinates
-and return a <code class="docutils literal notranslate"><span class="pre">Real</span></code> flag that should be set to 1.0 on isothermal areas and 0.0 on adiabatic areas. The
-flag is later used to pre-multiply the thermal diffusivity effectively zeroing the thermal flux where the flag
-is 0.0.</p></li>
+and return a flag that indicates the boundary type. Additionally, it also returns a real valued parameter,
+<cite>EBfaceFrac</cite>, that indicates the fraction of the face that is isothermal or inflow.</p></li>
 </ul>
-<p>In the present case, we set the EB temperature to <code class="docutils literal notranslate"><span class="pre">T_wall</span></code> everywhere on the EB in <code class="docutils literal notranslate"><span class="pre">setEBState()</span></code> but
-the EB flag is only set to 1.0 on the vertical EB faces (<span class="math notranslate nohighlight">\(x\)</span> normal) such that the top of the EB box
+<p>In the present case, we set the EB temperature to <code class="docutils literal notranslate"><span class="pre">T_wall</span></code> everywhere on the EB in <code class="docutils literal notranslate"><span class="pre">bcnormal_eb()</span></code> but
+the EB flag is only set to 1 on the vertical EB faces (<span class="math notranslate nohighlight">\(x\)</span> normal) such that the top of the EB box
 is adiabatic.</p>
 </section>
 <section id="numerical-parameters">
@@ -377,7 +379,7 @@ of <cite>PeleLMeX</cite>. To do so, type in the following command:</p>
 <section id="checking-the-initial-conditions">
 <h2>Checking the initial conditions<a class="headerlink" href="#checking-the-initial-conditions" title="Link to this heading"></a></h2>
 <p>It is always a good practice to check the initial conditions. To do so, run the simulation specifying
-an <code class="docutils literal notranslate"><span class="pre">amr.max_step</span></code> of 0. Open the <code class="docutils literal notranslate"><span class="pre">input.2d</span></code> with your favorite editor and update the following parameters</p>
+an <code class="docutils literal notranslate"><span class="pre">amr.max_step</span></code> of 0. Open the <code class="docutils literal notranslate"><span class="pre">eb_bfs.inp</span></code> with your favorite editor and update the following parameters</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>#---------------------- Time Stepping CONTROL --------------------
 amr.max_step      = 0             # Maximum number of time steps
 </pre></div>
@@ -385,7 +387,7 @@ amr.max_step      = 0             # Maximum number of time steps
 <p>Since we’ve set the maximum number of steps to 0, the solver will exit after
 the initial solution is obtained. Let’s run the simulation with the default problem parameter
 listed in the input file. To do so, use:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>./PeleLMeX2d.gnu.MPI.ex input.2d-regt
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>./PeleLMeX2d.gnu.MPI.ex eb_bfs.inp
 </pre></div>
 </div>
 <p>A variety of information is printed to the screen:</p>
@@ -396,11 +398,11 @@ listed in the input file. To do so, use:</p>
 <li><p>Saving the initial solution to <cite>plt00000</cite> file.</p></li>
 </ol>
 <p>Use Amrvis, Paraview or yt to visualize the plot file. Using Amrvis, the solution should look
-similar to <a class="reference internal" href="#bfs-initsol"><span class="std std-numref">Fig. 16</span></a>.</p>
+similar to <a class="reference internal" href="#bfs-initsol"><span class="std std-numref">Fig. 18</span></a>.</p>
 <figure class="align-center" id="bfs-initsol" style="width: 95%">
 <img alt="_images/BFS_InitSol.png" src="_images/BFS_InitSol.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 16 </span><span class="caption-text">: Contour plots of temperature, O2 mass fraction, <span class="math notranslate nohighlight">\(x\)</span>-velocity component and divergence constraint after initialization.</span><a class="headerlink" href="#bfs-initsol" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 18 </span><span class="caption-text">: Contour plots of temperature, O2 mass fraction, <span class="math notranslate nohighlight">\(x\)</span>-velocity component and divergence constraint after initialization.</span><a class="headerlink" href="#bfs-initsol" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Note that in <cite>PeleLMeX</cite>, EB-covered regions are set to zero in plotfiles. Hot gases are found in the wake
@@ -420,7 +422,7 @@ parameters. To do so, ensure that:</p>
 <p>Additionally, make sure that <code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code> is set to a positive value to trigger writing a
 checkpoint file from which to later restart the simulation. If available, use more than one MPI
 rank to run the simulation and redirect the standard output to a log file using:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>mpirun -n 4 ./PeleLMeX2d.gnu.MPI.ex input.2d &gt; logInitCoarse.dat &amp;
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>mpirun -n 4 ./PeleLMeX2d.gnu.MPI.ex eb_bfs.inp &gt; logInitCoarse.dat &amp;
 </pre></div>
 </div>
 <p>Using 4 MPI ranks, it takes about 200 seconds to complete.
@@ -449,7 +451,7 @@ the effect of the cold wall.</p>
 <figure class="align-center" id="bfs-250steps" style="width: 95%">
 <img alt="_images/BFS_250steps.png" src="_images/BFS_250steps.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 17 </span><span class="caption-text">: Contour plots of density, H2 mass fraction, <span class="math notranslate nohighlight">\(x\)</span>-velocity component and heat release rate after 250 steps.</span><a class="headerlink" href="#bfs-250steps" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 19 </span><span class="caption-text">: Contour plots of density, H2 mass fraction, <span class="math notranslate nohighlight">\(x\)</span>-velocity component and heat release rate after 250 steps.</span><a class="headerlink" href="#bfs-250steps" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>In order to illustrate one of <cite>PeleLMeX</cite> failure modes, we will now continue the simulation for
@@ -460,13 +462,13 @@ following keys in the input file:</p>
 <span class="gh">...</span>
 amr.cfl = 0.6                               # CFL number for hyperbolic system
 
-<span class="cp">...</span>
+<span class="c">...</span>
 #---------------------- IO CONTROL -------------------------------
 amr.restart = chk00250                      # Restart checkpoint file
 </pre></div>
 </div>
 <p>and restart the simulation:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>mpirun -n 4 ./PeleLMeX2d.gnu.MPI.ex input.2d &gt; logFail.dat &amp;
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>mpirun -n 4 ./PeleLMeX2d.gnu.MPI.ex eb_bfs.inp &gt; logFail.dat &amp;
 </pre></div>
 </div>
 <p>The simulation will proceed, with the step size progressively increasing due to the higher CFL
@@ -493,10 +495,14 @@ to reduce CFL to smaller value.</p>
 <section id="refine-the-simulation">
 <h2>Refine the simulation<a class="headerlink" href="#refine-the-simulation" title="Link to this heading"></a></h2>
 <p>Instead, let’s add a first level of refinement and keep the CFL at a value of 0.6, while restarting again from
-<cite>chk00250</cite>. Enable AMR refinement by increasing the <code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code>:</p>
+<cite>chk00250</cite>. Enable AMR refinement by increasing the <code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code>. It is also necessary to uncomment the
+<code class="docutils literal notranslate"><span class="pre">amr.ref_ratio</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.regrid_int</span></code> lines, which  specify the refinement ratio for the new grid level
+(should be left at 2) and the interval between regridding steps while AMR is turned on, respectively.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">#---------------------- AMR CONTROL ------------------------------</span>
 <span class="gh">...</span>
-<span class="gh">amr.max_level       = 1                     # maximum level number allowed</span>
+amr.max_level       = 1                     # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2               # refinement ratio
+<span class="gh">amr.regrid_int      = 5                     # how often to regrid</span>
 <span class="gh">...</span>
 </pre></div>
 </div>
@@ -507,7 +513,7 @@ to reduce CFL to smaller value.</p>
 </pre></div>
 </div>
 <p>Restart the simulation:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>mpirun -n 4 ./PeleLMeX2d.gnu.MPI.ex input.2d &gt; log1AMR.dat &amp;
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>mpirun -n 4 ./PeleLMeX2d.gnu.MPI.ex eb_bfs.inp &gt; log1AMR.dat &amp;
 </pre></div>
 </div>
 <p>Using 4 MPI ranks, the simulation takes approximately 13 mn, so plenty of time to get
@@ -528,7 +534,7 @@ value, most of the lower part of the computational domain is actually refined to
 <figure class="align-center" id="bfs-500steps" style="width: 95%">
 <img alt="_images/BFS_500steps.png" src="_images/BFS_500steps.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 18 </span><span class="caption-text">: Contour plots of temperature, H2 mass fraction, chemistry functCall and heat release rate after 500 steps, using 1 level of AMR.</span><a class="headerlink" href="#bfs-500steps" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 20 </span><span class="caption-text">: Contour plots of temperature, H2 mass fraction, chemistry functCall and heat release rate after 500 steps, using 1 level of AMR.</span><a class="headerlink" href="#bfs-500steps" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>The <cite>functCall</cite> variable corresponds to the number of time CVODE called the chemical right-hand-side function and is
@@ -557,7 +563,7 @@ peleLM.progressVariable.hotState = CO:0.003 CO2:0.122
 </pre></div>
 </div>
 <p>Update the <code class="docutils literal notranslate"><span class="pre">amr.restart</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.max_step</span></code> to <cite>chk00500</cite> and <cite>1000</cite>, respectively and restart the simulation:</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>mpirun -n 4 ./PeleLMeX2d.gnu.MPI.ex input.2d &gt; log1AMRcnt.dat &amp;
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>mpirun -n 4 ./PeleLMeX2d.gnu.MPI.ex eb_bfs.inp &gt; log1AMRcnt.dat &amp;
 </pre></div>
 </div>
 <p>Once again, the simulation takes approximately 30 mn to complete. At this point, the flame is fairly well established
@@ -614,7 +620,7 @@ additional refinement, the flame front is now resolved with a few grid cells (bu
 <figure class="align-center" id="bfs-1200steps" style="width: 95%">
 <img alt="_images/BFS_1200steps.png" src="_images/BFS_1200steps.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 19 </span><span class="caption-text">: Contour plots of temperature, H2 mass fraction, H2 production rate and heat release rate after 1200 steps, using 2 levels of AMR.</span><a class="headerlink" href="#bfs-1200steps" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 21 </span><span class="caption-text">: Contour plots of temperature, H2 mass fraction, H2 production rate and heat release rate after 1200 steps, using 2 levels of AMR.</span><a class="headerlink" href="#bfs-1200steps" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>The AMR level 2 is clearly distant from the EB and concentrated mostly on the flame surface (except a small box at the bottom of the
@@ -679,12 +685,19 @@ the upstream and downstream region of the flame.</p>
 <figure class="align-center" id="bfs-condaverage" style="width: 60%">
 <img alt="_images/BFS_CondAverage.png" src="_images/BFS_CondAverage.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 20 </span><span class="caption-text">: Conditional average and standard deviation of heat release rate after 1210 steps, using 4 levels of AMR.</span><a class="headerlink" href="#bfs-condaverage" title="Link to this image"></a></p>
+<p><span class="caption-number">Fig. 22 </span><span class="caption-text">: Conditional average and standard deviation of heat release rate after 1210 steps, using 4 levels of AMR.</span><a class="headerlink" href="#bfs-condaverage" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Note that for this analysis to be relevant, we would need to run the simulation longer to completely
 remove the effect of the initial hot air still trapped in the recirculation zone at this point and largely
 affecting the upstream average data.</p>
+</section>
+<section id="partially-premixed-case-with-eb-inflow">
+<h2>Partially premixed case with EB-inflow<a class="headerlink" href="#partially-premixed-case-with-eb-inflow" title="Link to this heading"></a></h2>
+<p>This case also includes a separate input file designed to demonstrate the experimental EB-inflow
+capability in PeleLMeX. This input file <code class="docutils literal notranslate"><span class="pre">eb_bfs_pp.inp</span></code> corresponds to a partially premixed
+flame, with a fuel jet flowing upward from the horizontal EB surface and mixing with oxidizer
+flowing in through the left domain boundary.</p>
 </section>
 </section>
 

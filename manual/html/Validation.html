@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -5,21 +7,17 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PeleLMeX Verification &amp; Validations &mdash; PeleLMeX 22.12 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/theme.css?v=df66b05f" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=d09052ea"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d09052ea"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -64,6 +62,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#les-results-at-re-tau-395-934">LES results at <span class="math notranslate nohighlight">\(Re_{\tau}\)</span> = 395, 934</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#laminar-counterflow-diffusion-flame">Laminar counterflow diffusion flame</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Performances.html">Performances</a></li>
@@ -470,6 +469,46 @@ subgrid-scale viscosity for the <span class="math notranslate nohighlight">\(Re_
 <p>Further work is ongoing to assess how to better handle large LES filter size changes in the context
 of AMR-LES</p>
 </section>
+</section>
+<section id="laminar-counterflow-diffusion-flame">
+<h2>Laminar counterflow diffusion flame<a class="headerlink" href="#laminar-counterflow-diffusion-flame" title="Link to this heading"></a></h2>
+<p>The laminar counterflow diffusion flame is a fundamental test case for non-premixed reactive flows. A
+laminar counterflow diffusion flame setup is available in <code class="docutils literal notranslate"><span class="pre">Exec/Production/CounterFlow</span></code>.
+In the present configuration, the geometry consists of a 1.5 cm x 1.5 cm domain with inflow at the left
+and right boundaries and outflow at the top and bottom boundaries. The left and right inflow boundaries
+correspond to the oxidizer and fuel inlet sides respectively, with an oxidizer/fuel jet section of
+diameter <span class="math notranslate nohighlight">\(d_{jet} = 0.5 cm\)</span> (<code class="docutils literal notranslate"><span class="pre">prob.jet_radius</span></code> of 0.0025) centered at the boundary. The
+remainder of the inflow boundary consists of inert inflow sections with composition of pure N2.
+The oxidizer jet section composition is that of air, while the fuel jet section composition is pure
+gaseous Dodecane. The inert inflow velocity on the left and right is set equal to the oxidizer and fuel
+jet velocities, respectively, in order to eliminate shear interactions between the inert and jet
+streams. The oxidizer and fuel jet velocities are 15.0 cm/s and 6.17 cm/s, respectively, corresponding
+to a global strain rate of <span class="math notranslate nohighlight">\(40 s^{-1}\)</span>. The initial condition corresponds to air composition
+filling the left half of the domain and gaseous Dodecane composition filling the right half of the
+domain with a hyperbolic tangent smoothly transitioning species mass fractions in the center of the
+domain. Ignition is performed by patching a spherical kernel of elevated temperature (in this case
+1000 K) with radius of 0.3 cm in the center of the domain as to cause autoignition. Grid refinement
+criteria based on the gradient of temperature is used and solution convergence is achieved with
+<code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code> of 2.</p>
+<p>The <cite>PeleLMeX</cite> results obtained using the specified grid refinement criteria are compared to that of
+Cantera in spatial and mixture fraction space in <a class="reference internal" href="#counterflowlmexcantera-spatial"><span class="std std-numref">Fig. 6</span></a> and
+<a class="reference internal" href="#counterflowlmexcantera-mixture"><span class="std std-numref">Fig. 7</span></a>, respectively. Centerline profiles of major species as well as
+temperature across the flame front at steady-state are displayed, with PeleLMeX results indicated by
+solid colored lines and Cantera results indicated by black ticked lines. The results show very good
+agreement between the PeleLMeX and Cantera centerline profiles, with only small differences visible
+when plotting versus spatial coordinate due to differences in geometry (1-D vs. 2-D).</p>
+<figure class="align-center" id="counterflowlmexcantera-spatial" style="width: 50%">
+<img alt="_images/Dodecane_Counterflow_Spatial_Dodecane_Added.png" src="_images/Dodecane_Counterflow_Spatial_Dodecane_Added.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text">: One-dimentional flame spatial profiles with PeleLMeX and Cantera (underlying black dashed lines)</span><a class="headerlink" href="#counterflowlmexcantera-spatial" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="counterflowlmexcantera-mixture" style="width: 50%">
+<img alt="_images/Dodecane_Counterflow_Mixture_Dodecane_Added.png" src="_images/Dodecane_Counterflow_Mixture_Dodecane_Added.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 7 </span><span class="caption-text">: One-dimentional flame profiles (mixture fraction space) with PeleLMeX and Cantera (underlying black dashed lines)</span><a class="headerlink" href="#counterflowlmexcantera-mixture" title="Link to this image"></a></p>
+</figcaption>
+</figure>
 </section>
 </section>
 
