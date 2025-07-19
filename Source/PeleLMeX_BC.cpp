@@ -50,6 +50,14 @@ int divu_bc[] = {amrex::BCType::int_dir,      amrex::BCType::reflect_even,
                  amrex::BCType::reflect_even, amrex::BCType::reflect_even,
                  amrex::BCType::reflect_even, amrex::BCType::reflect_even};
 
+#ifdef PELE_USE_AUX
+int mixf_bc[] = {INT_DIR,      EXT_DIR,      FOEXTRAP,     REFLECT_EVEN,
+                 FOEXTRAP,     FOEXTRAP,     EXT_DIR,      EXT_DIR};
+int age_bc[] = {INT_DIR,      EXT_DIR,      FOEXTRAP,     REFLECT_EVEN,
+                REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN};
+int agepv_bc[] = {INT_DIR,      EXT_DIR,      FOEXTRAP,     REFLECT_EVEN,
+                  REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN};
+#endif
 // Following incflo rather than IAMR here
 int force_bc[] = {BCType::int_dir,  BCType::foextrap, BCType::foextrap,
                   BCType::foextrap, BCType::foextrap, BCType::foextrap,
@@ -109,7 +117,7 @@ PeleLM::setBoundaryConditions()
 
   // Initialize the BCRecs
   m_bcrec_state.resize(NVAR);
-  int sizeForceBC = std::max(AMREX_SPACEDIM, NUM_SPECIES + 2);
+  int sizeForceBC = std::max(AMREX_SPACEDIM, NUM_SPECIES + 2 + NUMAUX);
   m_bcrec_force.resize(sizeForceBC);
   m_bcrec_aux.resize(m_nAux);
 
@@ -187,6 +195,32 @@ PeleLM::setBoundaryConditions()
       }
     }
 
+#ifdef PELE_USE_AUX
+  #if (defined PELE_USE_MIXF) && (NUMMIXF > 0)
+    for (int i = 0; i < NUMMIXF; i++) {
+      for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
+        m_bcrec_state[MIXF+i].setLo(idim, mixf_bc[lo_bc[idim]]);
+        m_bcrec_state[MIXF+i].setHi(idim, mixf_bc[hi_bc[idim]]);
+      }
+    }
+  #endif
+  #if (defined PELE_USE_AGE) && (NUMAGE > 0)
+    for (int i = 0; i < NUMAGE; i++) {
+      for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
+        m_bcrec_state[AGE+i].setLo(idim, age_bc[lo_bc[idim]]);
+        m_bcrec_state[AGE+i].setHi(idim, age_bc[hi_bc[idim]]);
+      }
+    }
+  #endif
+  #if (defined PELE_USE_AGEPV) && (NUMAGEPV > 0)
+    for (int i = 0; i < NUMAGEPV; i++) {
+      for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
+        m_bcrec_state[AGEPV+i].setLo(idim, agepv_bc[lo_bc[idim]]);
+        m_bcrec_state[AGEPV+i].setHi(idim, agepv_bc[hi_bc[idim]]);
+      }
+    }
+  #endif
+#endif
 #ifdef PELE_USE_PLASMA
     // nE
     for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
@@ -364,7 +398,7 @@ PeleLM::fillPatchReact(int lev, Real a_time, int nGrow)
 {
   BL_PROFILE("PeleLMeX::fillPatchReact()");
 
-  int IRsize = NUM_SPECIES;
+  int IRsize = NUM_SPECIES + NUMAUX;
 #ifdef PELE_USE_PLASMA
   IRsize += 1;
 #endif

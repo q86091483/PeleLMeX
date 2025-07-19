@@ -1019,6 +1019,7 @@ public:
   void WriteDebugPlotFile(
     const amrex::Vector<const amrex::MultiFab*>& a_MF,
     const std::string& pltname);
+  void WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int istep, int isdc);
   //-----------------------------------------------------------------------------
 
   //-----------------------------------------------------------------------------
@@ -1517,6 +1518,15 @@ public:
   void getScalarAdvForce(
     std::unique_ptr<AdvanceAdvData>& advData,
     std::unique_ptr<AdvanceDiffData>& diffData);
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+  void getScalarAdvForce_Aux(
+    std::unique_ptr<AdvanceAdvData>& advData,
+    std::unique_ptr<AdvanceDiffData>& diffData);
+  void computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData);
+  void updateAdvAux(
+    std::unique_ptr<AdvanceAdvData>& advData,
+    std::unique_ptr<AdvanceDiffData>& diffData);
+#endif
   void computeScalarAdvTerms(std::unique_ptr<AdvanceAdvData>& advData);
   void computePassiveAdvTerms(
     std::unique_ptr<AdvanceAdvData>& advData, int state_comp, int ncomp);
@@ -1528,7 +1538,9 @@ public:
     std::unique_ptr<AdvanceAdvData>& advData,
     std::unique_ptr<AdvanceDiffData>& diffData);
 
-  void getScalarReactForce(std::unique_ptr<AdvanceAdvData>& advData);
+  void getScalarReactForce(
+    std::unique_ptr<AdvanceAdvData>& advData,
+    std::unique_ptr<AdvanceDiffData>& diffData);
   //-----------------------------------------------------------------------------
 
 #ifdef PELE_USE_PLASMA
@@ -1653,7 +1665,7 @@ public:
 #ifdef PELE_USE_PLASMA
     return NUM_SPECIES + 1;
 #else
-    return NUM_SPECIES;
+    return NUM_SPECIES + NUMAUX;
 #endif
   }
 
@@ -1662,7 +1674,7 @@ public:
 #ifdef PELE_USE_PLASMA
     return NUM_SPECIES + 2;
 #else
-    return NUM_SPECIES + 1;
+    return NUM_SPECIES + 1 + NUMAUX;
 #endif
   }
 
@@ -1729,6 +1741,9 @@ public:
   DiffusionOp* getDiffusionOp();
   DiffusionOp* getMCDiffusionOp(int ncomp = 1);
   DiffusionTensorOp* getDiffusionTensorOp();
+  // ZS
+  void computeSource(amrex::Vector<std::unique_ptr<amrex::MultiFab>>& source_lev);
+  void imposeHighT();
   //-----------------------------------------------------------------------------
 
   // protected:
@@ -2136,6 +2151,7 @@ public:
   // Mixture fraction
   amrex::Array<amrex::Real, 4> Beta_mix;
   amrex::Array<amrex::Real, NUM_SPECIES> spec_Bilger_fact;
+  amrex::Array<amrex::Real, NUM_SPECIES> fact_Y_to_mixf;
   amrex::Real Zfu = -1.0;
   amrex::Real Zox = -1.0;
 

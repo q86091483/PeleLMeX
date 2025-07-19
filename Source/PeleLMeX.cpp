@@ -1,4 +1,5 @@
 #include <PeleLMeX.H>
+#include <PeleLMeX_Index.H>
 #include <memory>
 
 #ifdef PELE_USE_SPRAY
@@ -369,6 +370,13 @@ PeleLM::averageDownScalars(const PeleLM::TimeStamp& a_time)
     average_down(
       ldataFine_p->state, ldataCrse_p->state, DENSITY, nScal,
       refRatio(lev - 1));
+
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+    average_down(
+      ldataFine_p->state, ldataCrse_p->state, FIRSTAUX, NUMAUX,
+      refRatio(lev - 1));
+#endif
+
 #endif
   }
 }

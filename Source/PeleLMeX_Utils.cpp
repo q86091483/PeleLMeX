@@ -1470,6 +1470,11 @@ PeleLM::MFSum(const Vector<const MultiFab*>& a_mf, int comp)
         });
     }
 #endif
+#if (NUMAUX > 0)
+    for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
+      typical_values[n] = 0.5 * (stateMax[n] + stateMin[n]) + 1E-6;
+    }
+#endif
 
     volwgtsum += sm;
   } // lev
@@ -1600,6 +1605,16 @@ PeleLM::updateTypicalValuesChem()
         typical_values[NE] / Na * mwt[E_ID] * 1.0e-6 * 1.0e-2;
 #endif
       m_reactor->set_typ_vals_ode(typical_values_chem);
+
+#if defined (PELE_USE_AUX) && (NUMAUX > 0)
+      Vector<Real> typical_values_chem_aux;
+      typical_values_chem_aux.resize(NUMAUX);
+      for (int i = 0; i < NUMAUX; i++) {
+        typical_values_chem_aux[i] = typical_values[FIRSTAUX + i];
+      }
+      m_reactor->set_typ_vals_ode_aux(typical_values_chem_aux);
+#endif
+
     }
   }
 }
@@ -2004,6 +2019,7 @@ PeleLM::initMixtureFraction()
     pele::physics::PhysicsType::eos_type>(ecompCHON);
   amrex::Real mwt[NUM_SPECIES];
   eos.molecular_weight(mwt);
+
   Zfu = 0.0;
   Zox = 0.0;
   for (int i = 0; i < NUM_SPECIES; ++i) {
@@ -2014,6 +2030,10 @@ PeleLM::initMixtureFraction()
     }
     Zfu += spec_Bilger_fact[i] * YF[i];
     Zox += spec_Bilger_fact[i] * YO[i];
+  }
+
+  for (int i = 0; i < NUM_SPECIES; ++i) {
+    fact_Y_to_mixf[i] = spec_Bilger_fact[i] / (Zfu - Zox);
   }
 }
 
