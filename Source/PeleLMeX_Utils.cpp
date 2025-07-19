@@ -1470,11 +1470,6 @@ PeleLM::MFSum(const Vector<const MultiFab*>& a_mf, int comp)
         });
     }
 #endif
-#if (NUMAUX > 0)
-    for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
-      typical_values[n] = 0.5 * (stateMax[n] + stateMin[n]) + 1E-6;
-    }
-#endif
 
     volwgtsum += sm;
   } // lev
@@ -1524,6 +1519,11 @@ PeleLM::setTypicalValues(const TimeStamp& a_time, int is_init)
       0.5 * (stateMax[RHOH] + stateMin[RHOH]) / typical_values[DENSITY];
     typical_values[TEMP] = 0.5 * (stateMax[TEMP] + stateMin[TEMP]);
     typical_values[RHORT] = m_pOld;
+#if (NUMAUX > 0)
+    for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
+      typical_values[n] = 0.5 * (stateMax[n] + stateMin[n]) + 1E-6;
+    }
+#endif
 #ifdef PELE_USE_PLASMA
     typical_values[NE] = 0.5 * (stateMax[NE] + stateMin[NE]);
 #endif

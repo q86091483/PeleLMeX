@@ -51,12 +51,18 @@ int divu_bc[] = {amrex::BCType::int_dir,      amrex::BCType::reflect_even,
                  amrex::BCType::reflect_even, amrex::BCType::reflect_even};
 
 #ifdef PELE_USE_AUX
-int mixf_bc[] = {INT_DIR,      EXT_DIR,      FOEXTRAP,     REFLECT_EVEN,
-                 FOEXTRAP,     FOEXTRAP,     EXT_DIR,      EXT_DIR};
-int age_bc[] = {INT_DIR,      EXT_DIR,      FOEXTRAP,     REFLECT_EVEN,
-                REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN};
-int agepv_bc[] = {INT_DIR,      EXT_DIR,      FOEXTRAP,     REFLECT_EVEN,
-                  REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN};
+int mixf_bc[] = {amrex::BCType::int_dir,      amrex::BCType::ext_dir,      
+                 amrex::BCType::foextrap,     amrex::BCType::reflect_even,
+                 amrex::BCType::foextrap,     amrex::BCType::foextrap,
+                 amrex::BCType::ext_dir,      amrex::BCType::ext_dir};
+int age_bc[] = {amrex::BCType::int_dir,      amrex::BCType::ext_dir,      
+	              amrex::BCType::foextrap,     amrex::BCType::reflect_even,
+                amrex::BCType::reflect_even, amrex::BCType::reflect_even, 
+                amrex::BCType::reflect_even, amrex::BCType::reflect_even};
+int agepv_bc[] = {amrex::BCType::int_dir,      amrex::BCType::ext_dir,      
+                  amrex::BCType::foextrap,     amrex::BCType::reflect_even,
+                  amrex::BCType::reflect_even, amrex::BCType::reflect_even, 
+                  amrex::BCType::reflect_even, amrex::BCType::reflect_even};
 #endif
 // Following incflo rather than IAMR here
 int force_bc[] = {BCType::int_dir,  BCType::foextrap, BCType::foextrap,

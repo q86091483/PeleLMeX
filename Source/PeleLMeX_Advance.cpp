@@ -580,16 +580,16 @@ void PeleLM::WriteDebugStateFile(std::unique_ptr<AdvanceAdvData>& advData, int i
 
 
     // Write
-    {
-      amrex::WriteMultiLevelPlotfile(
-      pltn + suffix, finest_level + 1,
-      GetVecOfConstPtrs(res_MF),
-      plt_VarsName,
-      Geom(),
-      m_cur_time,
-      isteps,
-      refRatio());
-    }
+    //{
+    //  amrex::WriteMultiLevelPlotfile(
+    //  pltn + suffix, finest_level + 1,
+    //  GetVecOfConstPtrs(res_MF),
+    //  plt_VarsName,
+    //  Geom(),
+    //  m_cur_time,
+    //  isteps,
+    //  refRatio());
+    //}
 
     //WriteDebugPlotFile(GetVecOfConstPtrs(res_MF) , "pltDebug_" + suffix);
 }

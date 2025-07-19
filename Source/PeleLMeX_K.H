@@ -132,9 +132,6 @@ getTransportCoeff<pele::physics::eos::Manifold>(
   amrex::Array4<amrex::Real> const& /*rhotheta*/,
   amrex::Array4<amrex::Real> const& lambda,
   amrex::Array4<amrex::Real> const& mu,
-#if defined(PELE_USE_AUX) && (NUMAUX > 0)
-  amrex::Array4<amrex::Real> const& rhoDaux,
-#endif
   pele::physics::transport::TransParm<
     pele::physics::PhysicsType::eos_type,
     pele::physics::PhysicsType::transport_type> const* trans_parm,
