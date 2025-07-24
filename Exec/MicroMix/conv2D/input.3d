@@ -55,6 +55,7 @@ prob.file_uvw = "turbin/5.5E-04_1.0E-03/channel.uvw"
 #--------------------PeleLMeX CONTROL-----------------------------------------
 peleLM.v = 3
 peleLM.run_mode = normal	# [OPT, DEF=normal] Switch between time-advance mode (normal) or UnitTest (evaluate)
+peleLM.print_chi_convergence = 1 
 peleLM.advection_scheme = "Godunov_PLM" # [OPT, DEF=Godunov_PLM] Advection scheme: Godunov_PLM, Godunov_PPM or Godunov_BDS
 peleLM.use_wbar = 1		# [OPT, DEF=1] Enable Wbar correction in diffusion fluxes
 peleLM.deltaT_verbose = 2
@@ -69,7 +70,7 @@ peleLM.rho = 4.0
 peleLM.mu = 3.0E-5
 
 #--------------------TIME STEPPING---------------------------------------------
-#amr.restart = chk_01000
+amr.restart = chk_00900
 amr.max_step = 2000
 peleLM.sdc_iterMax = 2
 #nodal_proj.verbose = 2
@@ -78,7 +79,7 @@ nodal_proj.rtol = 5e-10
 mac_proj.rtol   = 5e-10
 diffusion.rtol  = 5E-10
 peleLM.deltaT_tol = 5E-4
-transport.use_soret = 1
+#transport.use_soret = 1
 
 amr.plot_int = 50
 amr.check_int = 50
@@ -90,7 +91,7 @@ amr.dt_shrink 		= 1e-2
 amr.dt_change_max = 1.1     # [OPT, DEF=1.1] maximum dt change between consecutive steps
 imr.stop_time 		= 10.0
 #amr.init_dt = 1e-1
-#amr.fixed_dt = 1e-3
+amr.fixed_dt = 5e-8
 
 #--------------------CHEMISTRY INTEGRATOR---------------------------------------
 peleLM.chem_integrator = "ReactorCvode"

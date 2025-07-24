@@ -16,7 +16,7 @@ struct MyProbParm : public ProbParmDefault
 {
 	amrex::Real inlet_temp = 300.0;
 
-  amrex::Real P_mean = 1013250.0; 	
+  amrex::Real P_mean = 1013250.0;
   amrex::Real V_j = 80.5;
   amrex::Real V_cf = 25.0;
   amrex::Real jet_rad = 1.0e-3;
@@ -94,21 +94,21 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
   	// Mixture fraction
  		amrex::Real atwCHON[4] = {0.0};
   	pele::physics::eos::atomic_weightsCHON<pele::physics::PhysicsType::eos_type>(atwCHON);
-  	for (int n = 0; n < 4; n++) {
-    	amrex::Print() << "atwCHON[" <<n << "]: " << atwCHON[n] << std::endl;
-  	}
+  	//for (int n = 0; n < 4; n++) {
+    //	amrex::Print() << "atwCHON[" <<n << "]: " << atwCHON[n] << std::endl;
+  	//}
   	int ecompCHON[NUM_SPECIES * 4];
   	pele::physics::eos::element_compositionCHON<
     	pele::physics::PhysicsType::eos_type>(ecompCHON);
-  	amrex::Print() << "Number of atm (C,H,O,N) in species (molecular weight):" << std::endl;
+  	//amrex::Print() << "Number of atm (C,H,O,N) in species (molecular weight):" << std::endl;
   	amrex::Real mwt[NUM_SPECIES];
   	eos.molecular_weight(mwt);
   	for (int n = 0; n < NUM_SPECIES; ++n) {
-    	for (int m = 0; m < 4; m++) {
-      	amrex::Print() << ecompCHON[n*4+m] << ", ";
-    	}
-    	amrex::Print() << mwt[n];
-    	amrex::Print() << std::endl;
+    	//for (int m = 0; m < 4; m++) {
+      //	amrex::Print() << ecompCHON[n*4+m] << ", ";
+    	//}
+    	//amrex::Print() << mwt[n];
+    	//amrex::Print() << std::endl;
   	}
 
   	amrex::Real Beta_mix[4] = {0.0};
@@ -144,7 +144,7 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
   	amrex::Real HF_cgs, HO_cgs, P_cgs;
   	amrex::Real x_velocity, y_velocity, z_velocity;
 
-  	// Stream pressure 
+  	// Stream pressure
   	P_cgs = prob_parm.P_mean * 10.0;
 
   	// Stream Y & X
@@ -173,11 +173,11 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
                , const amrex::Real WO = 0.0);
 
   	// Local Z
-  	amrex::Real mixf = 0.0; 
+  	amrex::Real mixf = 0.0;
   	mixf = 0.5 *
-             (1.0 - tanh((y - 0.0) / prob_parm.bl_thickness));
+             (1.0 - tanh((y - 0.0) / 4.5E-5));
 
-		// Local Y 
+		// Local Y
   	for (int n = 0; n < NUM_SPECIES; n++) {
 	  	massfrac[n] = mixf * YF[n] + (1 - mixf) * YO[n];
   	}
@@ -200,7 +200,7 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
 #if (AMREX_SPACEDIM == 2)
   	x_velocity = mixf * UF + (1 - mixf) * UO;
   	y_velocity = mixf * VF + (1 - mixf) * VO;
-#elif (AMREX_SPACEDIM == 3) 
+#elif (AMREX_SPACEDIM == 3)
   	x_velocity = mixf * UF + (1 - mixf) * UO;
   	y_velocity = mixf * VF + (1 - mixf) * VO;
   	z_velocity = mixf * WF + (1 - mixf) * WO;
@@ -210,7 +210,7 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
 #if (AMREX_SPACEDIM == 2)
   	state(i, j, k, VELX) = x_velocity;
   	state(i, j, k, VELY) = y_velocity;
-#elif (AMREX_SPACEDIM == 3) 
+#elif (AMREX_SPACEDIM == 3)
   	state(i, j, k, VELX) = x_velocity;
   	state(i, j, k, VELY) = y_velocity;
   	state(i, j, k, VELZ) = z_velocity;
@@ -231,39 +231,58 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
   	state(i, j, k, RHOH) = Hmix * state(i, j, k, DENSITY);
 		//amrex::Print() << "RHOH: " << state(i, j, k, RHOH) << std::endl;
 
+		if (false) {
+		amrex::AllPrint() << "rho: " << state(i, j, k, DENSITY) << std::endl;
+		amrex::AllPrint() << "T: " << state(i, j, k, TEMP) << std::endl;
+		amrex::AllPrint() << "u: " << state(i, j, k, VELX) << std::endl;
+		amrex::AllPrint() << "v: " << state(i, j, k, VELY) << std::endl;
+		amrex::AllPrint() << "w: " << state(i, j, k, VELZ) << std::endl;
+		amrex::AllPrint() << "mixf: " << mixf << std::endl << std::endl;
+		amrex::AllPrint() << "thickness: " << prob_parm.bl_thickness;
+		for (int n = 0; n < NUM_SPECIES; n++) {
+			amrex::AllPrint() << "Y[" << n << "]" << state(i, j, k, FIRSTSPEC+n) << std::endl;
+		}
+		}
+
 #if defined(PELE_USE_AUX) && (NUMAUX > 0)
 	#if defined(PELE_USE_MIXF) && (NUMMIXF > 0)
 		amrex::Real spec_Bilger_fact[NUM_SPECIES] = {0.0};
   	amrex::Real Zfu = 0.0;
   	amrex::Real Zox = 0.0;
-  	for (int n = 0; n < NUM_SPECIES; ++n) {
-     	spec_Bilger_fact[n] = 0.0;
-    	for (int m = 0; m < 4; m++) {
-      	spec_Bilger_fact[n] +=
-        	Beta_mix[m] * (ecompCHON[n * 4 + m] * atwCHON[m] / mwt[n]);
-    	}
-    	Zfu += spec_Bilger_fact[n] * YF[n];
-    	Zox += spec_Bilger_fact[n] * YO[n];
+  	//for (int n = 0; n < NUM_SPECIES; ++n) {
+    // 	spec_Bilger_fact[n] = 0.0;
+    // 	for (int m = 0; m < 4; m++) {
+    //  	spec_Bilger_fact[n] +=
+    //    	Beta_mix[m] * (ecompCHON[n * 4 + m] * atwCHON[m] / mwt[n]);
+    // 	}
+    //	Zfu += spec_Bilger_fact[n] * YF[n];
+    //	Zox += spec_Bilger_fact[n] * YO[n];
 
   		// amrex::Print() << "In bcnormal, spec_Bilger_fact[ " << n << "] = " << spec_Bilger_fact[n] << std::endl;
-  	}
+  	//}
   	// amrex::Print() << "Zfu: " << Zfu << ", Zox: " << Zox << std::endl;
 
 		amrex::Real mixfrac = 0.0;
-    for (int n = 0; n < NUM_SPECIES; n++) {
-	  	mixfrac += massfrac[n] * spec_Bilger_fact[n];
-    }
-	  mixfrac = (mixfrac - Zox) / (Zfu - Zox);
+    //for (int n = 0; n < NUM_SPECIES; n++) {
+	  // 	mixfrac += massfrac[n] * spec_Bilger_fact[n];
+    //}
+	  //mixfrac = (mixfrac - Zox) / (Zfu - Zox);
+	  mixfrac = mixf;
 
-		state(i, j, k, MIXF) = mixfrac * state(i, j, k, DENSITY); 
+		state(i, j, k, MIXF) = mixfrac * state(i, j, k, DENSITY);
   if (NUMMIXF > 1) {
 			state(i, j, k, MIXF+1) = state(i,j,k,DENSITY) * (1 - mixfrac);
     }
   #endif
 	#if defined(PELE_USE_AGE) && (NUMAGE > 0)
 		for (int n = 0; n < NUMAGE; n++) {
-			state(i, j, k, AGE+n) = 0.0; 
+			state(i, j, k, AGE+n) = (x / 25.) * state(i, j, k, MIXF+n);
 		}
+  #endif
+  #if defined(PELE_USE_AGEPV) && (NUMAGEPV > 0)
+    for (int n = 0; n < NUMAGEPV; n++) {
+      state(i, j, k, AGEPV+n) = 0.0;
+    }
   #endif
 #endif
 
@@ -302,32 +321,27 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
   	const amrex::Real* prob_hi = geomdata.ProbHi();
   	const amrex::Real* dx = geomdata.CellSize();
 
+  	constexpr amrex::Real Pi = 3.14159265358979323846264338327950288;
   	auto eos = pele::physics::PhysicsType::eos();
   	amrex::GpuArray<amrex::Real, NUM_SPECIES + 4> pmf_vals = {0.0};
 
-  	constexpr amrex::Real Pi = 3.14159265358979323846264338327950288;
+		for (int n = 0; n < NVAR; n++) {
+      s_ext[n] = 0.0;
+    }
 
   	// Mixture fraction
- 		amrex::Real atwCHON[4] = {0.0};
-  	pele::physics::eos::atomic_weightsCHON<pele::physics::PhysicsType::eos_type>(atwCHON);
-  	int ecompCHON[NUM_SPECIES * 4];
-  	pele::physics::eos::element_compositionCHON<
-    pele::physics::PhysicsType::eos_type>(ecompCHON);
-  	//amrex::Print() << "Number of atm (C,H,O,N) in species (molecular weight):" << std::endl;
-  	amrex::Real mwt[NUM_SPECIES];
-  	eos.molecular_weight(mwt);
-  	//for (int i = 0; i < NUM_SPECIES; ++i) {
-  	//  for (int k = 0; k < 4; k++) {
-  	//    amrex::Print() << ecompCHON[i*4+k] << ", ";
-  	//  }
-  	//  amrex::Print() << mwt[i];
-  	//  amrex::Print() << std::endl;
-  //}
-  	amrex::Real Beta_mix[4] = {0.0};
-  	Beta_mix[0] = (atwCHON[0] != 0.0) ? 2.0 / atwCHON[0] : 0.0;
-  	Beta_mix[1] = (atwCHON[1] != 0.0) ? 1.0 / (2.0 * atwCHON[1]) : 0.0;
-  	Beta_mix[2] = (atwCHON[2] != 0.0) ? -1.0 / atwCHON[2] : 0.0;
-  	Beta_mix[3] = 0.0;
+ 		//amrex::Real atwCHON[4] = {0.0};
+  	//pele::physics::eos::atomic_weightsCHON<pele::physics::PhysicsType::eos_type>(atwCHON);
+  	//int ecompCHON[NUM_SPECIES * 4];
+  	//pele::physics::eos::element_compositionCHON<
+    //pele::physics::PhysicsType::eos_type>(ecompCHON);
+  	//amrex::Real mwt[NUM_SPECIES];
+  	//eos.molecular_weight(mwt);
+  	//amrex::Real Beta_mix[4] = {0.0};
+  	//Beta_mix[0] = (atwCHON[0] != 0.0) ? 2.0 / atwCHON[0] : 0.0;
+  	//Beta_mix[1] = (atwCHON[1] != 0.0) ? 1.0 / (2.0 * atwCHON[1]) : 0.0;
+  	//Beta_mix[2] = (atwCHON[2] != 0.0) ? -1.0 / atwCHON[2] : 0.0;
+  	//Beta_mix[3] = 0.0;
 
   	// Declaration - stream  variables
 		amrex::Real XF[NUM_SPECIES] = {0.0};
@@ -339,11 +353,10 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
   	// Declaration - local variables
   	amrex::Real molefrac[NUM_SPECIES] = {0.0};
   	amrex::Real massfrac[NUM_SPECIES] = {0.0};
-  	amrex::Real rho_cgs, Hmix, Hmix_cgs, Tmix;
-  	amrex::Real HF_cgs, HO_cgs, P_cgs;
   	amrex::Real x_velocity, y_velocity, z_velocity;
 
-  	// Stream pressure 
+  	// Stream pressure
+		amrex::Real P_cgs = 0.0;
   	P_cgs = prob_parm.P_mean * 10.0;
 
   	// Stream Y & X
@@ -360,6 +373,7 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
   	TO = 300.;
 
   	// Stream H
+		amrex::Real HF_cgs = 0.0, HO_cgs = 0.0;
   	eos.TY2H(TF, YF, HF_cgs);
   	eos.TY2H(TO, YO, HO_cgs);
 
@@ -372,38 +386,51 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
                , const amrex::Real WO = 0.0);
 
   	// Local Z
-  	amrex::Real mixf = 0.0; 
-  	mixf = 0.5 *
-             (1.0 - tanh((x[1] - 0.0) / prob_parm.bl_thickness));
+  	amrex::Real mixf = 0.0;
+  	mixf = 0.5 * (1.0 - tanh((x[1] - 0.0) / 4.5E-5));
 
-		// Local Y 
+		// Local Y
   	for (int n = 0; n < NUM_SPECIES; n++) {
 	  	massfrac[n] = mixf * YF[n] + (1 - mixf) * YO[n];
   	}
   	eos.Y2X(massfrac, molefrac);
 
 		// Local H
+		amrex::Real Hmix_cgs = 0.0, Hmix = 0.0;
 		Hmix_cgs = mixf * HF_cgs + (1 - mixf) * HO_cgs;
   	Hmix = Hmix_cgs * 1.0e-4;
 
   	// Local T
+		amrex::Real Tmix = 0.0;
   	eos.HY2T(Hmix_cgs, massfrac, Tmix);
 
 		// Local rho
+		amrex::Real rho_cgs = 0.0;
 		eos.PYT2R(P_cgs, massfrac, Tmix, rho_cgs);
 
-  	// Local rhoH
+  	// Local H from T
   	eos.TY2H(Tmix, massfrac, Hmix_cgs);
 
   	// Local u, v, w
 #if (AMREX_SPACEDIM == 2)
   	x_velocity = mixf * UF + (1 - mixf) * UO;
   	y_velocity = mixf * VF + (1 - mixf) * VO;
-#elif (AMREX_SPACEDIM == 3) 
+#elif (AMREX_SPACEDIM == 3)
   	x_velocity = mixf * UF + (1 - mixf) * UO;
   	y_velocity = mixf * VF + (1 - mixf) * VO;
   	z_velocity = mixf * WF + (1 - mixf) * WO;
 #endif
+
+		if (false or x[0] <= 0.0) {
+      	for (int n = 0; n<NUM_SPECIES; n++) {
+          amrex::Print() << "  - sYO[" << n << "]: " << massfrac[n] << std::endl;
+      	}
+          amrex::Print() << "  Tmix: " << Tmix << std::endl;
+          amrex::Print() << "  P_cgs: " << P_cgs << std::endl;
+          amrex::Print() << "  rho_cgs: " << rho_cgs << std::endl;
+          amrex::Print() << "  Hmix_cgs: " << Hmix_cgs << std::endl;
+
+		}
 
   	// Set variables
   	if ((idir == 0) and (sgn == 1)) {
@@ -422,50 +449,83 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
     	//amrex::Real RhoH_temp;
     	// Enthalpy
     	//eos.TY2H(s_ext[TEMP], Y_air, RhoH_temp);
-    	s_ext[RHOH] = Hmix * 1.0e-4 * s_ext[DENSITY]; //RhoH_temp * 1.0e-4 * s_ext[DENSITY];
+    	s_ext[RHOH] = Hmix * s_ext[DENSITY]; //RhoH_temp * 1.0e-4 * s_ext[DENSITY];
   		//amrex::Print() << "RhoH : " <<s_ext[RHOH] << std::endl;
 
-    	// Velocity
 #if (AMREX_SPACEDIM == 2)
   		s_ext[VELX] = x_velocity;
   		s_ext(VELY) = y_velocity;
-#elif (AMREX_SPACEDIM == 3) 
+#elif (AMREX_SPACEDIM == 3)
   		s_ext[VELX] = x_velocity;
   		s_ext[VELY] = y_velocity;
   		s_ext[VELZ] = z_velocity;
 #endif
 
+      if (true and x[0] <= 0.0 and
+           (isnan(s_ext[RHOH]) or isnan(s_ext[TEMP]) or isnan(s_ext[DENSITY]) or
+            isnan(s_ext[VELX]) or isnan(s_ext[VELY]) or isnan(s_ext[VELZ]))  )
+      {
+      	int myproc = amrex::ParallelDescriptor::MyProc();
+      	amrex::AllPrint() << "At proc " << myproc
+       	                    << ", (x,y,z) = (" << x[0] << ", " << x[1] << ", " << x[2] << ", "
+       	                    << ")" << std::endl;
+      	for (int i = 0; i<NUM_SPECIES; i++) {
+          amrex::Print(myproc) << "  - massfrac[" << i << "]: " << s_ext[FIRSTSPEC+i] << std::endl;
+          //amrex::Print(myproc) << "  - YF[" << i << "]: " << YF[i] << std::endl;
+      	}
+      	amrex::Print(myproc) << "  - mixf     = " << mixf << std::endl;
+      	amrex::Print(myproc) << "  - NUM_SPECIES     = " << NUM_SPECIES << std::endl;
+      	amrex::Print(myproc) << "  - DENSITY     = " << DENSITY << std::endl;
+      	amrex::Print(myproc) << "  - VELX     = " << VELX << std::endl;
+      	amrex::Print(myproc) << "  - VELY     = " << VELY << std::endl;
+      	amrex::Print(myproc) << "  - VELZ     = " << VELZ << std::endl;
+      	amrex::Print(myproc) << "  - VELZ     = " << VELZ << std::endl;
+      	amrex::Print(myproc) << "  - FIRSTSPEC     = " << FIRSTSPEC << std::endl;
+      	amrex::Print(myproc) << "  - TEMP     = " << TEMP << std::endl;
+      	amrex::Print(myproc) << "  - Tmix     = " << s_ext[TEMP] << std::endl;
+      	amrex::Print(myproc) << "  - rho_cgs  = " << s_ext[DENSITY] << std::endl;
+      	amrex::Print(myproc) << "  - U  = " << s_ext[VELX] << std::endl;
+      	amrex::Print(myproc) << "  - V  = " << s_ext[VELY] << std::endl;
+      	amrex::Print(myproc) << "  - W  = " << s_ext[VELZ] << std::endl;
+      	amrex::Print(myproc) << std::endl;
+     	} 	// Velocity
+
 #if defined(PELE_USE_AUX) && (NUMAUX>0)
 	#if defined(PELE_USE_MIXF) && (NUMMIXF > 0)
-			amrex::Real spec_Bilger_fact[NUM_SPECIES] = {0.0};
-  		amrex::Real Zfu = 0.0;
-  		amrex::Real Zox = 0.0;
-  		for (int n = 0; n < NUM_SPECIES; ++n) {
-    		spec_Bilger_fact[n] = 0.0;
-    		for (int m = 0; m < 4; m++) {
-      		spec_Bilger_fact[n] +=
-       		Beta_mix[m] * (ecompCHON[n * 4 + m] * atwCHON[m] / mwt[n]);
-    		}
-    		Zfu += spec_Bilger_fact[n] * YF[n];
-    		Zox += spec_Bilger_fact[n] * YO[n];
-  		}
+			//amrex::Real spec_Bilger_fact[NUM_SPECIES] = {0.0};
+  		//amrex::Real Zfu = 0.0;
+  		//amrex::Real Zox = 0.0;
+  		//for (int n = 0; n < NUM_SPECIES; ++n) {
+      //	spec_Bilger_fact[n] = 0.0;
+      //	for (int m = 0; m < 4; m++) {
+      //	spec_Bilger_fact[n] +=
+      //	Beta_mix[m] * (ecompCHON[n * 4 + m] * atwCHON[m] / mwt[n]);
+    	//}
+      //Zfu += spec_Bilger_fact[n] * YF[n];
+      //Zox += spec_Bilger_fact[n] * YO[n];
+  		//}
 
 			amrex::Real mixfrac = 0.0;
-    	for (int n = 0; n < NUM_SPECIES; n++) {
-				mixfrac += massfrac[n] * spec_Bilger_fact[n];
-    	}
-			mixfrac = (mixfrac - Zox) / (Zfu - Zox);
+    	//for (int n = 0; n < NUM_SPECIES; n++) {
+		  //	mixfrac += massfrac[n] * spec_Bilger_fact[n];
+    	//}
+			//mixfrac = (mixfrac - Zox) / (Zfu - Zox);
+			mixfrac = mixf;
 
-			s_ext[MIXF] = mixfrac * s_ext[DENSITY]; 
+			s_ext[MIXF] = mixfrac * s_ext[DENSITY];
     	if (NUMMIXF > 1) {
 				s_ext[MIXF+1] = s_ext[DENSITY] * (1 - mixfrac);
     	}
   #endif
-
 	#if defined(PELE_USE_AGE) && (NUMAGE > 0)
 			for (int n = 0; n < NUMAGE; n++) {
-				s_ext[AGE+n] = 0.0; 
+				s_ext[AGE+n] = 0.0;
 			}
+  #endif
+  #if defined(PELE_USE_AGE) && (NUMAGEPV > 0)
+    for (int n = 0; n < NUMAGEPV; n++) {
+      s_ext[AGEPV+n] = 0.0;
+    }
   #endif
 #endif
 
@@ -484,8 +544,8 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
 	AMREX_GPU_DEVICE
 	AMREX_FORCE_INLINE
 	static void zero_visc(
-		int i, 
-		int j, 
+		int i,
+		int j,
 		int k,
     amrex::Array4<amrex::Real> const& beta,
     amrex::GeometryData const& geomdata,

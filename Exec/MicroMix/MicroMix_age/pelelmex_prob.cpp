@@ -113,7 +113,7 @@ PeleLM::readProbParm()
   amrex::ParmParse pp("prob");
 
   // Read local prob_parm_l 
-  ProbParm prob_parm_l;
+  MyProbParm prob_parm_l;
   
 	// Parameters of inlet channel turbulence 
   int do_turbInlet;
@@ -241,7 +241,6 @@ PeleLM::readProbParm()
   } // turbin parameters
 
   std::string type;
-  pp.query("inlet_temp", PeleLM::prob_parm->inlet_temp);
   pp.query("P_mean", PeleLM::prob_parm->P_mean);
   pp.query("V_j", PeleLM::prob_parm->V_j);
   pp.query("V_cf", PeleLM::prob_parm->V_cf);
@@ -255,8 +254,10 @@ PeleLM::readProbParm()
   pp.query("pertmag_jet", PeleLM::prob_parm->pertmag_jet);
   pp.query("jet_purity", PeleLM::prob_parm->jet_purity);
   pp.query("bl_thickness", PeleLM::prob_parm->bl_thickness);
+
   pp.query("init_time", PeleLM::prob_parm->init_time);
   pp.query("double_jet", PeleLM::prob_parm->double_jet);
+
   pp.query("jet_dir", PeleLM::prob_parm->jet_dir);
   pp.query("cf_dir", PeleLM::prob_parm->cf_dir);
 
