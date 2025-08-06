@@ -1138,7 +1138,7 @@ PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
       grids[lev], dmap[lev], NUMAUX, nGrow_divTmp, MFInfo(),
       EBFactory(lev));
     divTmp.setVal(0.0);
-    if (m_userEBinflow != 0) {
+    if (m_useEBinflow != 0) {
       advFluxDivergence(
         lev, divTmp, 0, divu, GetArrOfConstPtrs(fluxes[lev]), 0,
         GetArrOfConstPtrs(fluxes[lev]),
