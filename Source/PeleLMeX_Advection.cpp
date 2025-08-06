@@ -1082,6 +1082,10 @@ PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
         bcRecAux, bcRecAux_d.dataPtr(), AdvTypeAux_d.dataPtr(),
 #ifdef AMREX_USE_EB
         ebfact,
+        (m_useEBinflow != 0)
+          ? getEBState(mfi, lev, FIRSTAUX, NUMAUX, AmrOldTime)
+              .const_array()
+          : Array4<Real const>{},
 #endif
         m_Godunov_ppm != 0, m_Godunov_ForceInTrans != 0, is_velocity,
         fluxes_are_area_weighted, m_advection_type, m_Godunov_ppm_limiter);
@@ -1129,20 +1133,41 @@ PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
     auto* ldata_p = getLevelDataPtr(lev, AmrOldTime);
     //----------------------------------------------------------------
     // Use a temporary MF to hold divergence before redistribution
-    int nGrow_divTmp = 3;
+    constexpr int nGrow_divTmp = 3;
     MultiFab divTmp(
-      grids[lev], dmap[lev], ncomp, nGrow_divTmp, MFInfo(), EBFactory(lev));
+      grids[lev], dmap[lev], NUMAUX, nGrow_divTmp, MFInfo(),
+      EBFactory(lev));
     divTmp.setVal(0.0);
-    advFluxDivergence(
-      lev, divTmp, 0, divu, GetArrOfConstPtrs(fluxes[lev]), 0,
-      GetArrOfConstPtrs(edgeState[lev]), 0, ncomp, AdvTypeAll_d.dataPtr(),
-      geom[lev], -1.0, fluxes_are_area_weighted);
+    if (m_userEBinflow != 0) {
+      advFluxDivergence(
+        lev, divTmp, 0, divu, GetArrOfConstPtrs(fluxes[lev]), 0,
+        GetArrOfConstPtrs(fluxes[lev]),
+        0, // This will not be used since none of rhoY/rhoH in convective
+        getEBState(lev, VELX, AMREX_SPACEDIM, AmrOldTime).get(),
+        getEBState(lev, FIRSTAUX, NUMAUX, AmrOldTime).get(),
+        NUMAUX, AdvTypeAll_d.dataPtr(), geom[lev], -1.0,
+        fluxes_are_area_weighted);
+    } else {
+      advFluxDivergence(
+        lev, divTmp, 0, divu, GetArrOfConstPtrs(fluxes[lev]), 0,
+        GetArrOfConstPtrs(fluxes[lev]),
+        0, // This will not be used since none of rhoY/rhoH in convective
+        NUMAUX, AdvTypeAll_d.dataPtr(), geom[lev], -1.0,
+        fluxes_are_area_weighted);
+      //advFluxDivergence(
+      //lev, divTmp, 0, divu, GetArrOfConstPtrs(fluxes[lev]), 0,
+      //GetArrOfConstPtrs(edgeState[lev]), 0, ncomp, AdvTypeAll_d.dataPtr(),
+      //geom[lev], -1.0, fluxes_are_area_weighted);
+    }
 
     divTmp.FillBoundary(geom[lev].periodicity());
 
     redistributeAofS(
-      lev, m_dt, divTmp, 0, advData->AofS[lev], state_comp, ldata_p->state,
-      state_comp, ncomp, bcRecPass_d.dataPtr(), geom[lev]);
+      lev, m_dt, divTmp, 0, advData->AofS[lev], FIRSTAUX, ldata_p->state,
+      FIRSTAUX, NUMAUX, bcRecAux_d.dataPtr(), geom[lev]);
+
+    EB_set_covered(advData->AofS[lev], 0.0);
+
 #else
     //----------------------------------------------------------------
     // Otherwise go directly into AofS
@@ -1154,6 +1179,7 @@ PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
   } // lev - calc advFluxDivergence
   // TODO Zisen: This assumes passive variables have no diffusive fluxes
   //updateScalarComp(advData, FIRSTAUX, NUMAUX);
+  Gpu::streamSynchronize();
 }
 #endif // computeScalarAdvTerms_Aux
 
