@@ -294,6 +294,23 @@ PeleLM::initCoveredState()
     coveredState_h[TEMP] = 300.0;
     coveredState_h[RHORT] = typical_values[RHORT];
 
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+  #if (NUMMIXF > 0)
+    for (int i = 0; i < NUMMIXF; i++) {
+      coveredState_h[MIXF + i] = 0.5;
+    }
+  #endif
+  #if (NUMAGE > 0)
+    for (int i = 0; i < NUMAGE; i++) {
+      coveredState_h[AGE + i] = 0.0;
+    }
+  #endif
+  #if (NUMAGEPV > 0)
+    for (int i = 0; i < NUMAGEPV; i++) {
+      coveredState_h[AGEPV + i] = 0.0;
+    }
+  #endif
+#endif
     coveredState_d.resize(NVAR);
     Gpu::copy(
       Gpu::hostToDevice, coveredState_h.begin(), coveredState_h.end(),
