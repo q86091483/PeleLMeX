@@ -1481,6 +1481,6 @@ PeleLM::updateAdvAux(
       //  });
     }
   }
-  averageDown(AmrNewTime, FIRSTAUX, NUMAUX);
+  //averageDown(AmrNewTime, FIRSTAUX, NUMAUX);
 }
 #endif // updateAdvAux
