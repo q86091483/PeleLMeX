@@ -1075,6 +1075,7 @@ PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
       bool is_velocity = false;
       bool fluxes_are_area_weighted = false;
       bool knownEdgeState = false;
+      amrex::Print() << m_useEBinflow << std::endl;
       HydroUtils::ComputeFluxesOnBoxFromState(
         bx, NUMAUX, mfi, rhoAux_arr, AMREX_D_DECL(fx, fy, fz),
         AMREX_D_DECL(edgex, edgey, edgez), knownEdgeState,
