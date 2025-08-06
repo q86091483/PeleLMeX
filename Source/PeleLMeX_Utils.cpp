@@ -1521,7 +1521,8 @@ PeleLM::setTypicalValues(const TimeStamp& a_time, int is_init)
     typical_values[RHORT] = m_pOld;
 #if (NUMAUX > 0)
     for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
-      typical_values[n] = 0.5 * (stateMax[n] + stateMin[n]) + 1E-6;
+      //typical_values[n] = 0.5 * (stateMax[n] + stateMin[n]) + 1E-6;
+      typical_values[n] = 0.5 * stateMax[n] + 1E-6;
     }
 #endif
 #ifdef PELE_USE_PLASMA
@@ -1610,7 +1611,7 @@ PeleLM::updateTypicalValuesChem()
       Vector<Real> typical_values_chem_aux;
       typical_values_chem_aux.resize(NUMAUX);
       for (int i = 0; i < NUMAUX; i++) {
-        typical_values_chem_aux[i] = typical_values[FIRSTAUX + i];
+        typical_values_chem_aux[i] = typical_values[FIRSTAUX + i] * 1.E-3;
       }
       m_reactor->set_typ_vals_ode_aux(typical_values_chem_aux);
 #endif
