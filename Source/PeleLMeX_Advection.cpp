@@ -1140,18 +1140,18 @@ PeleLM::computeScalarAdvTerms_Aux(std::unique_ptr<AdvanceAdvData>& advData)
     divTmp.setVal(0.0);
     if (m_useEBinflow != 0) {
       advFluxDivergence(
-        lev, divTmp, 0, divu, GetArrOfConstPtrs(fluxes[lev]), 0,
-        GetArrOfConstPtrs(fluxes[lev]),
-        0, // This will not be used since none of rhoY/rhoH in convective
+        lev, divTmp, 0, divu,
+        GetArrOfConstPtrs(fluxes[lev]), 0,
+        GetArrOfConstPtrs(edgeState[lev]), 0,
         getEBState(lev, VELX, AMREX_SPACEDIM, AmrOldTime).get(),
         getEBState(lev, FIRSTAUX, NUMAUX, AmrOldTime).get(),
         NUMAUX, AdvTypeAll_d.dataPtr(), geom[lev], -1.0,
         fluxes_are_area_weighted);
     } else {
       advFluxDivergence(
-        lev, divTmp, 0, divu, GetArrOfConstPtrs(fluxes[lev]), 0,
-        GetArrOfConstPtrs(fluxes[lev]),
-        0, // This will not be used since none of rhoY/rhoH in convective
+        lev, divTmp, 0, divu,
+        GetArrOfConstPtrs(fluxes[lev]), 0,
+        GetArrOfConstPtrs(edgeState[lev]), 0,
         NUMAUX, AdvTypeAll_d.dataPtr(), geom[lev], -1.0,
         fluxes_are_area_weighted);
       //advFluxDivergence(
