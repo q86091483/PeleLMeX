@@ -1432,7 +1432,7 @@ PeleLM::updateAdvAux(
           AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
           // Advection for aux
           for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
-            new_arr(i, j, k, n) = new_arr(i, j, k, n) + dt * a_of_s(i, j, k, n);
+            //new_arr(i, j, k, n) = new_arr(i, j, k, n) + dt * a_of_s(i, j, k, n);
           }
 #if (NUMMIXF > 0)
           //new_arr(i,j,k,MIXF+0) += dt * rhs_mixf;
@@ -1481,6 +1481,6 @@ PeleLM::updateAdvAux(
       //  });
     }
   }
-  //averageDown(AmrNewTime, FIRSTAUX, NUMAUX);
+  averageDown(AmrNewTime, FIRSTAUX, NUMAUX);
 }
 #endif // updateAdvAux
