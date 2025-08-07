@@ -1418,15 +1418,31 @@ PeleLM::updateAdvAux(
 
 #ifdef AMREX_USE_EB
       auto const& flagfab = ebfact.getMultiEBCellFlagFab()[mfi];
+      const auto& ebfact = EBFactory(lev);
+      Array<const MultiCutFab*, AMREX_SPACEDIM> areafrac = ebfact.getAreaFrac();
 #endif
 
       auto const& old_arr = ldataOld_p->state.const_array(mfi, 0);
       auto const& new_arr = ldataNew_p->state.array(mfi, 0);
       auto const& a_of_s = advData->AofS[lev].const_array(mfi, 0);
 
-#ifdef AMREX_USER_EB
+#ifdef AMREX_USE_EB
       if (flagfab.getType(ebx) == FabType::covered) { // Covered boxes
-      } else if (flagfab.getType(ebx) != FabType::regular) {
+        amrex::ParallelFor(bx,
+          [old_arr, new_arr, a_of_s] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
+            for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
+              new_arr(i, j, k, n) = 0.0;
+            }
+          });
+      } else if (flagfab.getType(ebx) != FabType::regular) { // EB containning
+                                                             // boxes
+        const auto& afrac = areafrac[idim]->array(mfi);
+        amrex::ParallelFor(bx,
+          [old_arr, new_arr, a_of_s] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
+            for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
+              new_arr(i, j, k, n) = 0.0;
+            }
+          });
       } else // Regular boxes
 #endif
       {
@@ -1437,7 +1453,7 @@ PeleLM::updateAdvAux(
             for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
               new_arr(i, j, k, n) = new_arr(i, j, k, n) + dt * a_of_s(i, j, k, n);
             }
-          }); // for fab
+          });
       } // if EB
 
     } // for mfi
