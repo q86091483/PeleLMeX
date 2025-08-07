@@ -385,14 +385,14 @@ PeleLM::getScalarAdvForce_Aux(
           fAux(i, j, k, AGE_IN_AUX + 1) = r(i, j, k, AGE_IN_AUX + 1);
   #endif
   #if (NUMAGEPV > 0)
-          if ((old_arr(i, j, k, MIXF + 0) / rho(i, j, k)) > 1E-4) {
-            fAux(i, j, k, AGEPV_IN_AUX + 0) = r(i, j, k, AGEPV_IN_AUX + 0);
-          }
+          //if ((old_arr(i, j, k, MIXF + 0) / rho(i, j, k)) > 1E-4) {
+          fAux(i, j, k, AGEPV_IN_AUX + 0) = r(i, j, k, AGEPV_IN_AUX + 0);
+          //}
   #endif
   #if (NUMAGEPV > 1)
-          if ((old_arr(i, j, k, MIXF + 1) / rho(i, j, k)) > 1E-4) {
-            fAux(i, j, k, AGEPV_IN_AUX + 1) = r(i, j, k, AGEPV_IN_AUX + 1);
-          }
+          //if ((old_arr(i, j, k, MIXF + 1) / rho(i, j, k)) > 1E-4) {
+          fAux(i, j, k, AGEPV_IN_AUX + 1) = r(i, j, k, AGEPV_IN_AUX + 1);
+          //}
   #endif
 
         }); // bx
