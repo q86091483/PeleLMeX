@@ -1436,7 +1436,7 @@ PeleLM::updateAdvAux(
           });
       } else if (flagfab.getType(bx) != FabType::regular) { // EB containing
                                                             // boxes
-        const auto& afrac = areafrac[idim]->array(mfi);
+        //const auto& afrac = areafrac[idim]->array(mfi);
         amrex::ParallelFor(bx,
           [old_arr, new_arr, a_of_s] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
             for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
