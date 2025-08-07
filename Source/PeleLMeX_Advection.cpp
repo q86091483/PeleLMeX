@@ -1417,8 +1417,8 @@ PeleLM::updateAdvAux(
       Box const& bx = mfi.tilebox();
 
 #ifdef AMREX_USE_EB
-      auto const& flagfab = ebfact.getMultiEBCellFlagFab()[mfi];
       const auto& ebfact = EBFactory(lev);
+      auto const& flagfab = ebfact.getMultiEBCellFlagFab()[mfi];
       Array<const MultiCutFab*, AMREX_SPACEDIM> areafrac = ebfact.getAreaFrac();
 #endif
 
