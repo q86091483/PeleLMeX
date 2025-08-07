@@ -1404,6 +1404,7 @@ PeleLM::updateAdvAux(
     // Get level data ptr
     auto* ldataOld_p = getLevelDataPtr(lev, AmrOldTime);
     auto* ldataNew_p = getLevelDataPtr(lev, AmrNewTime);
+
 #ifdef AMREX_USE_OMP
 #pragma omp parallel if (Gpu::notInLaunchRegion())
 #endif
@@ -1412,75 +1413,36 @@ PeleLM::updateAdvAux(
     //}
     for (MFIter mfi(ldataNew_p->state, TilingIfNotGPU()); mfi.isValid();
          ++mfi) {
+
       Box const& bx = mfi.tilebox();
+
+#ifdef AMREX_USE_EB
+      auto const& flagfab = ebfact.getMultiEBCellFlagFab()[mfi];
+#endif
+
       auto const& old_arr = ldataOld_p->state.const_array(mfi, 0);
       auto const& new_arr = ldataNew_p->state.array(mfi, 0);
       auto const& a_of_s = advData->AofS[lev].const_array(mfi, 0);
-      //auto const& ext = m_extSource[lev]->const_array(mfi, 0);
-      //auto const& dn = diffData->Dn[lev].const_array(mfi, 0);
-      //auto const& dnp1 = diffData->Dnp1[lev].const_array(mfi, 0);
 
-      //amrex::Real Zox_lcl = Zox;
-      //amrex::Real Zfu_lcl = Zfu;
-      //amrex::GpuArray<amrex::Real, NUM_SPECIES> fact_Bilger;
-      //for (int n = 0; n < NUM_SPECIES; ++n) {
-      //  fact_Bilger[n] = spec_Bilger_fact[n];
-      //}
-      amrex::ParallelFor(
-        bx, [old_arr, new_arr, a_of_s,
-                    dt = m_dt]
-          AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-          // Advection for aux
-          for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
-            //new_arr(i, j, k, n) = new_arr(i, j, k, n) + dt * a_of_s(i, j, k, n);
-          }
-#if (NUMMIXF > 0)
-          //new_arr(i,j,k,MIXF+0) += dt * rhs_mixf;
+#ifdef AMREX_USER_EB
+      if (flagfab.getType(ebx) == FabType::covered) { // Covered boxes
+      } else if (flagfab.getType(ebx) != FabType::regular) {
+      } else // Regular boxes
 #endif
-#if (NUMMIXF > 1)
-          //new_arr(i,j,k,MIXF+1) -= dt * rhs_mixf;
-#endif
-#if (NUMAGE > 0)
-          //rhs_age = old_arr(i,j,k,AGE) / old_arr(i,j,k,MIXF);
-          //rhs_age *= rhs_mixf;
-          //rhs_age = 0.0;
-          //new_arr(i,j,k,AGE) += dt * rhs_age;
-  #if (NUMAGEPV > 0)
-          //new_arr(i,j,k,AGEPV) += dt * rhs_age;
-  #endif
-#endif
-#if (NUMAGE > 1)
-          //rhs_age = old_arr(i,j,k,AGE+1) / old_arr(i,j,k,MIXF+1);
-          //rhs_age *= -rhs_mixf;
-          //rhs_age = 0.0;
-          //new_arr(i,j,k,AGE+1) += dt * rhs_age;
-  #if (NUMAGEPV > 1)
-          //new_arr(i,j,k,AGEPV+1) += dt * rhs_age;
-  #endif
-#endif
-          // Reaction
-          //for (int n = 0; n < NUMAGE; n++) {
-          //  new_arr(i, j, k, AGE + n) = new_arr(i, j, k, AGE + n)
-          //    + dt * old_arr(i, j, k, MIXF + n);
-          //}
-#if (NUMAGEPV > 0)
-          //if (old_arr(i, j, k, TEMP) > 1750) {
-          //  for (int n = 0; n < NUMAGEPV; n++) {
-          //    new_arr(i, j, k, AGEPV + n) = new_arr(i, j, k, AGEPV + n)
-          //      + dt * old_arr(i, j, k, MIXF + n);
-          //  }
-          //}
-#endif
-        });
-      //amrex::ParallelFor(
-      //  bx, ncomp,
-      //  [old_arr, new_arr, a_of_s, ext,
-      //   dt = m_dt] AMREX_GPU_DEVICE(int i, int j, int k, int n) noexcept {
-      //    new_arr(i, j, k, n) =
-      //      old_arr(i, j, k, n) + dt * (a_of_s(i, j, k, n) + ext(i, j, k, n));
-      //  });
-    }
-  }
+      {
+        amrex::ParallelFor(
+          bx, [old_arr, new_arr, a_of_s,
+                    dt = m_dt] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+            // Advection for aux
+            for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
+              new_arr(i, j, k, n) = new_arr(i, j, k, n) + dt * a_of_s(i, j, k, n);
+            }
+          }); // for fab
+      } // if EB
+
+    } // for mfi
+  } // for lev
+
   averageDown(AmrNewTime, FIRSTAUX, NUMAUX);
 }
 #endif // updateAdvAux
