@@ -1429,7 +1429,7 @@ PeleLM::updateAdvAux(
 #ifdef AMREX_USE_EB
       if (flagfab.getType(bx) == FabType::covered) { // Covered boxes
         amrex::ParallelFor(bx,
-          [old_arr, new_arr, a_of_s, dt] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
+          [old_arr, new_arr, a_of_s, dt = m_dt] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
             for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
               new_arr(i, j, k, n) = new_arr(i, j, k, n) + dt * a_of_s(i, j, k, n);
             }
@@ -1438,7 +1438,7 @@ PeleLM::updateAdvAux(
                                                             // boxes
         //const auto& afrac = areafrac[idim]->array(mfi);
         amrex::ParallelFor(bx,
-          [old_arr, new_arr, a_of_s, dt] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
+          [old_arr, new_arr, a_of_s, dt = m_dt] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
             for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
               new_arr(i, j, k, n) = 0.0;
             }
