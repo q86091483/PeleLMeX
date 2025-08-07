@@ -1427,15 +1427,15 @@ PeleLM::updateAdvAux(
       auto const& a_of_s = advData->AofS[lev].const_array(mfi, 0);
 
 #ifdef AMREX_USE_EB
-      if (flagfab.getType(ebx) == FabType::covered) { // Covered boxes
+      if (flagfab.getType(bx) == FabType::covered) { // Covered boxes
         amrex::ParallelFor(bx,
           [old_arr, new_arr, a_of_s] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
             for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
               new_arr(i, j, k, n) = 0.0;
             }
           });
-      } else if (flagfab.getType(ebx) != FabType::regular) { // EB containning
-                                                             // boxes
+      } else if (flagfab.getType(bx) != FabType::regular) { // EB containing
+                                                            // boxes
         const auto& afrac = areafrac[idim]->array(mfi);
         amrex::ParallelFor(bx,
           [old_arr, new_arr, a_of_s] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
