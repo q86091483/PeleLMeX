@@ -1431,7 +1431,7 @@ PeleLM::updateAdvAux(
         amrex::ParallelFor(bx,
           [old_arr, new_arr, a_of_s, dt = m_dt] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
             for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
-              new_arr(i, j, k, n) = new_arr(i, j, k, n) + dt * a_of_s(i, j, k, n);
+              new_arr(i, j, k, n) = 0.0;
             }
           });
       } else if (flagfab.getType(bx) != FabType::regular) { // EB containing
@@ -1440,7 +1440,7 @@ PeleLM::updateAdvAux(
         amrex::ParallelFor(bx,
           [old_arr, new_arr, a_of_s, dt = m_dt] AMREX_GPU_DEVICE(int i, int j, int k) noexcept{
             for (int n = FIRSTAUX; n < FIRSTAUX + NUMAUX; n++) {
-              new_arr(i, j, k, n) = 0.0;
+              new_arr(i, j, k, n) = new_arr(i, j, k, n) + dt * a_of_s(i, j, k, n);
             }
           });
       } else // Regular boxes
