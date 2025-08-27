@@ -258,9 +258,8 @@ PeleLM::Advance(int is_initIter)
 
   // ZS
   bool is_imposed = false;
-  if (!is_imposed) {
-    // imposeHighT();
-    is_imposed = true;
+  if (is_imposed) {
+    imposeHighT();
   }
 
   //----------------------------------------------------------------

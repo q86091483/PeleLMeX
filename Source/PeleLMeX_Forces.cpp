@@ -222,6 +222,11 @@ void PeleLM::imposeHighT() {
     const amrex::Real* prob_hi = geomdata.ProbHi();
     const amrex::Real* dx = geomdata.CellSize();
 
+		const int nig = 1;
+    amrex::Vector<amrex::Real> xs = {4.5E-3, 9.0E-3, 9.0E-3, 11.25E-3, 11.25E-3, 13.5E-3, 13.5E-3};
+    amrex::Vector<amrex::Real> zs = {6.0E-4, 2.25E-3, 9.0E-3, 9.0E-4, 2.25E-3, 9.0E-4, 2.25E-3};
+		amrex::Real rad_T = 3.0E-4;
+
     for (MFIter mfi(ldata_p->state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
       auto const& state = ldata_p->state.array(mfi);
@@ -235,31 +240,62 @@ void PeleLM::imposeHighT() {
           amrex::Real Ly = prob_hi[1] - prob_lo[1];
           amrex::Real Lz = prob_hi[2] - prob_lo[2];
 
-          amrex::Real rad = std::sqrt(std::pow(x,2.0) + std::pow(z,2.0));
-          amrex::Real rad_T = 2.0E-4;
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+	#if (NUMMIXF > 0)
+					amrex::Real mixf_0 = state(i,j,k,MIXF) / state(i,j,k,DENSITY);
+	#endif
+	#if (NUMMIXF > 1)
+					amrex::Real mixf_1 = state(i,j,k,MIXF+1) / state(i,j,k,DENSITY);
+	#endif
+	#if (NUMAGE > 0)
+					amrex::Real age_0 = 0.0;
+					if ((state(i,j,k,MIXF) / state(i,j,k,DENSITY)) > 1E-4) 
+						age_0 = state(i,j,k,AGE) / state(i,j,k,MIXF);
+	#endif
+	#if (NUMAGE > 1)
+					amrex::Real age_1 = 0.0;
+					if ((state(i,j,k,MIXF+1) / state(i,j,k,DENSITY)) > 1E-4) 
+						age_1 = state(i,j,k,AGE+1) / state(i,j,k,MIXF+1);
+	#endif
+	#if (NUMAGEPV > 0)
+					amrex::Real agepv_0 = 0.0;
+					if ((state(i,j,k,MIXF) / state(i,j,k,DENSITY)) > 1E-4) 
+						agepv_0 = state(i,j,k,AGEPV) / state(i,j,k,MIXF);
+	#endif
+	#if (NUMAGEPV > 1)
+					amrex::Real agepv_1 = 0.0;
+					if ((state(i,j,k,MIXF+1) / state(i,j,k,DENSITY)) > 1E-4) 
+						agepv_1 = state(i,j,k,AGEPV+1) / state(i,j,k,MIXF+1);
+	#endif
+#endif
+
+          // Radius
+					amrex::Real rad = 0.0; 
+          amrex::Real radsq_min = 1E30;
+          amrex::Real radsq = 0.0;
+          for (int i = 0; i < nig; i++) {
+            radsq = pow(x-xs[i], 2.0) + pow(z-zs[i], 2.0);
+            radsq_min = std::min(radsq_min, radsq);
+          }
+          rad = sqrt(radsq_min);
+
 
           if (rad <= rad_T) {
+
             amrex::Real eta = 0.0;
-            eta = 0.5 * (1.0 - tanh((rad - rad_T) / (1E-4 / 4.0)));
+            eta = 0.5 * (1.0 - tanh((rad - rad_T) / (rad_T / 3.0)));
             
             amrex::Real massfrac[NUM_SPECIES] = {0.0};
             for (int n = 0; n < NUM_SPECIES; n++) {
               massfrac[n] = state(i,j,k,FIRSTSPEC+n) / state(i,j,k,DENSITY);
             }
-//            massfrac[H2_ID] = 6.86665300e-05;
-//            massfrac[O2_ID] = 6.65301167e-02;
-//            massfrac[H2O_ID] = 1.78018215e-01; 
-//            massfrac[H_ID] = 4.23935063e-06;
-//            massfrac[O_ID] = 2.75149017e-04;
-//            massfrac[OH_ID] = 3.49664589e-03;
-//            massfrac[HO2_ID] = 1.17798132e-05;
-//            massfrac[H2O2_ID] = 1.18889448e-06;
-//            massfrac[N2_ID] = 7.51593999e-01;
 
-            state(i,j,k,TEMP) = eta*2334 + (1-eta)*state(i,j,k,TEMP);
+            state(i,j,k,TEMP) = eta*1500 + (1-eta)*state(i,j,k,TEMP);
+
+		//amrex::AllPrint() << "eta: " << eta << ", TEMP: " << state(i,j,k,TEMP) <<std::endl;
             amrex::Real rho_cgs;
-           auto eos = pele::physics::PhysicsType::eos();
-            eos.PYT2R(101325*10.0*10.0, massfrac, state(i,j,k,TEMP), rho_cgs);
+           	auto eos = pele::physics::PhysicsType::eos();
+            eos.PYT2R(101325. * 4. * 10., massfrac, state(i,j,k,TEMP), rho_cgs);
             state(i,j,k,DENSITY) = rho_cgs * 1.0e3;
 
             amrex::Real RhoH_temp;
@@ -270,9 +306,30 @@ void PeleLM::imposeHighT() {
               state(i,j,k,FIRSTSPEC+n) = massfrac[n] * state(i,j,k,DENSITY);
             }
 
+#if (defined PELE_USE_AUX) && (NUMAUX > 0)
+	#if (NUMMIXF > 0)
+						state(i,j,k,MIXF) = mixf_0 * state(i,j,k,DENSITY);
+	#endif
+	#if (NUMMIXF > 1)
+						state(i,j,k,MIXF+1) = mixf_1 * state(i,j,k,DENSITY);
+	#endif
+	#if (NUMAGE > 0)
+						state(i,j,k,AGE) = age_0 * state(i,j,k,MIXF);
+	#endif
+	#if (NUMAGE > 1)
+						state(i,j,k,AGE+1) = age_1 * state(i,j,k,MIXF+1);
+	#endif
+	#if (NUMAGEPV > 0)
+						state(i,j,k,AGEPV) = agepv_0 * state(i,j,k,MIXF);
+	#endif
+	#if (NUMAGEPV > 1)
+						state(i,j,k,AGEPV+1) = agepv_1 * state(i,j,k,MIXF+1);
+	#endif
+#endif
+
           } // rad <= rad_T
 
-          } // lambda
+        } // lambda
       ); // ParallelFor
     } // mfi
   } // lev
