@@ -947,6 +947,14 @@ PeleLM::initLevelDataFromPlt(int a_lev, const std::string& a_dataPltFile)
 #ifdef PELE_USE_SOOT
   int inSoot = -1;
 #endif
+#if defined(PELE_USE_AUX) && (NUMAUX > 0)
+  int id_MIXF0 = -1;
+  int id_MIXF1 = -1;
+  int id_AGE0 = -1;
+  int id_AGE1 = -1;
+  int id_AGEPV0 = -1;
+  int id_AGEPV1 = -1;
+#endif
   for (int i = 0; i < plt_vars.size(); ++i) {
     std::string firstChars = plt_vars[i].substr(0, 2);
 
@@ -978,6 +986,26 @@ PeleLM::initLevelDataFromPlt(int a_lev, const std::string& a_dataPltFile)
 #ifdef PELE_USE_SOOT
     if (plt_vars[i] == "soot_N") {
       inSoot = i;
+    }
+#endif
+#if defined(PELE_USE_AUX) && (NUMAUX > 0)
+    if (plt_vars[i] == "mixture_fraction_userdef_0") {
+      id_MIXF0 = i;
+    }
+    if (plt_vars[i] == "mixture_fraction_userdef_1") {
+      id_MIXF1 = i;
+    }
+    if (plt_vars[i] == "age_0") {
+      id_AGE0 = i;
+    }
+    if (plt_vars[i] == "age_1") {
+      id_AGE1 = i;
+    }
+    if (plt_vars[i] == "agepv_0") {
+      id_AGEPV0 = i;
+    }
+    if (plt_vars[i] == "agepv_1") {
+      id_AGEPV1 = i;
     }
 #endif
   }
@@ -1078,6 +1106,51 @@ PeleLM::initLevelDataFromPlt(int a_lev, const std::string& a_dataPltFile)
       }
     }
   }
+#endif
+#if defined(PELE_USE_AUX) && (NUMAUX > 0)
+  #if defined(PELE_USE_MIXF) && (NUMMIXF > 0)
+    if (id_MIXF0 >= 0) {
+      pltData.fillPatchFromPlt(a_lev, geom[a_lev], id_MIXF0, MIXF, 1, ldata_p->state);
+    } else {
+      Abort("NUMMIXF > 0 but id_MIXF0 < 0.");
+    }
+  #endif
+  #if defined(PELE_USE_MIXF) && (NUMMIXF > 1)
+    if (id_MIXF1 >= 0) {
+      pltData.fillPatchFromPlt(a_lev, geom[a_lev], id_MIXF1, MIXF+1, 1, ldata_p->state);
+    } else {
+      Abort("NUMMIXF > 1 but id_MIXF1 < 0.");
+    }
+  #endif
+  #if defined(PELE_USE_AGE) && (NUMAGE > 0)
+    if (id_AGE0 >= 0) {
+      pltData.fillPatchFromPlt(a_lev, geom[a_lev], id_AGE0, AGE, 1, ldata_p->state);
+    } else {
+      Abort("NUMAGE > 0 but id_AGE0 < 0.");
+    }
+  #endif
+  #if defined(PELE_USE_AGE) && (NUMAGE > 1)
+    if (id_AGE1 >= 0) {
+      pltData.fillPatchFromPlt(a_lev, geom[a_lev], id_AGE1, AGE+1, 1, ldata_p->state);
+    } else {
+      Abort("NUMAGE > 1 but id_AGE1 < 0.");
+    }
+  #endif
+  #if defined(PELE_USE_AGEPV) && (NUMAGEPV > 0)
+    if (id_AGEPV0 >= 0) {
+      pltData.fillPatchFromPlt(a_lev, geom[a_lev], id_AGEPV0, AGEPV, 1, ldata_p->state);
+    } else {
+      Abort("NUMAGEPV > 0 but id_AGEPV0 < 0.");
+    }
+  #endif
+  #if defined(PELE_USE_AGEPV) && (NUMAGEPV > 1)
+    if (id_AGEPV1 >= 0) {
+      pltData.fillPatchFromPlt(a_lev, geom[a_lev], id_AGEPV1, AGEPV+1, 1, ldata_p->state);
+    } else {
+      Abort("NUMAGEPV > 1 but id_AGEPV1 < 0.");
+    }
+  #endif
+
 #endif
   // Pressure and pressure gradients to zero
   ldata_p->press.setVal(0.0);
